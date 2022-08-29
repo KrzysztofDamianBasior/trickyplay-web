@@ -1,12 +1,38 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { IoBulbOutline } from "react-icons/io5";
+import {
+  setDarkTheme,
+  setLightTheme,
+  toggleTheme,
+} from "../redux/slices/themeSlice";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import { RootState } from "../redux/store";
+
 type Props = {};
 
 const ToggleThemeSwitch = (props: Props) => {
+  const theme = useAppSelector((state: RootState) => state.appTheme.theme);
+  const [checked, setChecked] = useState<boolean>(
+    theme === "light" ? true : false
+  );
+
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    if (checked === true) {
+      dispatch(setLightTheme());
+    } else {
+      dispatch(setDarkTheme());
+    }
+  }, [checked]);
+
   return (
     <ToggleThemeSwitchContainer>
-      <input type="checkbox" />
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => setChecked((prev) => !prev)}
+      />
       <span>
         <IoBulbOutline className="icon" />
       </span>
