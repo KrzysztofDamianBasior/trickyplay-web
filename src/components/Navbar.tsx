@@ -64,10 +64,11 @@ export default Navbar;
 const NavbarHeader = styled.header`
   display: block;
   position: fixed;
+  z-index: 500;
   top: 0;
   left: 0;
   width: 100%;
-  height: 15vh;
+  height: 12vh;
 
   color: ${(props) => props.theme.primaryColor};
   -webkit-box-shadow: 0px 0px 55px 0px rgba(134, 102, 12, 1);

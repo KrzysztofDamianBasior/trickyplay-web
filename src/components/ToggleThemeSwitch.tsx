@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { IoBulbOutline } from "react-icons/io5";
-import {
-  setDarkTheme,
-  setLightTheme,
-  toggleTheme,
-} from "../redux/slices/themeSlice";
+import { setDarkTheme, setLightTheme } from "../redux/slices/themeSlice";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { RootState } from "../redux/store";
 
@@ -16,7 +12,6 @@ const ToggleThemeSwitch = (props: Props) => {
   const [checked, setChecked] = useState<boolean>(
     theme === "light" ? true : false
   );
-
   const dispatch = useAppDispatch();
   useEffect(() => {
     if (checked === true) {
@@ -24,7 +19,7 @@ const ToggleThemeSwitch = (props: Props) => {
     } else {
       dispatch(setDarkTheme());
     }
-  }, [checked]);
+  }, [checked, dispatch]);
 
   return (
     <ToggleThemeSwitchContainer>
