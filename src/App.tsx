@@ -3,6 +3,8 @@ import React, { Suspense, lazy } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import ErrorPage from "./pages/ErrorPage";
 import Loading from "./pages/Loading";
+import Home from "./pages/Home";
+import Games from "./pages/Games";
 
 import { useAppSelector } from "./hooks";
 import { RootState } from "./redux/store";
@@ -14,13 +16,6 @@ import GlobalStyles from "./styles/GlobalStyles";
 import { AnimatePresence } from "framer-motion";
 
 //lazy loading
-const Home = lazy(() => {
-  return Promise.all([
-    import("./pages/Home"),
-    new Promise((resolve) => setTimeout(resolve, 6000)),
-  ]).then(([moduleExports]) => moduleExports);
-});
-
 const TicTacToe = lazy(() => {
   return Promise.all([
     import("./pages/TicTacToe"),
@@ -38,14 +33,8 @@ function App() {
         <GlobalStyles />
         <AnimatePresence exitBeforeEnter>
           <Routes key={location.pathname} location={location}>
-            <Route
-              path="/"
-              element={
-                <Suspense fallback={<Loading />}>
-                  <Home />
-                </Suspense>
-              }
-            />
+            <Route path="/" element={<Home />} />
+            <Route path="/games" element={<Games />} />
             <Route
               path="/games/tic-tac-toe"
               element={

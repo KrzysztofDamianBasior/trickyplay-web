@@ -145,7 +145,7 @@ const StyledSwiper = styled(Swiper)`
 
 const SliderItem = styled(SwiperSlide)`
   color: white;
-  background-color: black;
+  background-color: ${(props) => props.theme.backgroundColor};
 
   width: 100%;
   height: 100%;
