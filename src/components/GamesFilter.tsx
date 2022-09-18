@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { GameObject, Genre } from "../pages/Games";
 import styled from "styled-components";
+import * as palette from "../styles/variables";
 
 type Props = {
   games: GameObject[];
@@ -8,6 +9,15 @@ type Props = {
   setFiltered: React.Dispatch<React.SetStateAction<GameObject[]>>;
   activeGenre: Genre;
 };
+
+const genres: Genre[] = [
+  "all",
+  "shooters",
+  "puzzles",
+  "mazes",
+  "memory-games",
+  "strategy",
+];
 
 const GamesFilter = ({
   setActiveGenre,
@@ -26,60 +36,23 @@ const GamesFilter = ({
 
   return (
     <GamesFilterContainer>
-      <GamesFilterButton
-        active={activeGenre === "all" ? "active" : "inactive"}
-        onClick={() => setActiveGenre("all")}
-        color="black"
-      >
-        <span> All</span>
-      </GamesFilterButton>
-      <GamesFilterButton
-        active={activeGenre === "shooters" ? "active" : "inactive"}
-        onClick={() => setActiveGenre("shooters")}
-        color="black"
-      >
-        <span>Shooters</span>
-      </GamesFilterButton>
-      <GamesFilterButton
-        active={activeGenre === "puzzles" ? "active" : "inactive"}
-        onClick={() => setActiveGenre("puzzles")}
-        color="black"
-      >
-        <span>Puzzles</span>
-      </GamesFilterButton>
-      <GamesFilterButton
-        active={activeGenre === "mazes" ? "active" : "inactive"}
-        onClick={() => setActiveGenre("mazes")}
-        color="black"
-      >
-        <span>Mazes</span>
-      </GamesFilterButton>
-      <GamesFilterButton
-        active={activeGenre === "memory-games" ? "active" : "inactive"}
-        onClick={() => setActiveGenre("memory-games")}
-        color="black"
-      >
-        <span>Memory Games</span>
-      </GamesFilterButton>
-      <GamesFilterButton
-        active={activeGenre === "strategy" ? "active" : "inactive"}
-        onClick={() => setActiveGenre("strategy")}
-        color="black"
-      >
-        <span>Strategy</span>
-      </GamesFilterButton>
+      {genres.map((genre) => (
+        <GamesFilterButton
+          key={"games-filter-" + genre}
+          active={activeGenre === genre ? "active" : "inactive"}
+          onClick={() => setActiveGenre(genre)}
+          color="black"
+        >
+          <span>{genre}</span>
+        </GamesFilterButton>
+      ))}
     </GamesFilterContainer>
   );
 };
 
 export default GamesFilter;
 
-interface GamesFilterButtonProps {
-  color: string;
-  active: string;
-}
-
-const GamesFilterContainer = styled.div`
+const GamesFilterContainer = styled.header`
   width: 80vw;
   height: 20vh;
   display: flex;
@@ -87,6 +60,11 @@ const GamesFilterContainer = styled.div`
   justify-content: space-evenly;
   align-items: center;
 `;
+
+interface GamesFilterButtonProps {
+  color: string;
+  active: string;
+}
 
 const GamesFilterButton = styled.button<GamesFilterButtonProps>`
   position: relative;
@@ -97,8 +75,7 @@ const GamesFilterButton = styled.button<GamesFilterButtonProps>`
 
   background: #000;
   text-transform: uppercase;
-
-  font-size: 20px;
+  font-size: ${palette.FONTSIZE_MEDIUM};
 
   text-align: center;
   letter-spacing: 0.1em;
@@ -134,7 +111,6 @@ const GamesFilterButton = styled.button<GamesFilterButtonProps>`
       width: 100%;
       height: 50%;
       background: rgba(255, 255, 255, 0.1);
-      z-index: 10;
     }
   }
   &:hover span {
@@ -147,29 +123,11 @@ const GamesFilterButton = styled.button<GamesFilterButtonProps>`
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-      45deg,
-      #c0392b,
-      #f39c12,
-      #f1c40f,
-      #2ecc71,
-      #3498db,
-      #2980b9,
-      #9b59b6,
-      #8e44ad,
-      #c0392b,
-      #f39c12,
-      #f1c40f,
-      #2ecc71,
-      #3498db,
-      #2980b9,
-      #9b59b6,
-      #8e44ad
-    );
+    background: ${palette.NEON_EFFECT_GRADIENT};
     background-size: 400%;
     opacity: ${(props) => (props.active === "active" ? 1 : 0)};
     transition: 2.5s;
-    animation: eff 20s linear infinite;
+    animation: games-filter-button__glowing-effect 20s linear infinite;
   }
 
   &:hover::before,
@@ -183,32 +141,14 @@ const GamesFilterButton = styled.button<GamesFilterButtonProps>`
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-      45deg,
-      #c0392b,
-      #f39c12,
-      #f1c40f,
-      #2ecc71,
-      #3498db,
-      #2980b9,
-      #9b59b6,
-      #8e44ad,
-      #c0392b,
-      #f39c12,
-      #f1c40f,
-      #2ecc71,
-      #3498db,
-      #2980b9,
-      #9b59b6,
-      #8e44ad
-    );
+    background: ${palette.NEON_EFFECT_GRADIENT};
     background-size: 400%;
     opacity: 0;
     filter: blur(20px);
     transition: 0.5s;
-    animation: eff 20s ease infinite;
+    animation: games-filter-button__glowing-effect 20s ease infinite;
   }
-  @keyframes eff {
+  @keyframes games-filter-button__glowing-effect {
     0% {
       background-position: 0 0;
     }
