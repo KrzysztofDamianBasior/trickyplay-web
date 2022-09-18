@@ -12,6 +12,10 @@ export default createGlobalStyle<{ theme: ThemeType }>`
     font-family: 'Raleway', sans-serif;
     font-weight: 300;
   }
+  
+  ::placeholder {
+      color: #0b1c2d;
+  }
 
   body {
     width: 100%;

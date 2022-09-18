@@ -4,12 +4,12 @@ import styled from "styled-components";
 import ToggleThemeSwitch from "./ToggleThemeSwitch";
 import { GoHome } from "react-icons/go";
 import { IoGameControllerOutline } from "react-icons/io5";
+import * as palette from "../styles/variables";
+import * as breakpoints from "../styles/breakpoints";
 
-type Props = {};
-
-const Navbar = (props: Props) => {
+const Navbar = () => {
   return (
-    <NavbarHeader>
+    <NavbarContainer>
       <nav>
         <div className="left-content">
           <div>
@@ -25,12 +25,6 @@ const Navbar = (props: Props) => {
             <span></span>
             <GoHome /> home
           </NavbarLink>
-          {/* <NavbarLink to="/">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>Profile
-          </NavbarLink> */}
           <NavbarLink to="/">
             <span></span>
             <span></span>
@@ -38,42 +32,32 @@ const Navbar = (props: Props) => {
             <span></span>
             <IoGameControllerOutline /> games
           </NavbarLink>
-          <div>
-            <span className="input">
-              <input type="text" placeholder="Find a game" />
-              <span></span>
-            </span>
-          </div>
+
+          <span className="find-game-input">
+            <input type="text" placeholder="Find a game" />
+            <span></span>
+          </span>
         </div>
 
-        <div className="right-content">
-          {/* <NavbarLink to="/">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            Login
-          </NavbarLink> */}
-        </div>
+        <div className="right-content"></div>
       </nav>
-    </NavbarHeader>
+    </NavbarContainer>
   );
 };
 export default Navbar;
 
-const NavbarHeader = styled.header`
+const NavbarContainer = styled.header`
   display: block;
   position: fixed;
   z-index: 500;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: 5%;
+  width: 90%;
   height: 12vh;
 
   color: ${(props) => props.theme.primaryColor};
-  -webkit-box-shadow: 0px 0px 55px 0px rgba(134, 102, 12, 1);
-  -moz-box-shadow: 0px 0px 55px 0px rgba(134, 102, 12, 1);
   box-shadow: 0px 0px 55px 0px rgba(134, 102, 12, 1);
+
   nav {
     display: flex;
     width: 100%;
@@ -81,9 +65,6 @@ const NavbarHeader = styled.header`
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    img {
-      height: 8vh;
-    }
     div {
       display: flex;
       flex-direction: row;
@@ -95,7 +76,7 @@ const NavbarHeader = styled.header`
       width: 10%;
     }
     .left-content {
-      margin: 2%;
+      margin: 5%;
       width: 10%;
     }
     .center-content {
@@ -103,23 +84,31 @@ const NavbarHeader = styled.header`
       align-items: center;
       justify-content: space-around;
       width: 40%;
+      margin: 10%;
     }
   }
 
-  ::placeholder {
-    color: #cbd0d5;
-  }
-  .input {
+  .find-game-input {
     position: relative;
     font-size: 1.5em;
     background: linear-gradient(21deg, #10abff, #1beabd);
-    padding: 3px;
-    display: inline-block;
+    padding: 1.5px;
+    margin: 0;
     border-radius: 9999em;
+    width: 150px;
+    @media (max-width: 900px) {
+      width: 100px;
+    }
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     *:not(span) {
       position: relative;
-      display: inherit;
+      /* display: inherit; */
+      display: block;
+      width: 100%;
       border-radius: inherit;
       margin: 0;
       border: none;
@@ -129,16 +118,16 @@ const NavbarHeader = styled.header`
 
       &:focus + span {
         opacity: 1;
-        transform: scale(1);
       }
     }
     span {
-      transform: scale(0.993, 0.94);
       transition: transform 0.5s, opacity 0.25s;
       opacity: 0;
       position: absolute;
       z-index: 0;
+      display: block;
       margin: 4px;
+      background-color: black;
       left: 0;
       top: 0;
       right: 0;
@@ -163,10 +152,10 @@ const NavbarLink = styled(Link)`
   text-transform: uppercase;
   letter-spacing: 2px;
   text-decoration: none;
-  font-size: 20px;
+  font-size: ${palette.FONTSIZE_LARGE};
+  width: 10vw;
 
   overflow: hidden;
-  transition: 0.2s;
 
   &:hover {
     color: #111;
