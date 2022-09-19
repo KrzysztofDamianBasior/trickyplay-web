@@ -29,7 +29,6 @@ export default GlowingBlock;
 
 const GlowingContainer = styled.div`
   position: relative;
-  margin: 10% auto 0;
   background: linear-gradient(0deg, black, grey);
 
   &::before,
