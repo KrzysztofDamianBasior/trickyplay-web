@@ -1,3 +1,6 @@
+/**
+ * Combinations of moves that result in victory
+ */
 export const combos: {
   [key: string]: number[][];
 } = {

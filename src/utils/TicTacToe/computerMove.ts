@@ -2,9 +2,15 @@ import { arrayIntersection } from "./arrayIntersection";
 import { combos } from "./combos";
 import { getRandomInt } from "./getRandomInt";
 
+/**
+ * Determines the computer move
+ * @param board game board
+ * @param side side on which human player plays
+ * @returns computer move coordinates or null when the board is full
+ */
 export const computerMove = (
   board: string[][],
-  side: string //side on which human player plays
+  side: string
 ): [number, number] | null => {
   if (board.every((row) => row.every((ele) => ele === "x" || ele === "o"))) {
     // no move when board is full
