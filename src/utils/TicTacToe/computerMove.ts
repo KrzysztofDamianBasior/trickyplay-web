@@ -10,7 +10,7 @@ import { getRandomInt } from "./getRandomInt";
  */
 export const computerMove = (
   board: string[][],
-  side: string
+  humanSide: string
 ): [number, number] | null => {
   if (board.every((row) => row.every((ele) => ele === "x" || ele === "o"))) {
     // no move when board is full
@@ -26,12 +26,13 @@ export const computerMove = (
   let computerPlayerPattern: number[] = [];
   let fieldsMissingHumanSideToWin: number[][] = [];
   let fieldsMissingComputerSideToWin: number[][] = [];
+  let computerSide = humanSide === "x" ? "o" : "x";
 
   board.forEach((row, rowIndex) =>
     row.forEach((element, columnIndex) => {
-      if (element === side) {
+      if (element === humanSide) {
         humanPlayerPattern.push((columnIndex % 3) + (rowIndex % 3) * 3);
-      } else {
+      } else if (element === computerSide) {
         computerPlayerPattern.push((columnIndex % 3) + (rowIndex % 3) * 3);
       }
     })
@@ -79,7 +80,9 @@ export const computerMove = (
   }
 
   // if human has two moves to win, check if field is empty
-  let twoHumanMovesToWin = oneHumanMoveToWin.filter((el) => el.length === 2);
+  let twoHumanMovesToWin = fieldsMissingHumanSideToWin.filter(
+    (el) => el.length === 2
+  );
   for (let el of twoHumanMovesToWin) {
     let { union, disunion } = arrayIntersection(el, computerPlayerPattern);
     if (disunion.length) {
