@@ -46,13 +46,16 @@ function ticTacToeReducer(
 ): TicTacToeState {
   switch (action.type) {
     case TicTacToeActionKind.NEW_MOVE:
+      let whoWin: string = "";
+      let copy = JSON.parse(JSON.stringify(state.board));
+      let whoseMoveNext: "x" | "o" = state.whoseMove === "x" ? "o" : "x";
+
       if (state.soloOrDuoMode === "solo") {
-        let copy = JSON.parse(JSON.stringify(state.board));
         copy[action.payload!.cellRowPosition!][
           action.payload!.cellColumnPosition!
         ] = state.side;
 
-        let whoWin = victoryStatus(copy);
+        whoWin = victoryStatus(copy);
         if (!whoWin) {
           let nextMove = computerMove(copy, state.side);
           let opponentAvatar = state.side === "x" ? "o" : "x";
@@ -62,38 +65,36 @@ function ticTacToeReducer(
           }
           whoWin = victoryStatus(copy);
         }
+        whoseMoveNext = state.side;
+      } else {
+        copy[action.payload!.cellRowPosition!][
+          action.payload!.cellColumnPosition!
+        ] = state.whoseMove;
+        whoWin = victoryStatus(copy);
+      }
 
-        if (whoWin === "o won") {
-          return {
-            ...state,
-            victoryStatus: "o won",
-            disabled: true,
-            points: { x: state.points.x, o: state.points.o + 1 },
-          };
-        } else if (whoWin === "x won") {
-          return {
-            ...state,
-            victoryStatus: "x won",
-            disabled: true,
-            points: { x: state.points.x + 1, o: state.points.o },
-          };
-        } else if (whoWin === "draw") {
-          return {
-            ...state,
-            victoryStatus: "draw",
-            disabled: true,
-          };
-        }
-
+      if (whoWin === "o won") {
         return {
           ...state,
-          board: copy,
+          victoryStatus: "o won",
+          disabled: true,
+          points: { x: state.points.x, o: state.points.o + 1 },
         };
-      } else {
-        let whoseMoveNext: "x" | "o" = state.whoseMove === "x" ? "o" : "x";
-
-        return { ...state };
+      } else if (whoWin === "x won") {
+        return {
+          ...state,
+          victoryStatus: "x won",
+          disabled: true,
+          points: { x: state.points.x + 1, o: state.points.o },
+        };
+      } else if (whoWin === "draw") {
+        return {
+          ...state,
+          victoryStatus: "draw",
+          disabled: true,
+        };
       }
+      return { ...state, board: copy, whoseMove: whoseMoveNext };
 
     case TicTacToeActionKind.RESET_BOARD:
       let newBoard = Array.from({ length: action.payload!.rowsNumber! }, (v) =>
@@ -188,22 +189,13 @@ const TicTacToe = () => {
                 : "two players"
             }
             optionLabels={["single player", "two players"]}
-            onClick={
-              (label) =>
-                setModalState((prev) => {
-                  return {
-                    ...prev,
-                    soloOrDuoMode: label === "single player" ? "solo" : "duo",
-                  };
-                })
-              // setModalState((prev) => {
-              //   let soloOrDuo: "solo" | "duo" =
-              //     prev.soloOrDuoMode === "solo" ? "duo" : "solo";
-              //   return {
-              //     ...prev,
-              //     soloOrDuoMode: soloOrDuo,
-              //   };
-              // })
+            onClick={(label) =>
+              setModalState((prev) => {
+                return {
+                  ...prev,
+                  soloOrDuoMode: label === "single player" ? "solo" : "duo",
+                };
+              })
             }
           />
           {modalState.soloOrDuoMode === "solo" && (
@@ -220,32 +212,11 @@ const TicTacToe = () => {
                 onClick={(label: string) => {
                   if (label === "x" || label === "o") {
                     setModalState((prev) => {
-                      console.log({ ...prev });
                       return { ...prev, side: label };
                     });
                   }
                 }}
               />
-              {/* <NeonButton
-                // active={modalState.side === "x"}
-                onClick={() =>
-                  setModalState((prev) => {
-                    return { ...prev, x: "x" };
-                  })
-                }
-              >
-                X
-              </NeonButton>
-              <NeonButton
-                // active={modalState.side === "o"}
-                onClick={() =>
-                  setModalState((prev) => {
-                    return { ...prev, x: "o" };
-                  })
-                }
-              >
-                O
-              </NeonButton> */}
             </div>
           )}
         </Modal>
@@ -256,7 +227,6 @@ const TicTacToe = () => {
           <article>
             <section>
               <NeonButton
-                // active={false}
                 onClick={() =>
                   setModalState((prev) => {
                     return { ...prev, opened: true };
