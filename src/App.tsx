@@ -1,12 +1,12 @@
 import React, { Suspense, lazy } from "react";
 
 import { Routes, Route, useLocation } from "react-router-dom";
-import ErrorPage from "./pages/ErrorPage";
+import ErrorPage from "./pages/Error";
 import Loading from "./pages/Loading";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
 
-import { useAppSelector } from "./hooks";
+import { useAppSelector } from "./shared/hooks";
 import { RootState } from "./redux/store";
 
 import { ThemeProvider } from "styled-components";
@@ -31,7 +31,7 @@ function App() {
     <div className="app">
       <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
         <GlobalStyles />
-        <AnimatePresence exitBeforeEnter>
+        <AnimatePresence mode="wait">
           <Routes key={location.pathname} location={location}>
             <Route path="/" element={<Home />} />
             <Route path="/games" element={<Games />} />

@@ -2,8 +2,10 @@ export interface ThemeType {
   backgroundColor: string;
   primaryColor: string;
   secondaryColor: string;
-  scrollbar: string;
   tertiaryColor: string;
+  quaternaryColor: string;
+  quinaryColor: string;
+  scrollbarThumbColor: string;
 }
 
 export const lightTheme: ThemeType = {
@@ -11,7 +13,9 @@ export const lightTheme: ThemeType = {
   primaryColor: "#000",
   secondaryColor: "#000",
   tertiaryColor: "#d400d4",
-  scrollbar: `-webkit-gradient(linear,
+  quaternaryColor: "#d400d4",
+  quinaryColor: "#d400d4",
+  scrollbarThumbColor: `-webkit-gradient(linear,
     left bottom,
     left top,
     color-stop(0.44, rgb(122,153,217)),
@@ -24,7 +28,9 @@ export const darkTheme: ThemeType = {
   primaryColor: "#21ebff",
   secondaryColor: "#fff",
   tertiaryColor: "#d400d4",
-  scrollbar: `-webkit-gradient(linear,
+  quaternaryColor: "#d400d4",
+  quinaryColor: "#d400d4",
+  scrollbarThumbColor: `-webkit-gradient(linear,
     40% 0%,
     75% 84%,
     from(#4D9C41),
