@@ -11,13 +11,13 @@ type Props = {
 
 const TicTacToeGameBoard = ({ disabled, info, board, onMove }: Props) => {
   return (
-    <GameWrapper width="70vmin" height="70vmin">
-      {disabled && (
-        <TicTacToeInfo>
-          <div>{info}</div>
-        </TicTacToeInfo>
-      )}
+    <GameWrapper>
       <TicTacToeBoard>
+        {disabled && (
+          <TicTacToeInfo>
+            <div>{info}</div>
+          </TicTacToeInfo>
+        )}
         {Array.from({ length: board.length }).map((irrelevant, rowIndex) => (
           <TicTacToeRow key={"tic-tac-toe-board" + rowIndex.toString()}>
             {Array.from({ length: board[rowIndex].length }).map(
@@ -83,8 +83,10 @@ const TicTacToeBoard = styled.div`
   align-items: stretch;
   background-color: black;
   font-size: 2rem;
-  width: 100%;
-  height: 100%;
+  width: 70vmin;
+  height: 70vmin;
+  /* width: 100%;
+  height: 100%; */
 `;
 
 const TicTacToeRow = styled.div`

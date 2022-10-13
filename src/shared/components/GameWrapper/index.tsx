@@ -1,33 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 
-type Props = {
-  width: string | number;
-  height: string | number;
-  children: React.ReactNode;
-};
-
-//<GlowingBlock width="300px" height="200px">
-//Hey Hey
-//</GlowingBlock>
-
-const GameWrapper = (props: Props) => {
-  return (
-    <GlowingContainer>
-      <div
-        style={{
-          width: props.width,
-          height: props.height,
-        }}
-      >
-        {props.children}
-      </div>
-    </GlowingContainer>
-  );
-};
-export default GameWrapper;
-
-const GlowingContainer = styled.div`
+const GameWrapper = styled.div`
   position: relative;
   background: linear-gradient(0deg, black, grey);
 
@@ -62,3 +36,4 @@ const GlowingContainer = styled.div`
     }
   }
 `;
+export default GameWrapper;
