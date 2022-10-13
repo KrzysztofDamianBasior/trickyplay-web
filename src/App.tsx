@@ -23,6 +23,13 @@ const TicTacToe = lazy(() => {
   ]).then(([moduleExports]) => moduleExports);
 });
 
+const Snake = lazy(() => {
+  return Promise.all([
+    import("./pages/Snake"),
+    new Promise((resolve) => setTimeout(resolve, 6000)),
+  ]).then(([moduleExports]) => moduleExports);
+});
+
 function App() {
   const location = useLocation();
   const theme = useAppSelector((state: RootState) => state.appTheme.theme);
@@ -40,6 +47,14 @@ function App() {
               element={
                 <Suspense fallback={<Loading />}>
                   <TicTacToe />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/games/snake"
+              element={
+                <Suspense fallback={<Loading />}>
+                  <Snake />
                 </Suspense>
               }
             />
