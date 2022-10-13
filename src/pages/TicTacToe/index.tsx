@@ -7,7 +7,7 @@ import Navbar from "../../shared/components/Navbar";
 import Modal from "../../shared/components/Modal";
 
 import NeonButton from "../../shared/components/ActionButton";
-import ToggleSwitch from "../../shared/components/StatefulButton";
+import StatefulButton from "../../shared/components/StatefulButton";
 import TicTacToeGameBoard from "./components/GameBoard";
 
 import { computerMove } from "./utils/computerMove";
@@ -184,22 +184,30 @@ const TicTacToe = () => {
             });
           }}
         >
-          <ToggleSwitch
-            defaultOption={
-              modalState.soloOrDuoMode === "solo"
-                ? "single player"
-                : "two players"
-            }
-            optionLabels={["single player", "two players"]}
-            onClick={(label) =>
-              setModalState((prev) => {
-                return {
-                  ...prev,
-                  soloOrDuoMode: label === "single player" ? "solo" : "duo",
-                };
-              })
-            }
-          />
+          <ToggleSwitchContainer>
+            {["single player", "two players"].map((label) => (
+              <StatefulButton
+                active={
+                  modalState.soloOrDuoMode === "solo" &&
+                  label === "single player"
+                    ? true
+                    : false
+                }
+                onClick={() =>
+                  setModalState((prev) => {
+                    return {
+                      ...prev,
+                      soloOrDuoMode: label === "single player" ? "solo" : "duo",
+                    };
+                  })
+                }
+                key={label}
+              >
+                {label}
+              </StatefulButton>
+            ))}
+          </ToggleSwitchContainer>
+
           {modalState.soloOrDuoMode === "solo" && (
             <div
               style={{
@@ -208,17 +216,24 @@ const TicTacToe = () => {
               }}
             >
               <div>Choose a side:</div>
-              <ToggleSwitch
-                defaultOption={modalState.side}
-                optionLabels={["x", "o"]}
-                onClick={(label: string) => {
-                  if (label === "x" || label === "o") {
-                    setModalState((prev) => {
-                      return { ...prev, side: label };
-                    });
-                  }
-                }}
-              />
+
+              <ToggleSwitchContainer>
+                {["x", "o"].map((label) => (
+                  <StatefulButton
+                    active={label === modalState.side ? true : false}
+                    onClick={() => {
+                      if (label === "x" || label === "o") {
+                        setModalState((prev) => {
+                          return { ...prev, side: label };
+                        });
+                      }
+                    }}
+                    key={label}
+                  >
+                    {label}
+                  </StatefulButton>
+                ))}
+              </ToggleSwitchContainer>
             </div>
           )}
         </Modal>
@@ -275,6 +290,13 @@ const TicTacToe = () => {
 };
 
 export default TicTacToe;
+
+const ToggleSwitchContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+`;
 
 const TicTacToeContainer = styled.div`
   width: 80vw;

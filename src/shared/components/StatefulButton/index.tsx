@@ -1,41 +1,11 @@
 import React from "react";
 import styled from "styled-components";
 
-type Props = {
-  onClick: (label: string) => void;
-  defaultOption: string;
-  optionLabels: string[];
-};
-
-const ToggleSwitch = ({ optionLabels, defaultOption, onClick }: Props) => {
-  return (
-    <ToggleSwitchContainer>
-      {optionLabels.map((label) => (
-        <OptionButton
-          active={label === defaultOption}
-          onClick={() => onClick(label)}
-          key={label}
-        >
-          {label}
-        </OptionButton>
-      ))}
-    </ToggleSwitchContainer>
-  );
-};
-export default ToggleSwitch;
-
-const ToggleSwitchContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-around;
-`;
-
 type OptionButtonProps = {
   active: boolean;
 };
 
-const OptionButton = styled.button<OptionButtonProps>`
+const StatefulButton = styled.button<OptionButtonProps>`
   width: 10vw;
   height: 5vh;
 
@@ -71,3 +41,4 @@ const OptionButton = styled.button<OptionButtonProps>`
     left: 100%;
   }
 `;
+export default StatefulButton;
