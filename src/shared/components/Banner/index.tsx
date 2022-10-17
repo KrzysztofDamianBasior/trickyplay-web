@@ -25,20 +25,12 @@ const NeonTextEffect = styled.div`
   display: inline-flex;
   filter: brightness(200%);
   overflow: hidden;
-  clip-path: polygon(
-    20% 0%,
-    80% 0%,
-    100% 20%,
-    100% 80%,
-    80% 100%,
-    20% 100%,
-    0% 80%,
-    0% 20%
-  );
 
   .neon-text-effect__text {
     color: #ffffff;
     background: #000000;
+    text-align: center;
+
     font-size: ${palette.FONTSIZE_EXTRA_LARGE};
     &::before {
       content: attr(data-neon-text-effect);

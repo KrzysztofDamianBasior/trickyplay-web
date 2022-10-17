@@ -85,8 +85,6 @@ const TicTacToeBoard = styled.div`
   font-size: 2rem;
   width: 70vmin;
   height: 70vmin;
-  /* width: 100%;
-  height: 100%; */
 `;
 
 const TicTacToeRow = styled.div`
@@ -97,11 +95,7 @@ const TicTacToeRow = styled.div`
   align-items: stretch;
 `;
 
-type TicTacToeCellProps = {
-  disabled: boolean;
-};
-
-const TicTacToeCell = styled.div<TicTacToeCellProps>`
+const TicTacToeCell = styled.div<{ disabled: boolean }>`
   width: 100%;
   display: flex;
   align-items: center;
