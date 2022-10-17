@@ -11,18 +11,22 @@ import PointApple from "./assets/apple1.png";
 import AnimatedPage from "../../shared/components/AnimatedPage";
 import Navbar from "../../shared/components/Navbar";
 import Modal from "../../shared/components/Modal";
+import Banner from "../../shared/components/Banner";
 import StatefulButton from "../../shared/components/StatefulButton";
+import GameWrapper from "../../shared/components/GameWrapper";
+import ActionButton from "../../shared/components/ActionButton";
 
 const SCALE = 30;
 
 const Snake = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const gameWrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasSize = useResponsiveCanvasSize(70);
   const [snakeGameState, dispatchSnakeGameState] = useReducer(snakeReducer, {
     direction: { x: 0, y: -1 },
     snake: [
-      [1, 1],
-      [1, 2],
+      [3, 8],
+      [3, 9],
     ],
     difficultyLevel: "easy",
     disabled: true,
@@ -86,76 +90,107 @@ const Snake = () => {
   ]);
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
-      <div>Opcje: poziom trudności Zdobyte punkty Rekord zdobytych punktów</div>
-      <button
-        onClick={() =>
-          dispatchSnakeGameState({
-            type: SnakeActionKind.START_GAME,
-            payload: {
-              numberOfInversionApples: 2,
-              numberOfPointApples: 4,
-              snakeInitialPosition: [
-                [3, 8],
-                [3, 9],
-              ],
-              direction: { x: 0, y: -1 },
-              canvasSize: [canvasSize.x, canvasSize.y],
-            },
-          })
-        }
-      >
-        Start a game
-      </button>
+    <AnimatedPage>
+      <Navbar />
 
-      <div
-        tabIndex={0}
-        onKeyDown={(e) => {
-          console.log("he");
-          dispatchSnakeGameState({
-            type: SnakeActionKind.CHANGE_DIRECTION,
-            payload: { keyboardEvent: e },
-          });
-        }}
-      >
-        <img
-          id="point-apple"
-          src={PointApple}
-          alt="point apple"
-          style={{ display: "none" }}
-        />
-        <img
-          id="inversion-apple"
-          src={InversionApple}
-          alt="inversion apple"
-          style={{ display: "none" }}
-        />
-        <canvas
-          style={{ border: "1px solid #c3c3c3" }}
-          ref={canvasRef}
-          width={`${canvasSize.x}px`}
-          height={`${canvasSize.y}px`}
-        />
-        {/* {snakeGameState.disabled && <div>Game Over</div>} */}
-      </div>
-    </div>
+      <SnakeContainer>
+        <SnakeControls>
+          <Banner text="Snake" />
+          <article>
+            <section>
+              <ActionButton
+                onClick={() => {
+                  gameWrapperRef.current?.focus();
+                  dispatchSnakeGameState({
+                    type: SnakeActionKind.START_GAME,
+                    payload: {
+                      numberOfInversionApples: 2,
+                      numberOfPointApples: 4,
+                      snakeInitialPosition: [
+                        [3, 8],
+                        [3, 9],
+                      ],
+                      direction: { x: 0, y: -1 },
+                      canvasSize: [canvasSize.x, canvasSize.y],
+                    },
+                  });
+                }}
+              >
+                Start a new game
+              </ActionButton>
+            </section>
+            <section>points:</section>
+            <section>max-score:</section>
+          </article>
+        </SnakeControls>
+
+        <SnakeBoard>
+          <GameWrapper
+            tabIndex={0}
+            ref={gameWrapperRef}
+            onKeyDown={(e) => {
+              dispatchSnakeGameState({
+                type: SnakeActionKind.CHANGE_DIRECTION,
+                payload: { keyboardEvent: e },
+              });
+            }}
+          >
+            <img
+              id="point-apple"
+              src={PointApple}
+              alt="point apple"
+              style={{ display: "none" }}
+            />
+            <img
+              id="inversion-apple"
+              src={InversionApple}
+              alt="inversion apple"
+              style={{ display: "none" }}
+            />
+            <canvas
+              style={{
+                background: "black",
+              }}
+              ref={canvasRef}
+              width={`${canvasSize.x}px`}
+              height={`${canvasSize.y}px`}
+            />
+            {/* {snakeGameState.disabled && <div>Game Over</div>} */}
+          </GameWrapper>
+        </SnakeBoard>
+      </SnakeContainer>
+    </AnimatedPage>
   );
 };
 export default Snake;
 
-// AnimatedPage
-// Navbar
-// { modalState.opened && (
-//    <Modal title closeModal onConfirm
-//      <ToggleSwitch defaultOption optionLabels onClick
-// }
-
-// Container
-// <Controls>
-// <Banner text="" />
-//  article
-// <NeonButton> Start a new game </NeonButton>
-// Points
+const SnakeContainer = styled.div`
+  width: 80vw;
+  height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: row;
+  margin-top: 18vh;
+`;
+const SnakeControls = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 80vh;
+  article {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    height: 50vh;
+    section {
+      width: 100%;
+    }
+  }
+`;
+const SnakeBoard = styled.div``;
 
 enum SnakeActionKind {
   START_GAME = "start-game",

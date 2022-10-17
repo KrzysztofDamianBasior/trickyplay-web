@@ -5,6 +5,15 @@ const GameWrapper = styled.div`
   position: relative;
   background: linear-gradient(0deg, black, grey);
 
+  width: fit-content;
+  /* width: auto;
+  min-width: min-content;
+  max-width: max-content; */
+
+  :focus {
+    outline: none;
+  }
+
   &::before,
   &::after {
     content: "";
