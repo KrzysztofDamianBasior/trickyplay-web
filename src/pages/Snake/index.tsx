@@ -24,10 +24,7 @@ const Snake = () => {
   const canvasSize = useResponsiveCanvasSize(70);
   const [snakeGameState, dispatchSnakeGameState] = useReducer(snakeReducer, {
     direction: { x: 0, y: -1 },
-    snake: [
-      [3, 8],
-      [3, 9],
-    ],
+    snake: [],
     difficultyLevel: "easy",
     disabled: true,
     inversionApples: [],
@@ -92,35 +89,76 @@ const Snake = () => {
   return (
     <AnimatedPage>
       <Navbar />
-
+      {modalState.opened && (
+        <Modal
+          title="Start A New Game"
+          closeModal={() => {
+            setModalState((prev) => {
+              return { ...prev, opened: false };
+            });
+          }}
+          onConfirm={() => {
+            dispatchSnakeGameState({
+              type: SnakeActionKind.START_GAME,
+              payload: {
+                numberOfInversionApples: 2,
+                numberOfPointApples: 4,
+                snakeInitialPosition: [
+                  [3, 8],
+                  [3, 9],
+                ],
+                direction: { x: 0, y: -1 },
+                canvasSize: [canvasSize.x, canvasSize.y],
+                difficultyLevel: modalState.difficultyLevel,
+              },
+            });
+            gameWrapperRef.current?.focus();
+          }}
+        >
+          difficultyLevel:
+          <ToggleSwitchContainer>
+            {["easy", "medium", "hard"].map((label) => (
+              <StatefulButton
+                active={modalState.difficultyLevel === label ? true : false}
+                onClick={() => {
+                  if (
+                    label === "easy" ||
+                    label === "medium" ||
+                    label === "hard"
+                  ) {
+                    setModalState((prev) => {
+                      return {
+                        ...prev,
+                        difficultyLevel: label,
+                      };
+                    });
+                  }
+                }}
+                key={label}
+              >
+                {label}
+              </StatefulButton>
+            ))}
+          </ToggleSwitchContainer>
+        </Modal>
+      )}
       <SnakeContainer>
         <SnakeControls>
           <Banner text="Snake" />
           <article>
             <section>
               <ActionButton
-                onClick={() => {
-                  gameWrapperRef.current?.focus();
-                  dispatchSnakeGameState({
-                    type: SnakeActionKind.START_GAME,
-                    payload: {
-                      numberOfInversionApples: 2,
-                      numberOfPointApples: 4,
-                      snakeInitialPosition: [
-                        [3, 8],
-                        [3, 9],
-                      ],
-                      direction: { x: 0, y: -1 },
-                      canvasSize: [canvasSize.x, canvasSize.y],
-                    },
-                  });
-                }}
+                onClick={() =>
+                  setModalState((prev) => {
+                    return { ...prev, opened: true };
+                  })
+                }
               >
                 Start a new game
               </ActionButton>
             </section>
-            <section>points:</section>
-            <section>max-score:</section>
+            <section>points: {snakeGameState.score}</section>
+            <section>max-score: {snakeGameState.score}</section>
           </article>
         </SnakeControls>
 
@@ -163,6 +201,13 @@ const Snake = () => {
   );
 };
 export default Snake;
+
+const ToggleSwitchContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+`;
 
 const SnakeContainer = styled.div`
   width: 80vw;
@@ -208,6 +253,7 @@ interface SnakeAction {
     direction?: { x: number; y: number };
     keyboardEvent?: React.KeyboardEvent<HTMLDivElement>;
     canvasSize?: [number, number];
+    difficultyLevel?: "easy" | "medium" | "hard";
   };
 }
 
@@ -265,7 +311,11 @@ function snakeReducer(state: SnakeState, action: SnakeAction): SnakeState {
         snake: action.payload?.snakeInitialPosition!,
         pointApples,
         inversionApples,
-        speed: state.speed === null ? findSpeed(state.difficultyLevel) : null,
+        speed:
+          state.speed === null
+            ? findSpeed(action.payload!.difficultyLevel!)
+            : null,
+        difficultyLevel: action.payload!.difficultyLevel!,
         direction: action.payload?.direction!,
       };
 
@@ -309,11 +359,6 @@ function snakeReducer(state: SnakeState, action: SnakeAction): SnakeState {
       let speed = state.speed;
       let disabled = false;
 
-      if (checkCollision(snakeCopy, action.payload?.canvasSize!)) {
-        speed = null;
-        disabled = true;
-        snakeCopy = [];
-      }
       let score = state.score;
       let newPointApples = checkPointsApples(
         snakeCopy,
@@ -332,13 +377,25 @@ function snakeReducer(state: SnakeState, action: SnakeAction): SnakeState {
       } else {
         snakeCopy.pop();
       }
-
       if (newInversionApples) {
         snakeCopy.reverse();
         direction = {
           x: snakeCopy[0][0] - snakeCopy[1][0],
           y: snakeCopy[0][1] - snakeCopy[1][1],
         };
+      }
+      newPointApples =
+        newPointApples != null ? newPointApples : state.pointApples;
+
+      newInversionApples =
+        newInversionApples != null ? newInversionApples : state.inversionApples;
+
+      if (checkCollision(snakeCopy, action.payload?.canvasSize!)) {
+        speed = null;
+        disabled = true;
+        snakeCopy = [];
+        newInversionApples = [];
+        newPointApples = [];
       }
       return {
         ...state,
@@ -347,12 +404,8 @@ function snakeReducer(state: SnakeState, action: SnakeAction): SnakeState {
         disabled,
         direction,
         score,
-        pointApples:
-          newPointApples != null ? newPointApples : state.pointApples,
-        inversionApples:
-          newInversionApples != null
-            ? newInversionApples
-            : state.inversionApples,
+        pointApples: newPointApples,
+        inversionApples: newInversionApples,
       };
 
     default:
