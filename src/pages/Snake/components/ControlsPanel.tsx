@@ -1,14 +1,24 @@
 import React from "react";
 import styled from "styled-components";
 import ActionButton from "../../../shared/components/ActionButton";
+import StatefulButton from "../../../shared/components/StatefulButton";
 import Banner from "../../../shared/components/Banner";
 
 type Props = {
   score: number;
   openModal: () => void;
+  pause: boolean;
+  setPause: () => void;
+  disabled: boolean;
 };
 
-const ControlsPanel = ({ score, openModal }: Props) => {
+const ControlsPanel = ({
+  score,
+  openModal,
+  pause,
+  setPause,
+  disabled,
+}: Props) => {
   return (
     <SnakeControls>
       <Banner text="Snake" />
@@ -19,7 +29,16 @@ const ControlsPanel = ({ score, openModal }: Props) => {
           </ActionButton>
         </section>
         <section>points: {score}</section>
-        <section>max-score: </section>
+        <section>
+          <StatefulButton
+            active={pause && !disabled}
+            onClick={() => {
+              if (!disabled) setPause();
+            }}
+          >
+            Pause
+          </StatefulButton>
+        </section>
       </article>
     </SnakeControls>
   );
@@ -41,6 +60,11 @@ const SnakeControls = styled.div`
     height: 50vh;
     section {
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
     }
   }
 `;

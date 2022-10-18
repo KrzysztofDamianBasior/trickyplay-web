@@ -128,6 +128,14 @@ const Snake = () => {
               return { ...prev, opened: true };
             })
           }
+          pause={snakeGameState.speed === null ? true : false}
+          disabled={snakeGameState.disabled}
+          setPause={() => {
+            dispatchSnakeGameState({
+              type: SnakeActionKind.PAUSE,
+            });
+            gameWrapperRef.current?.focus();
+          }}
           score={snakeGameState.score}
         />
         <GameBoard

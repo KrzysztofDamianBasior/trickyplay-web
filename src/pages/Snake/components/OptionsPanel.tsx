@@ -17,34 +17,62 @@ type Props = {
 
 const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
   return (
-    <>
-      difficultyLevel:
-      <ToggleSwitchContainer>
-        {["easy", "medium", "hard"].map((label) => (
-          <StatefulButton
-            active={optionsState.difficultyLevel === label ? true : false}
-            onClick={() => {
-              if (label === "easy" || label === "medium" || label === "hard") {
-                setOptionsState((prev) => {
-                  return {
-                    ...prev,
-                    difficultyLevel: label,
-                  };
-                });
-              }
-            }}
-            key={label}
-          >
-            {label}
-          </StatefulButton>
-        ))}
-      </ToggleSwitchContainer>
-    </>
+    <OptionsPanelContainer>
+      <OptionContainer>
+        <label>difficulty level:</label>
+        <ToggleSwitchContainer>
+          {["easy", "medium", "hard"].map((label) => (
+            <StatefulButton
+              active={optionsState.difficultyLevel === label ? true : false}
+              onClick={() => {
+                if (
+                  label === "easy" ||
+                  label === "medium" ||
+                  label === "hard"
+                ) {
+                  setOptionsState((prev) => {
+                    return {
+                      ...prev,
+                      difficultyLevel: label,
+                    };
+                  });
+                }
+              }}
+              key={label}
+            >
+              {label}
+            </StatefulButton>
+          ))}
+        </ToggleSwitchContainer>
+      </OptionContainer>
+    </OptionsPanelContainer>
   );
 };
 export default OptionsPanel;
 
+const OptionsPanelContainer = styled.div`
+  width: 30vw;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+const OptionContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 2%;
+  label {
+    margin-right: 20px;
+  }
+`;
+
 const ToggleSwitchContainer = styled.div`
+  align-self: flex-end;
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
