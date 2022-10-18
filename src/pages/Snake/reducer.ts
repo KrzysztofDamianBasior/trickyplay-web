@@ -43,142 +43,124 @@ export function snakeReducer(
   state: SnakeState,
   action: SnakeAction
 ): SnakeState {
-  let direction = state.direction;
+  let newState: SnakeState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
     case SnakeActionKind.START_GAME:
-      let pointApples: [number, number][] = [];
-      let inversionApples: [number, number][] = [];
+      newState.pointApples = [];
+      newState.inversionApples = [];
 
       for (let i = 0; i < action.payload!.numberOfPointApples!; i++) {
-        pointApples.push(
+        newState.pointApples.push(
           drawApplePosition(
             action.payload?.snakeInitialPosition!,
-            pointApples,
+            newState.pointApples,
             action.payload?.canvasSize!,
             state.scale
           )
         );
       }
       for (let i = 0; i < action.payload!.numberOfInversionApples!; i++) {
-        inversionApples.push(
+        newState.inversionApples.push(
           drawApplePosition(
             action.payload?.snakeInitialPosition!,
-            [...pointApples, ...inversionApples],
+            [...newState.pointApples, ...newState.inversionApples],
             action.payload?.canvasSize!,
             state.scale
           )
         );
       }
-      return {
-        ...state,
-        disabled: false,
-        score: 0,
-        snake: action.payload?.snakeInitialPosition!,
-        pointApples,
-        inversionApples,
-        speed:
-          state.speed === null
-            ? findSpeed(action.payload!.difficultyLevel!)
-            : null,
-        difficultyLevel: action.payload!.difficultyLevel!,
-        direction: action.payload?.direction!,
-        info: "",
-      };
+
+      newState.disabled = false;
+      newState.score = 0;
+      newState.snake = action.payload?.snakeInitialPosition!;
+      newState.speed = findSpeed(action.payload!.difficultyLevel!);
+      newState.difficultyLevel = action.payload!.difficultyLevel!;
+      newState.direction = action.payload?.direction!;
+      newState.info = "";
+      return { ...newState };
 
     case SnakeActionKind.CHANGE_DIRECTION:
       switch (action.payload!.keyboardEvent!.key) {
         case "ArrowUp":
           if (state.direction.y !== 0) break;
           if (state.snake[0][1] - state.snake[1][1] > 0) break;
-          direction = { x: 0, y: -1 };
+          newState.direction = { x: 0, y: -1 };
           break;
         case "ArrowDown":
           if (state.direction.y !== 0) break;
           if (state.snake[0][1] - state.snake[1][1] < 0) break;
-          direction = { x: 0, y: 1 };
+          newState.direction = { x: 0, y: 1 };
           break;
         case "ArrowLeft":
           if (state.direction.x !== 0) break;
           if (state.snake[0][0] - state.snake[1][0] > 0) break;
-          direction = { x: -1, y: 0 };
+          newState.direction = { x: -1, y: 0 };
           break;
         case "ArrowRight":
           if (state.direction.x !== 0) break;
           if (state.snake[0][0] - state.snake[1][0] < 0) break;
-          direction = { x: 1, y: 0 };
+          newState.direction = { x: 1, y: 0 };
           break;
       }
-      return { ...state, direction };
+      return { ...newState };
 
     case SnakeActionKind.PAUSE:
-      let newSpeed: null | number =
+      newState.speed =
         state.speed === null ? findSpeed(state.difficultyLevel) : null;
-      return { ...state, speed: newSpeed };
+      return { ...newState };
 
     case SnakeActionKind.MOVE:
-      let snakeCopy = JSON.parse(JSON.stringify(state.snake));
       let newSnakeHead = [
-        snakeCopy[0][0] + state.direction.x,
-        snakeCopy[0][1] + state.direction.y,
+        newState.snake[0][0] + state.direction.x,
+        newState.snake[0][1] + state.direction.y,
       ];
-      snakeCopy.unshift(newSnakeHead);
-      let speed = state.speed;
-      let disabled = false;
+      newState.snake.unshift(newSnakeHead);
 
-      let score = state.score;
       let newPointApples = checkPointsApples(
-        snakeCopy,
-        state.pointApples,
-        state.inversionApples,
+        newState.snake,
+        newState.pointApples,
+        newState.inversionApples,
         action.payload?.canvasSize!,
-        state.scale
+        newState.scale
       );
       let newInversionApples = checkInversionApples(
-        snakeCopy,
-        state.inversionApples,
-        state.pointApples,
+        newState.snake,
+        newState.inversionApples,
+        newState.pointApples,
         action.payload?.canvasSize!,
-        state.scale
+        newState.scale
       );
       if (newPointApples) {
-        score += 1;
+        newState.score += 1;
       } else {
-        snakeCopy.pop();
+        newState.snake.pop();
       }
       if (newInversionApples) {
-        snakeCopy.reverse();
-        direction = {
-          x: snakeCopy[0][0] - snakeCopy[1][0],
-          y: snakeCopy[0][1] - snakeCopy[1][1],
+        newState.snake.reverse();
+        newState.direction = {
+          x: newState.snake[0][0] - newState.snake[1][0],
+          y: newState.snake[0][1] - newState.snake[1][1],
         };
       }
-      newPointApples =
+
+      newState.pointApples =
         newPointApples != null ? newPointApples : state.pointApples;
-
-      newInversionApples =
+      newState.inversionApples =
         newInversionApples != null ? newInversionApples : state.inversionApples;
+      newState.info = "";
 
-      let newInfo = "";
-      if (checkCollision(snakeCopy, action.payload?.canvasSize!, state.scale)) {
-        speed = null;
-        disabled = true;
-        snakeCopy = [];
-        newInversionApples = [];
-        newPointApples = [];
-        newInfo = "Game Over";
+      if (
+        checkCollision(newState.snake, action.payload?.canvasSize!, state.scale)
+      ) {
+        newState.speed = null;
+        newState.disabled = true;
+        newState.snake = [];
+        newState.inversionApples = [];
+        newState.pointApples = [];
+        newState.info = "Game Over";
       }
-      return {
-        ...state,
-        snake: snakeCopy,
-        speed,
-        disabled,
-        direction,
-        score,
-        pointApples: newPointApples,
-        inversionApples: newInversionApples,
-        info: newInfo,
-      };
+      return { ...newState };
 
     default:
       return { ...state };
