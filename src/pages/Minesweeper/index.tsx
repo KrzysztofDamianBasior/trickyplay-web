@@ -1,8 +1,21 @@
 import React, { useState, useReducer } from "react";
 import styled, { css } from "styled-components";
+
 import AnimatedPage from "../../shared/components/AnimatedPage";
+import Navbar from "../../shared/components/Navbar";
+import Modal from "../../shared/components/Modal";
+import StatefulButton from "../../shared/components/StatefulButton";
+import ActionButton from "../../shared/components/ActionButton";
+
 import { BsFlag } from "react-icons/bs";
 import { GiLandMine } from "react-icons/gi";
+
+import GameWrapper from "../../shared/components/GameWrapper";
+import Stopwatch from "./components/Stopwatch";
+
+import Banner from "../../shared/components/Banner";
+
+import { useStopwatch } from "./hooks/useStopwatch";
 
 import {
   MinesweeperActionKind,
@@ -23,6 +36,8 @@ const Minesweeper = () => {
     opened: false,
     difficultyLevel: "beginner",
   });
+
+  const { time, start, pause, reset } = useStopwatch();
 
   function CellContent(
     checked: boolean,
@@ -50,21 +65,77 @@ const Minesweeper = () => {
 
   return (
     <AnimatedPage>
+      <Navbar />
+      {modalState.opened && (
+        <Modal
+          title="Start A New Game"
+          closeModal={() => {
+            setModalState((prev) => {
+              return { ...prev, opened: false };
+            });
+          }}
+          onConfirm={() => {
+            dispatchMinesweeperGameState({
+              type: MinesweeperActionKind.START_GAME,
+              payload: { difficultyLevel: modalState.difficultyLevel },
+            });
+          }}
+        >
+          <OptionsPanelContainer>
+            <OptionContainer>
+              <label>difficulty level:</label>
+              <ToggleSwitchContainer>
+                {["beginner", "intermediate", "expert"].map((label) => (
+                  <StatefulButton
+                    active={modalState.difficultyLevel === label ? true : false}
+                    onClick={() => {
+                      if (
+                        label === "beginner" ||
+                        label === "intermediate" ||
+                        label === "expert"
+                      ) {
+                        setModalState((prev) => {
+                          return {
+                            ...prev,
+                            difficultyLevel: label,
+                          };
+                        });
+                      }
+                    }}
+                    key={label}
+                  >
+                    {label}
+                  </StatefulButton>
+                ))}
+              </ToggleSwitchContainer>
+            </OptionContainer>
+          </OptionsPanelContainer>
+        </Modal>
+      )}
+
       <MinesweeperContainer>
         <MinesweeperControls>
-          <div>flags left: 0</div>
-          <div>timer</div>
-          <button
+          <Banner text="Minesweeper" />
+          <ActionButton
             onClick={() => {
-              dispatchMinesweeperGameState({
-                type: MinesweeperActionKind.START_GAME,
-                payload: { difficultyLevel: "beginner" },
+              setModalState((prev) => {
+                return { ...prev, opened: true };
               });
             }}
           >
             Start a game
-          </button>
+          </ActionButton>
+          <ControlsTable>
+            <div>game status</div>
+            <div>{minesweeperGameState.info}</div>
+
+            <div>timer</div>
+            <div>
+              <Stopwatch time={time} />
+            </div>
+          </ControlsTable>
         </MinesweeperControls>
+        {/* <GameWrapper> */}
         <MinesweeperGameBoard>
           {minesweeperGameState.board.map((row, rowIndex) => (
             <MinesweeperRow rowsNumber={minesweeperGameState.board.length}>
@@ -105,12 +176,76 @@ const Minesweeper = () => {
             </MinesweeperRow>
           ))}
         </MinesweeperGameBoard>
+        {/* </GameWrapper> */}
       </MinesweeperContainer>
     </AnimatedPage>
   );
 };
 
 export default Minesweeper;
+
+const ControlsTable = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 10vh;
+  width: 15vw;
+  div {
+    display: flex;
+    align-items: center;
+  }
+`;
+
+const MinesweeperControls = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 80vh;
+  article {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    height: 50vh;
+    section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+  }
+`;
+
+const OptionsPanelContainer = styled.div`
+  width: 30vw;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+const OptionContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 2%;
+  label {
+    margin-right: 20px;
+  }
+`;
+
+const ToggleSwitchContainer = styled.div`
+  align-self: flex-end;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+`;
 
 const MinesweeperContainer = styled.div`
   width: 80vw;
@@ -121,7 +256,7 @@ const MinesweeperContainer = styled.div`
   flex-direction: row;
   margin-top: 18vh;
 `;
-const MinesweeperControls = styled.div``;
+
 const MinesweeperGameBoard = styled.div`
   display: flex;
   flex-direction: column;
@@ -168,5 +303,5 @@ const MinesweeperCell = styled.div<{
       ? "rgba(255, 255, 255, 0.7);"
       : "rgba(255, 255, 255, 0.4);"};
 
-  ${(p) => (p.disabled && p.isChecked ? "" : "&:hover { background: white }")};
+  ${(p) => (p.disabled || p.isChecked ? "" : "&:hover { background: white }")};
 `;

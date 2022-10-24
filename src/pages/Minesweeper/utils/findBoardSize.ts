@@ -6,10 +6,10 @@ const findBoardSize = (
       return { boardSize: 8, numberOfMines: 10 };
 
     case "intermediate":
-      return { boardSize: 12, numberOfMines: 40 };
+      return { boardSize: 10, numberOfMines: 25 };
 
     case "expert":
-      return { boardSize: 16, numberOfMines: 70 };
+      return { boardSize: 12, numberOfMines: 40 };
   }
 };
 export { findBoardSize };
