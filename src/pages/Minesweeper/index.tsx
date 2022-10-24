@@ -1,15 +1,172 @@
-import React from "react";
-import styled from "styled-components";
+import React, { useState, useReducer } from "react";
+import styled, { css } from "styled-components";
+import AnimatedPage from "../../shared/components/AnimatedPage";
+import { BsFlag } from "react-icons/bs";
+import { GiLandMine } from "react-icons/gi";
+
+import {
+  MinesweeperActionKind,
+  minesweeperReducer,
+  minesweeperInitialState,
+} from "./reducer";
 
 const Minesweeper = () => {
+  const [minesweeperGameState, dispatchMinesweeperGameState] = useReducer(
+    minesweeperReducer,
+    minesweeperInitialState
+  );
+
+  const [modalState, setModalState] = useState<{
+    opened: boolean;
+    difficultyLevel: "beginner" | "intermediate" | "expert";
+  }>({
+    opened: false,
+    difficultyLevel: "beginner",
+  });
+
+  function CellContent(
+    checked: boolean,
+    hasFlag: boolean,
+    hasMine: boolean,
+    numberOfMinedNeighbors: number,
+    info: string
+  ) {
+    if (info === "game over" && hasMine) {
+      return <GiLandMine />;
+    }
+    if (!checked && hasFlag) {
+      return <BsFlag />;
+    }
+    if (!checked) {
+      return null;
+    } else if (hasMine) {
+      return <GiLandMine />;
+    } else if (numberOfMinedNeighbors === 0) {
+      return null;
+    } else {
+      return numberOfMinedNeighbors;
+    }
+  }
+
   return (
-    <MinesweeperContainer>
-      <div>flags left: 0, start a game</div>
-      <div>board</div>
-    </MinesweeperContainer>
+    <AnimatedPage>
+      <MinesweeperContainer>
+        <MinesweeperControls>
+          <div>flags left: 0</div>
+          <div>timer</div>
+          <button
+            onClick={() => {
+              dispatchMinesweeperGameState({
+                type: MinesweeperActionKind.START_GAME,
+                payload: { difficultyLevel: "beginner" },
+              });
+            }}
+          >
+            Start a game
+          </button>
+        </MinesweeperControls>
+        <MinesweeperGameBoard>
+          {minesweeperGameState.board.map((row, rowIndex) => (
+            <MinesweeperRow rowsNumber={minesweeperGameState.board.length}>
+              {row.map((cell, columnIndex) => (
+                <MinesweeperCell
+                  columnsNumber={minesweeperGameState.board.length}
+                  isChecked={cell.isChecked}
+                  hasMine={cell.hasMine}
+                  isEven={(columnIndex + rowIndex) % 2 === 0}
+                  disabled={minesweeperGameState.disabled}
+                  onClick={() => {
+                    if (!minesweeperGameState.disabled) {
+                      dispatchMinesweeperGameState({
+                        type: MinesweeperActionKind.REVEAL_CELL,
+                        payload: { cellPosition: [rowIndex, columnIndex] },
+                      });
+                    }
+                  }}
+                  onContextMenu={(e) => {
+                    if (!minesweeperGameState.disabled) {
+                      dispatchMinesweeperGameState({
+                        type: MinesweeperActionKind.TOGGLE_FLAG,
+                        payload: { cellPosition: [rowIndex, columnIndex] },
+                      });
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {CellContent(
+                    cell.isChecked,
+                    cell.hasFlag,
+                    cell.hasMine,
+                    cell.numberOfMinedNeighbors,
+                    minesweeperGameState.info
+                  )}
+                </MinesweeperCell>
+              ))}
+            </MinesweeperRow>
+          ))}
+        </MinesweeperGameBoard>
+      </MinesweeperContainer>
+    </AnimatedPage>
   );
 };
 
 export default Minesweeper;
 
-const MinesweeperContainer = styled.div``;
+const MinesweeperContainer = styled.div`
+  width: 80vw;
+  height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: row;
+  margin-top: 18vh;
+`;
+const MinesweeperControls = styled.div``;
+const MinesweeperGameBoard = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  background-color: black;
+  font-size: 2rem;
+  width: 70vmin;
+  height: 70vmin;
+`;
+const MinesweeperRow = styled.div<{ rowsNumber: number }>`
+  height: ${(p) => `calc(100% / ${p.rowsNumber})`};
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  flex: 1 1 0px;
+`;
+const MinesweeperCell = styled.div<{
+  disabled: boolean;
+  isEven: boolean;
+  hasMine: boolean;
+  isChecked: boolean;
+  columnsNumber: number;
+}>`
+  box-sizing: border-box;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+
+  color: black;
+  width: ${(p) => `calc(100% / ${p.columnsNumber})`};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  border: ${(p) =>
+    p.isChecked ? "2px dotted #7b7b7b;" : "10px groove #7b7b7b;"};
+
+  background: ${(p) =>
+    p.hasMine && p.isChecked
+      ? "red"
+      : p.isEven
+      ? "rgba(255, 255, 255, 0.7);"
+      : "rgba(255, 255, 255, 0.4);"};
+
+  ${(p) => (p.disabled && p.isChecked ? "" : "&:hover { background: white }")};
+`;

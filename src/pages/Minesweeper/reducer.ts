@@ -16,7 +16,7 @@ export interface Cell {
 export enum MinesweeperActionKind {
   START_GAME = "start-game",
   REVEAL_CELL = "reveal-cell",
-  FLAG_CELL = "flag-cell",
+  TOGGLE_FLAG = "toggle-flag",
 }
 
 export interface MinesweeperState {
@@ -26,6 +26,13 @@ export interface MinesweeperState {
   info: "initialize" | "game over" | "in progress" | "you won";
 }
 
+export const minesweeperInitialState: MinesweeperState = {
+  board: createBoard(8, 10, 2, 2),
+  difficultyLevel: "beginner",
+  disabled: true,
+  info: "initialize",
+};
+
 export interface MinesweeperAction {
   type: MinesweeperActionKind;
   payload?: {
@@ -34,7 +41,7 @@ export interface MinesweeperAction {
   };
 }
 
-export function MinesweeperReducer(
+export function minesweeperReducer(
   state: MinesweeperState,
   action: MinesweeperAction
 ): MinesweeperState {
@@ -44,11 +51,26 @@ export function MinesweeperReducer(
     case MinesweeperActionKind.START_GAME:
       newState.disabled = false;
       newState.info = "initialize";
+      newState.difficultyLevel = action.payload!.difficultyLevel!;
+      const boardSize = findBoardSize(newState.difficultyLevel);
+      newState.board = createBoard(
+        boardSize.boardSize,
+        boardSize.numberOfMines,
+        0,
+        0
+      );
+
       return { ...newState };
-    case MinesweeperActionKind.FLAG_CELL:
+
+    case MinesweeperActionKind.TOGGLE_FLAG:
       newState.board[action.payload!.cellPosition![0]][
         action.payload!.cellPosition![1]
-      ].hasFlag = true;
+      ].hasFlag =
+        newState.board[action.payload!.cellPosition![0]][
+          action.payload!.cellPosition![1]
+        ].hasFlag === true
+          ? false
+          : true;
 
       return { ...newState };
     case MinesweeperActionKind.REVEAL_CELL:
@@ -58,7 +80,7 @@ export function MinesweeperReducer(
 
       if (newState.info === "initialize") {
         newState.info = "in progress";
-        const boardSize = findBoardSize(action.payload?.difficultyLevel!);
+        const boardSize = findBoardSize(newState.difficultyLevel);
         newState.board = createBoard(
           boardSize.boardSize,
           boardSize.numberOfMines,

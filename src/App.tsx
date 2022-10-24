@@ -30,6 +30,13 @@ const Snake = lazy(() => {
   ]).then(([moduleExports]) => moduleExports);
 });
 
+const Minesweeper = lazy(() => {
+  return Promise.all([
+    import("./pages/Minesweeper"),
+    new Promise((resolve) => setTimeout(resolve, 6000)),
+  ]).then(([moduleExports]) => moduleExports);
+});
+
 function App() {
   const location = useLocation();
   const theme = useAppSelector((state: RootState) => state.appTheme.theme);
@@ -55,6 +62,14 @@ function App() {
               element={
                 <Suspense fallback={<Loading />}>
                   <Snake />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/games/minesweeper"
+              element={
+                <Suspense fallback={<Loading />}>
+                  <Minesweeper />
                 </Suspense>
               }
             />
