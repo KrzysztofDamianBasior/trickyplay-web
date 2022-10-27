@@ -27,7 +27,7 @@ const GameWrapper = styled.div`
     background-size: 400%;
 
     z-index: -1;
-    animation: glowing-container__animation 20s linear infinite;
+    animation: glowing-container__animation 40s linear infinite;
   }
   &::after {
     filter: blur(40px);

@@ -1,4 +1,4 @@
-import React, { useState, useReducer } from "react";
+import React, { useState, useReducer, useEffect } from "react";
 import styled, { css } from "styled-components";
 
 import AnimatedPage from "../../shared/components/AnimatedPage";
@@ -37,7 +37,19 @@ const Minesweeper = () => {
     difficultyLevel: "beginner",
   });
 
-  const { time, start, pause, reset } = useStopwatch();
+  const {
+    time,
+    startStopwatch,
+    pauseStopwatch,
+    resetStopwatch,
+    stopStopwatch,
+  } = useStopwatch();
+
+  useEffect(() => {
+    if (minesweeperGameState.info === "game over") {
+      stopStopwatch();
+    }
+  }, [minesweeperGameState]);
 
   function CellContent(
     checked: boolean,
@@ -79,6 +91,8 @@ const Minesweeper = () => {
               type: MinesweeperActionKind.START_GAME,
               payload: { difficultyLevel: modalState.difficultyLevel },
             });
+            resetStopwatch();
+            startStopwatch();
           }}
         >
           <OptionsPanelContainer>
@@ -135,48 +149,48 @@ const Minesweeper = () => {
             </div>
           </ControlsTable>
         </MinesweeperControls>
-        {/* <GameWrapper> */}
-        <MinesweeperGameBoard>
-          {minesweeperGameState.board.map((row, rowIndex) => (
-            <MinesweeperRow rowsNumber={minesweeperGameState.board.length}>
-              {row.map((cell, columnIndex) => (
-                <MinesweeperCell
-                  columnsNumber={minesweeperGameState.board.length}
-                  isChecked={cell.isChecked}
-                  hasMine={cell.hasMine}
-                  isEven={(columnIndex + rowIndex) % 2 === 0}
-                  disabled={minesweeperGameState.disabled}
-                  onClick={() => {
-                    if (!minesweeperGameState.disabled) {
-                      dispatchMinesweeperGameState({
-                        type: MinesweeperActionKind.REVEAL_CELL,
-                        payload: { cellPosition: [rowIndex, columnIndex] },
-                      });
-                    }
-                  }}
-                  onContextMenu={(e) => {
-                    if (!minesweeperGameState.disabled) {
-                      dispatchMinesweeperGameState({
-                        type: MinesweeperActionKind.TOGGLE_FLAG,
-                        payload: { cellPosition: [rowIndex, columnIndex] },
-                      });
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  {CellContent(
-                    cell.isChecked,
-                    cell.hasFlag,
-                    cell.hasMine,
-                    cell.numberOfMinedNeighbors,
-                    minesweeperGameState.info
-                  )}
-                </MinesweeperCell>
-              ))}
-            </MinesweeperRow>
-          ))}
-        </MinesweeperGameBoard>
-        {/* </GameWrapper> */}
+        <GameWrapper>
+          <MinesweeperGameBoard>
+            {minesweeperGameState.board.map((row, rowIndex) => (
+              <MinesweeperRow rowsNumber={minesweeperGameState.board.length}>
+                {row.map((cell, columnIndex) => (
+                  <MinesweeperCell
+                    columnsNumber={minesweeperGameState.board.length}
+                    isChecked={cell.isChecked}
+                    hasMine={cell.hasMine}
+                    isEven={(columnIndex + rowIndex) % 2 === 0}
+                    disabled={minesweeperGameState.disabled}
+                    onClick={() => {
+                      if (!minesweeperGameState.disabled) {
+                        dispatchMinesweeperGameState({
+                          type: MinesweeperActionKind.REVEAL_CELL,
+                          payload: { cellPosition: [rowIndex, columnIndex] },
+                        });
+                      }
+                    }}
+                    onContextMenu={(e) => {
+                      if (!minesweeperGameState.disabled) {
+                        dispatchMinesweeperGameState({
+                          type: MinesweeperActionKind.TOGGLE_FLAG,
+                          payload: { cellPosition: [rowIndex, columnIndex] },
+                        });
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    {CellContent(
+                      cell.isChecked,
+                      cell.hasFlag,
+                      cell.hasMine,
+                      cell.numberOfMinedNeighbors,
+                      minesweeperGameState.info
+                    )}
+                  </MinesweeperCell>
+                ))}
+              </MinesweeperRow>
+            ))}
+          </MinesweeperGameBoard>
+        </GameWrapper>
       </MinesweeperContainer>
     </AnimatedPage>
   );
@@ -282,9 +296,9 @@ const MinesweeperCell = styled.div<{
   isChecked: boolean;
   columnsNumber: number;
 }>`
-  box-sizing: border-box;
+  /* box-sizing: border-box;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px); */
 
   color: black;
   width: ${(p) => `calc(100% / ${p.columnsNumber})`};

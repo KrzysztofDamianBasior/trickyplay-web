@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 
 export function useStopwatch(): {
   time: number;
-  start: () => void;
-  reset: () => void;
-  pause: () => void;
+  startStopwatch: () => void;
+  resetStopwatch: () => void;
+  pauseStopwatch: () => void;
+  stopStopwatch: () => void;
 } {
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(true);
@@ -25,19 +26,30 @@ export function useStopwatch(): {
     };
   }, [isActive, isPaused]);
 
-  const pause = () => {
+  const pauseStopwatch = () => {
     setIsPaused((prev) => !prev);
   };
 
-  const start = () => {
+  const startStopwatch = () => {
     setIsActive(true);
     setIsPaused(false);
   };
 
-  const reset = () => {
+  const stopStopwatch = () => {
+    setIsActive(false);
+    setIsPaused(false);
+  };
+
+  const resetStopwatch = () => {
     setIsActive(false);
     setTime(0);
   };
 
-  return { time, start, reset, pause };
+  return {
+    time,
+    startStopwatch,
+    resetStopwatch,
+    pauseStopwatch,
+    stopStopwatch,
+  };
 }

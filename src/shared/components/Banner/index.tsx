@@ -6,8 +6,6 @@ type Props = {
   text: string;
 };
 
-//add box-shadow
-
 const NeonTextBanner = ({ text }: Props) => {
   return (
     <NeonTextEffect>
@@ -62,6 +60,7 @@ const NeonTextEffect = styled.div`
     background: radial-gradient(white 30%, #0000 40%);
     background-size: 100px 100px;
     */
+    will-change: translate;
     background: radial-gradient(circle, white, black 35%) center / 25% 25%;
     position: absolute;
     top: -100%;
@@ -69,7 +68,7 @@ const NeonTextEffect = styled.div`
     right: 0;
     bottom: 0;
     mix-blend-mode: color-dodge;
-    animation: neon-text-effect__animation 3s linear infinite;
+    animation: neon-text-effect__animation 4s linear infinite;
   }
   @keyframes neon-text-effect__animation {
     to {
