@@ -132,3 +132,86 @@ const AnimatedBorderContainer = styled.div`
     }
   }
 `;
+
+// import { Typography, makeStyles } from "@mui/material";
+// import { styled } from "@mui/material/styles";
+// import { useTheme } from "@mui/material/styles";
+// const theme = useTheme();
+
+// const Backdrop = ({ children, onClick }: Props) => {
+//   const theme = useTheme();
+//   return (
+//     <motion.div
+//       initial={{ opacity: 0 }}
+//       animate={{ opacity: 1 }}
+//       exit={{ opacity: 0 }}
+//       className="backdrop"
+//       onClick={() => onClick()}
+//       style={{
+//         position: "absolute",
+//         top: 0,
+//         left: 0,
+//         height: "100%",
+//         width: "100%",
+//         background: "#000000e1",
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//       }}
+//     >
+//       {children}
+//     </motion.div>
+//   );
+// };
+
+// <motion.button
+// whileHover={{ scale: 1.1 }}
+// whileTap={{ scale: 0.9 }}
+// className="confirmaton-button"
+// onClick={() => null}
+// >
+// {text}
+// </motion.button>
+
+// const dropIn = {
+//   hidden: {
+//     y: "-100vh",
+//     opacity: 0,
+//   },
+//   visible: {
+//     y: "0",
+//     opacity: 1,
+//     transition: {
+//       duration: 0.1,
+//       type: "spring",
+//       damping: 25,
+//       stiffness: 500,
+//     },
+//   },
+//   exit: {
+//     y: "100vh",
+//     opacity: 0,
+//   },
+// };
+
+// <motion.div
+// drag
+// onClick={(e) => e.stopPropagation()}
+// className="modal"
+// variants={dropIn}
+// initial="hidden"
+// animate="visible"
+// exit="exit"
+// >
+
+// const [modalOpen, setModalOpen] = useState(false)
+// const close = () => setModalOpen(false)
+// const open = () => setModalOpen(true)
+// () => modalOpen ? close() : open()
+
+// const Modal = styled(motion.div)`
+//   background: white;
+//   border-radius: 30px;
+//   width: 150px;
+//   height: 150px;
+// `;

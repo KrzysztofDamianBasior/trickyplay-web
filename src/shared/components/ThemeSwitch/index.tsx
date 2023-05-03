@@ -12,6 +12,7 @@ const ToggleThemeSwitch = (props: Props) => {
   const [checked, setChecked] = useState<boolean>(
     theme === "light" ? true : false
   );
+
   const dispatch = useAppDispatch();
   useEffect(() => {
     if (checked === true) {
@@ -22,59 +23,51 @@ const ToggleThemeSwitch = (props: Props) => {
   }, [checked, dispatch]);
 
   return (
-    <ToggleThemeSwitchContainer>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => setChecked((prev) => !prev)}
-      />
-      <span>
-        <IoBulbOutline className="icon" />
+    <ToggleThemeSwitchContainer
+      onClick={(e) => setChecked((prev) => !prev)}
+      style={{
+        cursor: "pointer",
+        position: "relative",
+        display: "block",
+        height: "40px",
+        width: "80px",
+        background: "#212121",
+        borderRadius: "10px",
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: "0",
+          left: checked ? "40px" : "0",
+          width: "40px",
+          height: "40px",
+          background: "#333",
+          border: "6px solid #212121",
+          borderRadius: "14px",
+          transition: "0.5s",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <IoBulbOutline
+          className="icon"
+          style={{
+            color: checked
+              ? "rgba(255, 255, 255, 1)"
+              : "rgba(255, 255, 255, 0.25)",
+            fontSize: "2em",
+            transition: "0.5s",
+            filter: checked
+              ? "drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px #fff) drop-shadow(0 0 15px #fff)"
+              : "",
+          }}
+        />
       </span>
     </ToggleThemeSwitchContainer>
   );
 };
 export default ToggleThemeSwitch;
 
-const ToggleThemeSwitchContainer = styled.div`
-  position: relative;
-  display: block;
-  height: 50px;
-  width: 100px;
-  background: #212121;
-  border-radius: 10px;
-  input {
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    opacity: 0;
-  }
-  input:checked ~ span {
-    left: 50px;
-    .icon {
-      color: rgba(255, 255, 255, 1);
-      filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px #fff)
-        drop-shadow(0 0 15px #fff);
-    }
-  }
-  span {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50px;
-    height: 50px;
-    background: #333;
-    border: 6px solid #212121;
-    border-radius: 14px;
-    cursor: pointer;
-    transition: 0.5s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    .icon {
-      color: rgba(255, 255, 255, 0.25);
-      font-size: 2em;
-      transition: 0.5s;
-    }
-  }
-`;
+const ToggleThemeSwitchContainer = styled.div``;
