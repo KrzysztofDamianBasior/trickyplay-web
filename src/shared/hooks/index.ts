@@ -8,3 +8,4 @@ export { useTimeout } from "./useTimeout";
 export { useEventListener } from "./useEventListener";
 export { useWindowSize } from "./useWindowSize";
 export { useLocalStorage } from "./useLocalStorage";
+export { useOnUpdateLogger } from "./useOnUpdateLogger";
