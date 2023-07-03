@@ -7,3 +7,4 @@ export { useIntersectionObserver } from "./useIntersectionObserver";
 export { useTimeout } from "./useTimeout";
 export { useEventListener } from "./useEventListener";
 export { useWindowSize } from "./useWindowSize";
+export { useLocalStorage } from "./useLocalStorage";
