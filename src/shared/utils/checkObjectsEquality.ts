@@ -1,4 +1,10 @@
-const checkObjectEquality = (a: any, b: any): boolean => {
+/**
+ * Check if objects have the same property values
+ * @param a first object
+ * @param b second object
+ * @returns true when the objects are the same
+ */
+const checkObjectsEquality = (a: any, b: any): boolean => {
   if (a === b) return true;
 
   if (a instanceof Date && b instanceof Date)
@@ -12,6 +18,6 @@ const checkObjectEquality = (a: any, b: any): boolean => {
   const keys = Object.keys(a);
   if (keys.length !== Object.keys(b).length) return false;
 
-  return keys.every((k) => checkObjectEquality(a[k], b[k]));
+  return keys.every((k) => checkObjectsEquality(a[k], b[k]));
 };
-export { checkObjectEquality };
+export { checkObjectsEquality };
