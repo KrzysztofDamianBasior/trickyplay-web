@@ -1,14 +1,10 @@
 import memoryImage from "../assets/gameBanners/memory.png";
-import pacmanImage from "../assets/gameBanners/pacman.jpg";
-import saperImage from "../assets/gameBanners/saper.png";
-import shooterImage from "../assets/gameBanners/shooter.png";
+import minesweeperImage from "../assets/gameBanners/minesweeper.png";
+import shooterImage from "../assets/gameBanners/bulls-eye.png";
 import snakeImage from "../assets/gameBanners/snake.jpg";
-import sudokuImage from "../assets/gameBanners/sudoku.jpg";
 import tetrisImage from "../assets/gameBanners/tetris.jpg";
 import ticTacToeImage from "../assets/gameBanners/ticTacToe.jpg";
-import answerCheckImage from "../assets/gameBanners/answerCheck.png";
 import crosswordImage from "../assets/gameBanners/crossword.png";
-import wordleImage from "../assets/gameBanners/wordle.png";
 
 export type Genre =
   | "all"
@@ -32,7 +28,7 @@ export type GameObject = {
   title: string;
   image: string;
   description: string;
-  genre: Genre[];
+  genres: Genre[];
 };
 
 export const gamesList: GameObject[] = [
@@ -41,76 +37,48 @@ export const gamesList: GameObject[] = [
     title: "tic-tac-toe",
     description: "",
     image: ticTacToeImage,
-    genre: ["strategy"],
+    genres: ["strategy"],
   },
   {
     id: 2,
     title: "snake",
     description: "",
     image: snakeImage,
-    genre: ["mazes"],
+    genres: ["mazes", "strategy"],
   },
   {
     id: 3,
-    title: "pacman",
-    description: "",
-    image: pacmanImage,
-    genre: ["mazes"],
-  },
-  {
-    id: 4,
     title: "tetris",
     description: "",
     image: tetrisImage,
-    genre: ["strategy"],
+    genres: ["strategy"],
+  },
+  {
+    id: 4,
+    title: "minesweeper",
+    description: "",
+    image: minesweeperImage,
+    genres: ["strategy", "puzzles", "memory-games"],
   },
   {
     id: 5,
-    title: "saper",
-    description: "",
-    image: saperImage,
-    genre: ["strategy"],
-  },
-  {
-    id: 6,
     title: "crossword",
     description: "",
     image: crosswordImage,
-    genre: ["memory-games"],
+    genres: ["memory-games"],
   },
   {
-    id: 7,
+    id: 6,
     title: "shooter",
     description: "",
     image: shooterImage,
-    genre: ["shooters"],
+    genres: ["shooters"],
   },
   {
-    id: 8,
-    title: "answer-check",
-    description: "",
-    image: answerCheckImage,
-    genre: ["memory-games"],
-  },
-  {
-    id: 9,
-    title: "sudoku",
-    description: "",
-    image: sudokuImage,
-    genre: ["puzzles"],
-  },
-  {
-    id: 10,
+    id: 7,
     title: "memorize",
     description: "",
     image: memoryImage,
-    genre: ["memory-games"],
-  },
-  {
-    id: 11,
-    title: "wordle",
-    description: "",
-    image: wordleImage,
-    genre: ["memory-games"],
+    genres: ["memory-games"],
   },
 ];
