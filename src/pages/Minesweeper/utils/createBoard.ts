@@ -1,5 +1,5 @@
 import { drawMinesPositions } from "./drawMinesPositions";
-import { checkObjectEquality } from "../../../shared/utils";
+import { checkObjectsEquality } from "../../../shared/utils";
 import { Cell } from "../reducer";
 import { checkNeighbors } from "./checkNeighbors";
 
@@ -24,7 +24,7 @@ const createBoard = (
         id: rowIndex.toString() + columnIndex.toString(),
         hasFlag: false,
         hasMine: minesPositions.some((minePosition) =>
-          checkObjectEquality([rowIndex, columnIndex], minePosition)
+          checkObjectsEquality([rowIndex, columnIndex], minePosition)
         )
           ? true
           : false,

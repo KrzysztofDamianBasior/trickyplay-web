@@ -1,4 +1,4 @@
-import { arrayIntersection } from "../../../shared/utils/arrayIntersection";
+import { arraysIntersection } from "../../../shared/utils/arraysIntersection";
 import { combos } from "./combos";
 
 export const victoryStatus = (
@@ -24,11 +24,11 @@ export const victoryStatus = (
 
   for (let combo in combos) {
     for (let pattern of combos[combo]) {
-      let { union: unionX, disunion: disunionX } = arrayIntersection(
+      let { union: unionX, disunion: disunionX } = arraysIntersection(
         pattern,
         patternX
       );
-      let { union: unionO, disunion: disunionO } = arrayIntersection(
+      let { union: unionO, disunion: disunionO } = arraysIntersection(
         pattern,
         patternO
       );

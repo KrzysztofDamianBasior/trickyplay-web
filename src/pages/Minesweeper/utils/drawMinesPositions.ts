@@ -1,5 +1,5 @@
 import { getRandomInt } from "../../../shared/utils";
-import { checkObjectEquality } from "../../../shared/utils";
+import { checkObjectsEquality } from "../../../shared/utils";
 
 const drawMinesPositions = (
   boardSize: number,
@@ -12,9 +12,9 @@ const drawMinesPositions = (
     let newPosition = [getRandomInt(0, boardSize), getRandomInt(0, boardSize)];
     while (
       minesPositions.some((minePosition) =>
-        checkObjectEquality(minePosition, newPosition)
+        checkObjectsEquality(minePosition, newPosition)
       ) ||
-      checkObjectEquality(newPosition, [row, column])
+      checkObjectsEquality(newPosition, [row, column])
     ) {
       newPosition = [getRandomInt(0, boardSize), getRandomInt(0, boardSize)];
     }

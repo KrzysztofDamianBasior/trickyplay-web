@@ -1,4 +1,4 @@
-import { checkObjectEquality } from "../../../shared/utils";
+import { checkObjectsEquality } from "../../../shared/utils";
 
 const checkNeighbors = (
   rowPosition: number,
@@ -22,7 +22,7 @@ const checkNeighbors = (
       if (!cornerCell) {
         if (
           minesPositions.some((minePosition) =>
-            checkObjectEquality(
+            checkObjectsEquality(
               [rowPosition + rowOffset, columnPosition + columnOffset],
               minePosition
             )

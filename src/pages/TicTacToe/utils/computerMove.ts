@@ -1,4 +1,4 @@
-import { arrayIntersection } from "../../../shared/utils/arrayIntersection";
+import { arraysIntersection } from "../../../shared/utils/arraysIntersection";
 import { combos } from "./combos";
 import { getRandomInt } from "../../../shared/utils/getRandomInt";
 
@@ -42,11 +42,11 @@ export const computerMove = (
   for (let combo in combos) {
     combos[combo].forEach((pattern) => {
       let { union: unionWithHumanPlayer, disunion: disunionWithHumanPlayer } =
-        arrayIntersection(pattern, humanPlayerPattern);
+        arraysIntersection(pattern, humanPlayerPattern);
       let {
         union: unionWithComputerPlayer,
         disunion: disunionWithComputerPlayer,
-      } = arrayIntersection(pattern, computerPlayerPattern);
+      } = arraysIntersection(pattern, computerPlayerPattern);
 
       fieldsMissingHumanSideToWin.push(disunionWithHumanPlayer);
       fieldsMissingComputerSideToWin.push(disunionWithComputerPlayer);
@@ -59,7 +59,7 @@ export const computerMove = (
   );
   if (oneComputerMoveToWin.length) {
     for (let el of oneComputerMoveToWin) {
-      let { union, disunion } = arrayIntersection(el, humanPlayerPattern);
+      let { union, disunion } = arraysIntersection(el, humanPlayerPattern);
       if (disunion.length) {
         return [Math.floor(disunion[0] / 3), disunion[0] % 3]; //a%3 => column ,    floor(a/3) => row
       }
@@ -72,7 +72,7 @@ export const computerMove = (
   );
   if (oneHumanMoveToWin.length) {
     for (let el of oneHumanMoveToWin) {
-      let { union, disunion } = arrayIntersection(el, computerPlayerPattern);
+      let { union, disunion } = arraysIntersection(el, computerPlayerPattern);
       if (disunion.length) {
         return [Math.floor(disunion[0] / 3), disunion[0] % 3]; //a%3 => column ,    floor(a/3) => row
       }
@@ -84,7 +84,7 @@ export const computerMove = (
     (el) => el.length === 2
   );
   for (let el of twoHumanMovesToWin) {
-    let { union, disunion } = arrayIntersection(el, computerPlayerPattern);
+    let { union, disunion } = arraysIntersection(el, computerPlayerPattern);
     if (disunion.length) {
       return [Math.floor(disunion[0] / 3), disunion[0] % 3]; //a%3 => column ,    floor(a/3) => row
     }
