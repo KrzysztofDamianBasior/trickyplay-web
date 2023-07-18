@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   AppBar,
   Box,
@@ -12,24 +12,26 @@ import {
 } from "@mui/material";
 import DrawerComp from "./Drawer";
 import ThemeSwitch from "../ThemeSwitch";
-import { Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const pages: { to: string; name: string; id: number }[] = [
-  { id: 0, to: "Home", name: "Home" },
-  { id: 1, to: "Games", name: "Games" },
+  { id: 0, to: "/", name: "Home" },
+  { id: 1, to: "/games", name: "Games" },
   // { id: 3, to: "About Us" },
 ];
 
 const Navbar = () => {
-  const [value, setValue] = useState<number>(0);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const theme = useTheme();
   const isMatch = useMediaQuery(theme.breakpoints.down("md"));
-
+  const navigate = useNavigate();
+  const location = useLocation();
+  const value = pages.map((e) => e.to).indexOf(location.pathname.toLowerCase());
   return (
     <AppBar
       sx={{
         boxShadow: "0px 0px 55px 0px rgba(134, 102, 12, 1)",
+        background: (theme) => theme.palette.background.paper,
       }}
     >
       <Toolbar>
@@ -50,10 +52,18 @@ const Navbar = () => {
               indicatorColor="secondary"
               textColor="inherit"
               value={pages[value].id}
-              onChange={(e, value) => setValue(value)}
+              onChange={(e, value) => {
+                navigate(pages[value].to);
+              }}
             >
               {pages.map((page, pageIndex) => (
-                <Tab label={pages[pageIndex].name} />
+                <Tab
+                  label={pages[pageIndex].name}
+                  sx={{
+                    color: (theme) =>
+                      theme.palette.mode === "light" ? "#000000" : "#ffffff",
+                  }}
+                />
               ))}
             </Tabs>
             {isLoggedIn ? (

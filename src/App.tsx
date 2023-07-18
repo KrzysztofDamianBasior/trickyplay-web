@@ -1,7 +1,8 @@
 import React, { Suspense, lazy } from "react";
 
-import { Routes, Route, useLocation } from "react-router-dom";
-import ErrorPage from "./pages/Error";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import ErrorBoundary from "./pages/Error";
+import NoMatch from "./pages/NoMatch";
 import Loading from "./pages/Loading";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
@@ -141,7 +142,10 @@ function App() {
           <AnimatePresence mode="wait">
             <Routes key={location.pathname} location={location}>
               <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Navigate to="/" />} />
+              <Route path="/Home" element={<Navigate to="/" />} />
               <Route path="/games" element={<Games />} />
+              <Route path="/Games" element={<Navigate to="/games" />} />
               <Route
                 path="/games/tic-tac-toe"
                 element={
@@ -166,7 +170,8 @@ function App() {
                   </Suspense>
                 }
               />
-              <Route path="*" element={<ErrorPage />} />
+              {/* <Route path="*" element={<ErrorPage />} /> */}
+              <Route path="*" element={<NoMatch />} />
             </Routes>
           </AnimatePresence>
         </SCThemeProvider>
