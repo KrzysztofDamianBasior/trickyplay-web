@@ -8,8 +8,13 @@ import {
   ListItemText,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import pages from "./tabPagesList.json";
+import { useNavigate } from "react-router-dom";
+
+const pagesInfo: { to: string; name: string; id: number }[] = pages;
 
 const DrawerComp = () => {
+  const navigate = useNavigate();
   const [openDrawer, setOpenDrawer] = useState(false);
 
   return (
@@ -20,10 +25,10 @@ const DrawerComp = () => {
         onClose={() => setOpenDrawer(false)}
       >
         <List>
-          {["Home", "Games"].map((page) => (
-            <ListItemButton key={page}>
+          {pagesInfo.map((page) => (
+            <ListItemButton key={page.id} onClick={() => navigate(page.to)}>
               <ListItemIcon>
-                <ListItemText>{page}</ListItemText>
+                <ListItemText>{page.name}</ListItemText>
               </ListItemIcon>
             </ListItemButton>
           ))}

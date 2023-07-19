@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   AppBar,
   Box,
@@ -13,20 +12,18 @@ import {
 import DrawerComp from "./Drawer";
 import ThemeSwitch from "../ThemeSwitch";
 import { useNavigate, useLocation } from "react-router-dom";
+import pages from "./tabPagesList.json";
 
-const pages: { to: string; name: string; id: number }[] = [
-  { id: 0, to: "/", name: "Home" },
-  { id: 1, to: "/games", name: "Games" },
-  // { id: 3, to: "About Us" },
-];
+const pagesInfo: { to: string; name: string; id: number }[] = pages;
 
 const Navbar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const theme = useTheme();
   const isMatch = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const location = useLocation();
-  const value = pages.map((e) => e.to).indexOf(location.pathname.toLowerCase());
+  const value = pagesInfo
+    .map((e) => e.to)
+    .indexOf(location.pathname.toLowerCase());
   return (
     <AppBar
       sx={{
@@ -51,14 +48,14 @@ const Navbar = () => {
               sx={{ marginLeft: "auto" }}
               indicatorColor="secondary"
               textColor="inherit"
-              value={pages[value].id}
+              value={value !== -1 ? pagesInfo[value].id : false}
               onChange={(e, value) => {
-                navigate(pages[value].to);
+                navigate(pagesInfo[value].to);
               }}
             >
-              {pages.map((page, pageIndex) => (
+              {pagesInfo.map((_, pageIndex) => (
                 <Tab
-                  label={pages[pageIndex].name}
+                  label={pagesInfo[pageIndex].name}
                   sx={{
                     color: (theme) =>
                       theme.palette.mode === "light" ? "#000000" : "#ffffff",
@@ -66,7 +63,7 @@ const Navbar = () => {
                 />
               ))}
             </Tabs>
-            {isLoggedIn ? (
+            {true ? (
               <>
                 <Button sx={{ marginLeft: "auto" }} variant="contained">
                   Login
