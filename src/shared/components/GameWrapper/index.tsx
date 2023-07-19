@@ -1,5 +1,4 @@
-import React from "react";
-import styled from "styled-components";
+import styled from "@emotion/styled";
 
 const GameWrapper = styled.div`
   position: relative;
@@ -28,11 +27,10 @@ const GameWrapper = styled.div`
 
     z-index: -1;
     animation: glowing-container__animation 40s linear infinite;
-  }
-  &::after {
     filter: blur(40px);
     /* opacity: 0.9; */
   }
+
   @keyframes glowing-container__animation {
     0% {
       background-position: 0 0;
