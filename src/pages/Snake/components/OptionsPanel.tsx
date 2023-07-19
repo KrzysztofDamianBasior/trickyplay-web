@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import StatefulButton from "../../../shared/components/StatefulButton";
+import { useDarkMode } from "usehooks-ts";
 
 type Props = {
   optionsState: {
@@ -16,6 +17,8 @@ type Props = {
 };
 
 const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
+  const { isDarkMode } = useDarkMode();
+
   return (
     <OptionsPanelContainer>
       <OptionContainer>
@@ -23,7 +26,8 @@ const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
         <ToggleSwitchContainer>
           {["easy", "medium", "hard"].map((label) => (
             <StatefulButton
-              active={optionsState.difficultyLevel === label ? true : false}
+              isActive={optionsState.difficultyLevel === label ? true : false}
+              isDarkMode={isDarkMode}
               onClick={() => {
                 if (
                   label === "easy" ||

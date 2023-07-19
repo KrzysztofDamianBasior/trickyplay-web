@@ -3,6 +3,7 @@ import styled from "styled-components";
 import ActionButton from "../../../shared/components/ActionButton";
 import StatefulButton from "../../../shared/components/StatefulButton";
 import Banner from "../../../shared/components/Banner";
+import { useDarkMode } from "usehooks-ts";
 
 type Props = {
   score: number;
@@ -19,6 +20,8 @@ const ControlsPanel = ({
   setPause,
   disabled,
 }: Props) => {
+  const { isDarkMode } = useDarkMode();
+
   return (
     <SnakeControls>
       <Banner text="Snake" />
@@ -31,7 +34,8 @@ const ControlsPanel = ({
         <section>points: {score}</section>
         <section>
           <StatefulButton
-            active={pause && !disabled}
+            isDarkMode={isDarkMode}
+            isActive={pause && !disabled}
             onClick={() => {
               if (!disabled) setPause();
             }}

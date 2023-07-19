@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import StatefulButton from "../../../shared/components/StatefulButton";
+import { useDarkMode } from "usehooks-ts";
 
 type Props = {
   optionsState: {
@@ -18,6 +19,8 @@ type Props = {
 };
 
 const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
+  const { isDarkMode } = useDarkMode();
+
   return (
     <OptionsPanelContainer>
       <OptionContainer>
@@ -25,7 +28,8 @@ const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
         <ToggleSwitchContainer>
           {["single player", "two players"].map((label) => (
             <StatefulButton
-              active={
+              isDarkMode={isDarkMode}
+              isActive={
                 optionsState.soloOrDuoMode === "solo" &&
                 label === "single player"
                   ? true
@@ -53,7 +57,8 @@ const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
           <ToggleSwitchContainer>
             {["x", "o"].map((label) => (
               <StatefulButton
-                active={label === optionsState.side ? true : false}
+                isDarkMode={isDarkMode}
+                isActive={label === optionsState.side ? true : false}
                 onClick={() => {
                   if (label === "x" || label === "o") {
                     setOptionsState((prev) => {
