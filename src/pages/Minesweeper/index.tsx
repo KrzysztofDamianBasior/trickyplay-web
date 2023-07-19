@@ -15,6 +15,7 @@ import {
   minesweeperReducer,
   minesweeperInitialState,
 } from "./reducer";
+import { AnimatePresence } from "framer-motion";
 
 const Minesweeper = () => {
   const [minesweeperGameState, dispatchMinesweeperGameState] = useReducer(
@@ -45,38 +46,38 @@ const Minesweeper = () => {
   return (
     <AnimatedPage>
       <Navbar />
-      {modalState.opened && (
-        <Modal
-          title="Start A New Game"
-          closeModal={() => {
+
+      <Modal
+        title="Start A New Game"
+        isModalOpened={modalState.opened}
+        onClose={() => {
+          setModalState((prev) => {
+            return { ...prev, opened: false };
+          });
+        }}
+        onConfirm={() => {
+          dispatchMinesweeperGameState({
+            type: MinesweeperActionKind.START_GAME,
+            payload: { difficultyLevel: modalState.difficultyLevel },
+          });
+          resetStopwatch();
+          startStopwatch();
+        }}
+      >
+        <OptionsPanel
+          difficultyLevel={modalState.difficultyLevel}
+          setDifficultyLevel={(
+            difficultyLevel: "beginner" | "intermediate" | "expert"
+          ) => {
             setModalState((prev) => {
-              return { ...prev, opened: false };
+              return {
+                ...prev,
+                difficultyLevel,
+              };
             });
           }}
-          onConfirm={() => {
-            dispatchMinesweeperGameState({
-              type: MinesweeperActionKind.START_GAME,
-              payload: { difficultyLevel: modalState.difficultyLevel },
-            });
-            resetStopwatch();
-            startStopwatch();
-          }}
-        >
-          <OptionsPanel
-            difficultyLevel={modalState.difficultyLevel}
-            setDifficultyLevel={(
-              difficultyLevel: "beginner" | "intermediate" | "expert"
-            ) => {
-              setModalState((prev) => {
-                return {
-                  ...prev,
-                  difficultyLevel,
-                };
-              });
-            }}
-          />
-        </Modal>
-      )}
+        />
+      </Modal>
 
       <MinesweeperContainer>
         <ControlsPanel

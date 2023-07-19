@@ -33,32 +33,33 @@ const TicTacToe = () => {
   return (
     <AnimatedPage>
       <Navbar />
-      {modalState.opened && (
-        <Modal
-          title="Start A New Game"
-          closeModal={() => {
-            setModalState((prev) => {
-              return { ...prev, opened: false };
-            });
-          }}
-          onConfirm={() => {
-            dispatchTicTacToeGameState({
-              type: TicTacToeActionKind.RESET_BOARD,
-              payload: {
-                columnsNumber: 3,
-                rowsNumber: 3,
-                side: modalState.side,
-                soloOrDuoMode: modalState.soloOrDuoMode,
-              },
-            });
-          }}
-        >
-          <OptionsPanel
-            optionsState={modalState}
-            setOptionsState={setModalState}
-          />
-        </Modal>
-      )}
+
+      <Modal
+        isModalOpened={modalState.opened}
+        title="Start A New Game"
+        onClose={() => {
+          setModalState((prev) => {
+            return { ...prev, opened: false };
+          });
+        }}
+        onConfirm={() => {
+          dispatchTicTacToeGameState({
+            type: TicTacToeActionKind.RESET_BOARD,
+            payload: {
+              columnsNumber: 3,
+              rowsNumber: 3,
+              side: modalState.side,
+              soloOrDuoMode: modalState.soloOrDuoMode,
+            },
+          });
+        }}
+      >
+        <OptionsPanel
+          optionsState={modalState}
+          setOptionsState={setModalState}
+        />
+      </Modal>
+
       <TicTacToeContainer>
         <ControlsPanel
           openModal={() =>

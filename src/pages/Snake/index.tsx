@@ -89,38 +89,38 @@ const Snake = () => {
   return (
     <AnimatedPage>
       <Navbar />
-      {modalState.opened && (
-        <Modal
-          title="Start A New Game"
-          closeModal={() => {
-            setModalState((prev) => {
-              return { ...prev, opened: false };
-            });
-          }}
-          onConfirm={() => {
-            dispatchSnakeGameState({
-              type: SnakeActionKind.START_GAME,
-              payload: {
-                numberOfInversionApples: 2,
-                numberOfPointApples: 4,
-                snakeInitialPosition: [
-                  [3, 8],
-                  [3, 9],
-                ],
-                direction: { x: 0, y: -1 },
-                canvasSize: [canvasSize.x, canvasSize.y],
-                difficultyLevel: modalState.difficultyLevel,
-              },
-            });
-            gameWrapperRef.current?.focus();
-          }}
-        >
-          <OptionsPanel
-            setOptionsState={setModalState}
-            optionsState={modalState}
-          />
-        </Modal>
-      )}
+      <Modal
+        isModalOpened={modalState.opened}
+        title="Start A New Game"
+        onClose={() => {
+          setModalState((prev) => {
+            return { ...prev, opened: false };
+          });
+        }}
+        onConfirm={() => {
+          dispatchSnakeGameState({
+            type: SnakeActionKind.START_GAME,
+            payload: {
+              numberOfInversionApples: 2,
+              numberOfPointApples: 4,
+              snakeInitialPosition: [
+                [3, 8],
+                [3, 9],
+              ],
+              direction: { x: 0, y: -1 },
+              canvasSize: [canvasSize.x, canvasSize.y],
+              difficultyLevel: modalState.difficultyLevel,
+            },
+          });
+          gameWrapperRef.current?.focus();
+        }}
+      >
+        <OptionsPanel
+          setOptionsState={setModalState}
+          optionsState={modalState}
+        />
+      </Modal>
+
       <SnakeContainer>
         <ControlsPanel
           openModal={() =>
