@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import styled from "styled-components";
-import { IoBulbOutline } from "react-icons/io5";
+import EmojiObjectsIcon from "@mui/icons-material/EmojiObjects";
 import { useDarkMode } from "usehooks-ts";
+import Box from "@mui/material/Box";
 
 const ToggleThemeSwitch = () => {
-  const { isDarkMode, toggle, enable, disable } = useDarkMode();
+  const { isDarkMode, enable, disable } = useDarkMode();
 
   const [checked, setChecked] = useState<boolean>(isDarkMode ? false : true);
   useEffect(() => {
@@ -13,28 +13,28 @@ const ToggleThemeSwitch = () => {
     } else {
       enable();
     }
-  }, [checked]);
+  }, [checked, disable, enable]);
 
   return (
-    <ToggleThemeSwitchContainer
+    <Box
       onClick={(e) => setChecked((prev) => !prev)}
-      style={{
+      sx={{
         cursor: "pointer",
         position: "relative",
         display: "block",
-        height: "40px",
-        width: "80px",
+        height: "42px",
+        width: "84px",
         background: "#212121",
         borderRadius: "10px",
       }}
     >
-      <span
-        style={{
+      <Box
+        sx={{
           position: "absolute",
           top: "0",
-          left: checked ? "40px" : "0",
-          width: "40px",
-          height: "40px",
+          left: checked ? "41px" : "0",
+          width: "42px",
+          height: "42px",
           background: "#333",
           border: "6px solid #212121",
           borderRadius: "14px",
@@ -44,23 +44,21 @@ const ToggleThemeSwitch = () => {
           alignItems: "center",
         }}
       >
-        <IoBulbOutline
-          className="icon"
-          style={{
+        <EmojiObjectsIcon
+          fontSize="large"
+          sx={{
             color: checked
               ? "rgba(255, 255, 255, 1)"
               : "rgba(255, 255, 255, 0.25)",
-            fontSize: "2em",
             transition: "0.5s",
             filter: checked
               ? "drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px #fff) drop-shadow(0 0 15px #fff)"
               : "",
           }}
         />
-      </span>
-    </ToggleThemeSwitchContainer>
+      </Box>
+    </Box>
   );
 };
-export default ToggleThemeSwitch;
 
-const ToggleThemeSwitchContainer = styled.div``;
+export default ToggleThemeSwitch;
