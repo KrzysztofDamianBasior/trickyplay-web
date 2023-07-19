@@ -7,8 +7,7 @@ import Loading from "./pages/Loading";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
 
-import { useAppSelector } from "./shared/hooks";
-import { RootState } from "./redux/store";
+import { useDarkMode } from "usehooks-ts";
 
 import { ThemeProvider as MUIThemeProvider, createTheme } from "@mui/material";
 import { ThemeProvider as SCThemeProvider } from "styled-components";
@@ -46,11 +45,12 @@ const Minesweeper = lazy(() => {
 
 function App() {
   const location = useLocation();
-  const theme = useAppSelector((state: RootState) => state.appTheme.theme);
+  const { isDarkMode, toggle, enable, disable } = useDarkMode();
+  // const theme = useAppSelector((state: RootState) => state.appTheme.theme);
 
   const themeOptions = createTheme({
     palette: {
-      mode: theme === "light" ? "light" : "dark",
+      mode: isDarkMode ? "dark" : "light",
       primary: {
         main: "#21ebff",
       },
@@ -58,8 +58,8 @@ function App() {
         main: "#d400d4",
       },
       background: {
-        default: theme === "light" ? "#fff" : "#000",
-        paper: theme === "light" ? "#fff" : "#000",
+        default: isDarkMode ? "#000" : "#fff",
+        paper: isDarkMode ? "#000" : "#fff",
       },
     },
     components: {
@@ -117,14 +117,14 @@ function App() {
         body::-webkit-scrollbar
         {
           width: 15px;
-          background-color: ${theme === "dark" ? "#000" : "#fff"};
+          background-color: ${isDarkMode ? "#000" : "#fff"};
         }
       
         body::-webkit-scrollbar-thumb
         {
           border-radius: 10px;
           background-image: ${
-            theme === "dark"
+            isDarkMode
               ? `linear-gradient(to top, #4D9C41, #19911D,#54DE5D)`
               : `linear-gradient(to top,rgb(122,153,217), rgb(73,125,189),rgb(28,58,148));            
           `
@@ -137,7 +137,7 @@ function App() {
   return (
     <div className="app">
       <MUIThemeProvider theme={themeOptions}>
-        <SCThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
+        <SCThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
           <CssBaseline />
           <AnimatePresence mode="wait">
             <Routes key={location.pathname} location={location}>

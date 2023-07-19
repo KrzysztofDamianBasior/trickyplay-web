@@ -1,26 +1,19 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { IoBulbOutline } from "react-icons/io5";
-import { setDarkTheme, setLightTheme } from "../../../redux/slices/themeSlice";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { RootState } from "../../../redux/store";
+import { useDarkMode } from "usehooks-ts";
 
-type Props = {};
+const ToggleThemeSwitch = () => {
+  const { isDarkMode, toggle, enable, disable } = useDarkMode();
 
-const ToggleThemeSwitch = (props: Props) => {
-  const theme = useAppSelector((state: RootState) => state.appTheme.theme);
-  const [checked, setChecked] = useState<boolean>(
-    theme === "light" ? true : false
-  );
-
-  const dispatch = useAppDispatch();
+  const [checked, setChecked] = useState<boolean>(isDarkMode ? false : true);
   useEffect(() => {
     if (checked === true) {
-      dispatch(setLightTheme());
+      disable();
     } else {
-      dispatch(setDarkTheme());
+      enable();
     }
-  }, [checked, dispatch]);
+  }, [checked]);
 
   return (
     <ToggleThemeSwitchContainer
