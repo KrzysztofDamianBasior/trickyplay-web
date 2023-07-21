@@ -16,10 +16,10 @@ import CssBaseline from "@mui/material/CssBaseline";
 
 import { AnimatePresence } from "framer-motion";
 
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+import "@fontsource/open-sans/300.css";
+import "@fontsource/open-sans/400.css";
+import "@fontsource/open-sans/500.css";
+import "@fontsource/open-sans/700.css";
 
 //lazy loading
 const TicTacToe = lazy(() => {
@@ -62,6 +62,12 @@ function App() {
         paper: isDarkMode ? "#000" : "#fff",
       },
     },
+    typography: {
+      fontFamily: ["open-sans"].join(","),
+      button: {
+        fontWeight: 500,
+      },
+    },
     components: {
       MuiCssBaseline: {
         styleOverrides: `
@@ -69,44 +75,21 @@ function App() {
           margin: 0;
           padding: 0;
           box-sizing: border-box;
+          // font-family: "open-sans";
         }
-      
+        
         body {
           width: 100%;
           height: 100vh;
         }
-      
+        
         .app{
           width: 100%;
           height: 100%;
         }
 
 
-        /************** styles required by swiper **************/
-        .swiper {
-          width: 100%;
-          height: 100%;
-        }
-
-        .swiper-slide {
-          text-align: center;
-          font-size: 18px;
-          background: #fff;
-
-          /* Center slide text vertically */
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .swiper-slide img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        /**************                           **************/
-
+        /************** scrollbar **************/
         body::-webkit-scrollbar-track
         {
           -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.9);
