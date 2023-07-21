@@ -1,11 +1,9 @@
-import React from "react";
-import { styled } from "@mui/material/styles";
+import { styled } from "@mui/system";
+type Props = { url: string; children: React.ReactNode };
 
-type Props = { to: string; children: React.ReactNode };
-
-const ExternalLinkButton = ({ to, children }: Props) => {
+const ExternalLinkButton = ({ url, children }: Props) => {
   return (
-    <SpecialLink href={to}>
+    <SpecialLink href={url}>
       <span></span>
       <span></span>
       <span></span>
