@@ -1,18 +1,23 @@
+import { useContext } from "react";
+
 import {
   AppBar,
-  Box,
-  Button,
+  Toolbar,
   Tab,
   Tabs,
-  Toolbar,
+  Box,
+  Button,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+
+import pages from "./tabPagesList.json";
 import DrawerComp from "./Drawer";
 import ThemeSwitch from "../ThemeSwitch";
+import { AuthContext } from "../../auth/useAuth";
+
 import { useNavigate, useLocation } from "react-router-dom";
-import pages from "./tabPagesList.json";
 
 const pagesInfo: { to: string; name: string; id: number }[] = pages;
 
@@ -21,9 +26,12 @@ const Navbar = () => {
   const isMatch = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const location = useLocation();
-  const value = pagesInfo
+  const { authState, signOut } = useContext(AuthContext);
+
+  const currentPage = pagesInfo
     .map((e) => e.to)
     .indexOf(location.pathname.toLowerCase());
+
   return (
     <AppBar
       sx={{
@@ -48,10 +56,11 @@ const Navbar = () => {
               sx={{ marginLeft: "auto" }}
               indicatorColor="secondary"
               textColor="inherit"
-              value={value !== -1 ? pagesInfo[value].id : false}
+              value={currentPage !== -1 ? pagesInfo[currentPage].id : false}
               onChange={(e, value) => {
                 navigate(pagesInfo[value].to);
               }}
+              aria-label="tabs menu"
             >
               {pagesInfo.map((_, pageIndex) => (
                 <Tab
@@ -60,24 +69,41 @@ const Navbar = () => {
                     color: (theme) =>
                       theme.palette.mode === "light" ? "#000000" : "#ffffff",
                   }}
+                  {...a11yProps(pageIndex)}
                 />
               ))}
             </Tabs>
-            {true ? (
+            {authState.status === "LOGGED_OUT" ? (
               <>
-                <Button sx={{ marginLeft: "auto" }} variant="contained">
+                <Button
+                  sx={{ marginLeft: "auto" }}
+                  variant="contained"
+                  onClick={() => navigate("./auth")}
+                >
                   Login
                 </Button>
-                <Button sx={{ marginLeft: "10px" }} variant="contained">
+                <Button
+                  sx={{ marginLeft: "10px" }}
+                  variant="contained"
+                  onClick={() => navigate("./auth")}
+                >
                   SignUp
                 </Button>
               </>
             ) : (
               <>
-                <Button sx={{ marginLeft: "auto" }} variant="contained">
+                <Button
+                  sx={{ marginLeft: "auto" }}
+                  variant="contained"
+                  onClick={() => navigate("./account")}
+                >
                   Account
                 </Button>
-                <Button sx={{ marginLeft: "10px" }} variant="contained">
+                <Button
+                  sx={{ marginLeft: "10px" }}
+                  variant="contained"
+                  onClick={() => signOut()}
+                >
                   Logout
                 </Button>
               </>
@@ -90,3 +116,10 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  };
+}
