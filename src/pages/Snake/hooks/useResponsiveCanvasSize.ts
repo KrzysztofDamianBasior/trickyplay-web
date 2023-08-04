@@ -1,4 +1,4 @@
-import { useWindowSize } from "../../../shared/hooks";
+import { useWindowSize } from "usehooks-ts";
 import { useState } from "react";
 
 /**

@@ -1,7 +1,7 @@
 import React, { useRef, useReducer, useEffect, useState } from "react";
 import styled from "styled-components";
 
-import { useInterval } from "../../shared/hooks";
+import { useInterval } from "usehooks-ts";
 import { useResponsiveCanvasSize } from "./hooks/useResponsiveCanvasSize";
 
 import AnimatedPage from "../../shared/components/AnimatedPage";
