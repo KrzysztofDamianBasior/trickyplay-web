@@ -64,6 +64,7 @@ const Navbar = () => {
             >
               {pagesInfo.map((_, pageIndex) => (
                 <Tab
+                  key={pagesInfo[pageIndex].name}
                   label={pagesInfo[pageIndex].name}
                   sx={{
                     color: (theme) =>
