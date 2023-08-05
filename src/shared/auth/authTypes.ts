@@ -1,3 +1,5 @@
+import { AxiosInstance } from "axios";
+
 export type UserDetailsType = {
   id: string;
   name: string;
@@ -24,8 +26,6 @@ export type SignUpProps = {
   password: string;
 };
 
-export type AuthActionKind = "SIGN_UP" | "SIGN_IN" | "SIGN_OUT";
-
 export type signUpProps = { username: string; password: string };
 export type signInProps = { username: string; password: string };
 
@@ -34,4 +34,20 @@ export type AuthContextType = {
   signUp: (userData: signUpProps) => void;
   signOut: () => void;
   authState: AuthStateType;
+  axiosPrivate: AxiosInstance;
+  axiosPublic: AxiosInstance;
 };
+
+export type SignInResult =
+  | "Login Failed"
+  | "Unauthorized"
+  | "Missing Username or Password"
+  | "No Server Response"
+  | "Success";
+
+export type SignUpResult =
+  | "Registration Failed"
+  | "Unauthorized"
+  | "Missing Username or Password"
+  | "No Server Response"
+  | "Success";
