@@ -9,7 +9,9 @@ import type {
   signUpProps,
   SignInResult,
   SignUpResult,
+  SignOutResult,
 } from "./authTypes";
+import { mapResponseErrorToMessage, wait } from "../utils";
 
 export const authInitialState: AuthStateType = {
   status: "LOGGED_OUT",
@@ -33,9 +35,9 @@ export const axiosPrivate = axios.create({
 
 export const AuthContext = createContext<AuthContextType>({
   authState: authInitialState,
-  signIn: (userData: signInProps) => {},
-  signUp: (userData: signUpProps) => {},
-  signOut: () => {},
+  signIn: async (userData: signInProps) => "No Server Response",
+  signUp: async (userData: signUpProps) => "No Server Response",
+  signOut: async () => "No Server Response",
   axiosPrivate: axiosPrivate,
   axiosPublic: axiosPublic,
 });
@@ -47,15 +49,18 @@ export default function useAuth(): AuthContextType {
   );
 
   useEffect(() => {
-    const refresh = async () => {
-      // const response = await axiosPublic.get("/refresh", {
-      //   withCredentials: true,
-      // });
-      // setAuthState((prev) => {
-      //   console.log(response.data.accessToken);
-      //   return { ...prev, accessToken: response.data.accessToken };
-      // });
-      // return response.data.accessToken;
+    const refresh = async (): Promise<string> => {
+      const response = await axiosPublic.post(
+        "/refresh",
+        { refreshToken: authState.refreshToken },
+        { withCredentials: true }
+      );
+
+      setAuthState((prev) => {
+        console.log(response.data.accessToken);
+        return { ...prev, accessToken: response.data.accessToken };
+      });
+      return response.data.accessToken;
     };
 
     const requestIntercept = axiosPrivate.interceptors.request.use(
@@ -105,20 +110,24 @@ export default function useAuth(): AuthContextType {
     };
   }, [authState]);
 
-  const signOut = async () => {
+  const signOut = async (): SignOutResult => {
     setAuthState(authInitialState);
     // await axios.post('logout', {}, {withCredentials: true});
+
+    await wait(0, 500);
+    return "Success";
   };
 
-  const signIn = async ({
-    username,
-    password,
-  }: signInProps): Promise<SignInResult> => {
+  const signIn = async ({ username, password }: signInProps): SignInResult => {
+    await wait(0, 500);
+    const now = new Date();
     setAuthState({
       user: {
         name: username,
         id: "asdf",
         roles: ["User"],
+        createdAt: now.toISOString(),
+        lastUpdatedAt: now.toISOString(),
       },
       accessToken: "asdf",
       refreshToken: "asdf",
@@ -143,30 +152,24 @@ export default function useAuth(): AuthContextType {
       //   const accessToken = response?.data?.accessToken;
       //   const roles = response?.data?.roles;
       //   // axios.defaults.headers.common['Authorization'] = `Bearer ${response.data['accessToken']}`;
-      //   // setAuthState({ user, pwd, roles, accessToken });
+      //   // setAuthState({ .................... });
       if (Math.random() > 0.5) throw new Error();
       return "Success";
     } catch (err: any) {
-      if (!err?.response) {
-        return "No Server Response";
-      } else if (err.response?.status === 400) {
-        return "Missing Username or Password";
-      } else if (err.response?.status === 401) {
-        return "Unauthorized";
-      } else {
-        return "Login Failed";
-      }
+      return mapResponseErrorToMessage(err);
     }
   };
-  const signUp = async ({
-    username,
-    password,
-  }: signUpProps): Promise<SignUpResult> => {
+
+  const signUp = async ({ username, password }: signUpProps): SignUpResult => {
+    await wait(0, 500);
+    const now = new Date();
     setAuthState({
       user: {
         name: username,
         id: "asdf",
         roles: ["User"],
+        createdAt: now.toISOString(),
+        lastUpdatedAt: now.toISOString(),
       },
       accessToken: "asdf",
       refreshToken: "asdf",
@@ -187,20 +190,12 @@ export default function useAuth(): AuthContextType {
 
     // const accessToken = response?.data?.accessToken;
     // const roles = response?.data?.roles;
-    // setAuthState({ user, pwd, roles, accessToken });
+    // setAuthState({ ....... });
     try {
       if (Math.random() > 0.5) throw new Error();
       return "Success";
     } catch (err: any) {
-      if (!err?.response) {
-        return "No Server Response";
-      } else if (err.response?.status === 400) {
-        return "Missing Username or Password";
-      } else if (err.response?.status === 401) {
-        return "Unauthorized";
-      } else {
-        return "Registration Failed";
-      }
+      return mapResponseErrorToMessage(err);
     }
   };
 

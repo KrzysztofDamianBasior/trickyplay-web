@@ -1,10 +1,6 @@
 import { AxiosInstance } from "axios";
-
-export type UserDetailsType = {
-  id: string;
-  name: string;
-  roles: string[];
-} | null;
+import { ErrorMessageKind } from "../utils/mapResponseErrorToMessage";
+import { UserDetailsType } from "../hooks/useUsersAPIFacade";
 
 export type AuthStatusType = "LOGGED_IN" | "LOGGED_OUT" | "LOADING";
 
@@ -13,7 +9,7 @@ export type AuthStateType = {
   accessToken: string | null;
   refreshToken: string | null;
   status: AuthStatusType;
-  user: UserDetailsType;
+  user: UserDetailsType | null;
 };
 
 export type SignInProps = {
@@ -30,24 +26,14 @@ export type signUpProps = { username: string; password: string };
 export type signInProps = { username: string; password: string };
 
 export type AuthContextType = {
-  signIn: (userData: signInProps) => void;
-  signUp: (userData: signUpProps) => void;
-  signOut: () => void;
+  signIn: (userData: signInProps) => SignInResult;
+  signUp: (userData: signUpProps) => SignUpResult;
+  signOut: () => SignOutResult;
   authState: AuthStateType;
   axiosPrivate: AxiosInstance;
   axiosPublic: AxiosInstance;
 };
 
-export type SignInResult =
-  | "Login Failed"
-  | "Unauthorized"
-  | "Missing Username or Password"
-  | "No Server Response"
-  | "Success";
-
-export type SignUpResult =
-  | "Registration Failed"
-  | "Unauthorized"
-  | "Missing Username or Password"
-  | "No Server Response"
-  | "Success";
+export type SignInResult = Promise<ErrorMessageKind | "Success">;
+export type SignUpResult = Promise<ErrorMessageKind | "Success">;
+export type SignOutResult = Promise<ErrorMessageKind | "Success">;
