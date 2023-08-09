@@ -1,20 +1,23 @@
 import { useContext } from "react";
 
-import { AuthContext } from "../auth/useAuth";
+import { AuthContext } from "./useAuth";
 import { mapResponseErrorToMessage, wait } from "../utils";
 import { ErrorMessageKind } from "../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "./useUsersAPIFacade";
+import { ReplyDetailsType } from "./useRepliesAPIFacade";
+
+import { replies } from "./useRepliesAPIFacade";
 
 export type CommentDetailsType = {
   id: string;
   body: string;
   author: UserDetailsType;
-  parentId: null | string;
+  replies: ReplyDetailsType[] | null;
   createdAt: string;
   lastUpdatedAt: string;
 };
 
-const comments: CommentDetailsType[] = [
+export const comments: CommentDetailsType[] = [
   {
     id: "1",
     body: "First comment",
@@ -25,9 +28,9 @@ const comments: CommentDetailsType[] = [
       createdAt: "2023-08-06T11:23:36.172Z",
       lastUpdatedAt: "2023-08-06T11:23:36.172Z",
     },
-    parentId: null,
     createdAt: "2023-08-06T11:23:36.172Z",
     lastUpdatedAt: "2023-08-06T11:23:36.172Z",
+    replies: null,
   },
   {
     id: "2",
@@ -39,37 +42,9 @@ const comments: CommentDetailsType[] = [
       createdAt: "2023-08-06T11:23:36.172Z",
       lastUpdatedAt: "2023-08-06T11:23:36.172Z",
     },
-    parentId: null,
     createdAt: "2023-08-06T11:24:14.887Z",
     lastUpdatedAt: "2023-08-06T11:24:14.887Z",
-  },
-  {
-    id: "3",
-    body: "First comment first child",
-    author: {
-      id: "2",
-      name: "Margary",
-      roles: ["User"],
-      createdAt: "2023-08-06T11:23:36.172Z",
-      lastUpdatedAt: "2023-08-06T11:23:36.172Z",
-    },
-    parentId: "1",
-    createdAt: "2023-08-06T11:25:01.245Z",
-    lastUpdatedAt: "2023-08-06T11:25:01.245Z",
-  },
-  {
-    id: "4",
-    body: "Second comment second child",
-    author: {
-      id: "2",
-      name: "Margary",
-      roles: ["User"],
-      createdAt: "2023-08-06T11:23:36.172Z",
-      lastUpdatedAt: "2023-08-06T11:23:36.172Z",
-    },
-    parentId: "2",
-    createdAt: "2023-08-06T11:25:33.405Z",
-    lastUpdatedAt: "2023-08-06T11:25:33.405Z",
+    replies: null,
   },
 ];
 
@@ -79,49 +54,63 @@ const comments: CommentDetailsType[] = [
 // offset = page * per_page - per_page
 
 export type DeleteCommentProps = { id: string };
-export type GetCommentProps = { id: string };
-export type GetCommentsProps = {
-  gameName: string;
-  offset: number;
-  perPage: number;
-};
-export type CreateCommentProps = {
-  body: string;
-  parentId: string;
-};
-export type UpdateCommentProps = {
-  id: string;
-  body: string;
-};
-
-export type GetCommentsResultType = Promise<{
-  status: number;
-  message: ErrorMessageKind | "Success";
-  comments: CommentDetailsType[];
-}>;
-export type GetCommentResultType = Promise<{
-  status: number;
-  message: ErrorMessageKind | "Success";
-  comment: CommentDetailsType | null;
-}>;
-export type CreateCommentResultType = Promise<{
-  status: number;
-  message: ErrorMessageKind | "Success";
-  comment: CommentDetailsType | null;
-}>;
-export type UpdateCommentResultType = Promise<{
-  status: number;
-  message: ErrorMessageKind | "Success";
-  comment: CommentDetailsType | null;
-}>;
 export type DeleteCommentResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
 }>;
 
+export type GetCommentProps = { id: string };
+export type GetCommentResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  comment: CommentDetailsType | null;
+}>;
+
+export type GetCommentsProps = {
+  gameName: string;
+  page: number;
+  perPage: number;
+};
+export type GetCommentsResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  comments: CommentDetailsType[];
+  totalNumberOfComments: number;
+}>;
+
+export type CreateCommentProps = {
+  body: string;
+  gameName: string;
+};
+export type CreateCommentResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  comment: CommentDetailsType | null;
+}>;
+
+export type UpdateCommentProps = {
+  id: string;
+  body: string;
+};
+export type UpdateCommentResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  comment: CommentDetailsType | null;
+}>;
+
 export type CommentsActionsType = {
-  getComments: (getCommentsProps: GetCommentsProps) => GetCommentsResultType;
-  getComment: (getCommentProps: GetCommentProps) => GetCommentResultType;
+  getCommentsWithReplies: (
+    getCommentsProps: GetCommentsProps
+  ) => GetCommentsResultType;
+  getCommentsWithoutReplies: (
+    getCommentsProps: GetCommentsProps
+  ) => GetCommentsResultType;
+  getCommentWithReplies: (
+    getCommentProps: GetCommentProps
+  ) => GetCommentResultType;
+  getCommentWithoutReplies: (
+    getCommentProps: GetCommentProps
+  ) => GetCommentResultType;
   createComment: (
     createCommentProps: CreateCommentProps
   ) => CreateCommentResultType;
@@ -135,7 +124,6 @@ export type CommentsActionsType = {
 
 export default function useCommentsAPIFacade(): CommentsActionsType {
   const { axiosPrivate, axiosPublic, authState } = useContext(AuthContext);
-
   const COMMENTS_URL = process.env.REACT_APP_COMMENTS_URL;
 
   const deleteComment = async ({
@@ -241,7 +229,7 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
 
   const createComment = async ({
     body,
-    parentId,
+    gameName,
   }: CreateCommentProps): CreateCommentResultType => {
     try {
       //   const response = await axiosPrivate.post(
@@ -268,7 +256,7 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
             lastUpdatedAt: authState.user.lastUpdatedAt,
           },
           body,
-          parentId,
+          replies: [],
           id: Math.random().toString(36).substr(2, 9),
           createdAt: now.toISOString(),
           lastUpdatedAt: now.toISOString(),
@@ -296,9 +284,53 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     }
   };
 
-  const getComment = async ({ id }: GetCommentProps): GetCommentResultType => {
+  const getCommentWithReplies = async ({
+    id,
+  }: GetCommentProps): GetCommentResultType => {
     try {
-      //   const response = await axiosPublic.post(
+      //   const response = await axiosPublic.get(
+      //     COMMENTS_URL,
+      //     JSON.stringify({id}),
+      //     {
+      //       headers: { "Content-Type": "application/json" },
+      //       withCredentials: true,
+      //     }
+      //   );
+      //   console.log(JSON.stringify(response?.data));
+      //   console.log(JSON.stringify(response));
+      const comment = comments.find((comment) => comment.id === id);
+
+      await wait(0, 500);
+      if (comment) {
+        comment.replies = replies.filter(
+          (reply) => reply.parentId === comment.id
+        );
+        return {
+          comment,
+          message: "Success",
+          status: 200,
+        };
+      } else {
+        return {
+          message: "Not Found",
+          status: 404,
+          comment: null,
+        };
+      }
+    } catch (err: any) {
+      return {
+        message: mapResponseErrorToMessage(err),
+        status: err.response?.status,
+        comment: null,
+      };
+    }
+  };
+
+  const getCommentWithoutReplies = async ({
+    id,
+  }: GetCommentProps): GetCommentResultType => {
+    try {
+      //   const response = await axiosPublic.get(
       //     COMMENTS_URL,
       //     JSON.stringify({id}),
       //     {
@@ -332,17 +364,17 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     }
   };
 
-  const getComments = async ({
+  const getCommentsWithReplies = async ({
     gameName,
-    offset,
+    page,
     perPage,
   }: GetCommentsProps): GetCommentsResultType => {
     try {
-      //   const response = await axiosPublic.post(
+      //   const response = await axiosPublic.get(
       //     COMMENTS_URL,
       //     JSON.stringify({
       //       gameName
-      //       offset,
+      //       page,
       //       perPage,
       //     }),
       //     {
@@ -353,16 +385,83 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
       //   console.log(JSON.stringify(response?.data));
       //   console.log(JSON.stringify(response));
       await wait(0, 500);
+      const offset = page * perPage - perPage;
+
+      let commentsSet: CommentDetailsType[] = [];
+      if (offset > comments.length) {
+        if (offset + perPage < comments.length) {
+          commentsSet = comments.slice(offset, offset + perPage);
+        } else {
+          commentsSet = comments.slice(offset);
+        }
+      }
+      commentsSet.forEach((comment) => {
+        comment.replies = replies.filter(
+          (reply) => reply.parentId === comment.id
+        );
+      });
+
       return {
-        comments,
+        comments: commentsSet,
         message: "Success",
         status: 200,
+        totalNumberOfComments: comments.length,
       };
     } catch (err: any) {
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
         comments: [],
+        totalNumberOfComments: 0,
+      };
+    }
+  };
+
+  const getCommentsWithoutReplies = async ({
+    gameName,
+    page,
+    perPage,
+  }: GetCommentsProps): GetCommentsResultType => {
+    try {
+      //   const response = await axiosPublic.get(
+      //     COMMENTS_URL,
+      //     JSON.stringify({
+      //       gameName
+      //       page,
+      //       perPage,
+      //     }),
+      //     {
+      //       headers: { "Content-Type": "application/json" },
+      //       withCredentials: true,
+      //     }
+      //   );
+      //   console.log(JSON.stringify(response?.data));
+      //   console.log(JSON.stringify(response));
+      await wait(0, 500);
+      const offset = page * perPage - perPage;
+
+      let commentsSet: CommentDetailsType[] = [];
+      if (offset > comments.length) {
+        if (offset + perPage < comments.length) {
+          commentsSet = comments.slice(offset, offset + perPage);
+        } else {
+          commentsSet = comments.slice(offset);
+        }
+      }
+      commentsSet.forEach((comment) => (comment.replies = null));
+
+      return {
+        comments: commentsSet,
+        message: "Success",
+        status: 200,
+        totalNumberOfComments: comments.length,
+      };
+    } catch (err: any) {
+      return {
+        message: mapResponseErrorToMessage(err),
+        status: err.response?.status,
+        comments: [],
+        totalNumberOfComments: 0,
       };
     }
   };
@@ -370,8 +469,10 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
   return {
     createComment,
     deleteComment,
-    getComment,
-    getComments,
     updateComment,
+    getCommentWithReplies,
+    getCommentWithoutReplies,
+    getCommentsWithReplies,
+    getCommentsWithoutReplies,
   };
 }

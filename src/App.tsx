@@ -25,7 +25,8 @@ import "@fontsource/open-sans/400.css";
 import "@fontsource/open-sans/500.css";
 import "@fontsource/open-sans/700.css";
 
-import useAuth, { AuthContext } from "./shared/auth/useAuth";
+import useAuth from "./shared/hooks/useAuth";
+import { AuthContext } from "./shared/context/AuthContext";
 
 //lazy loading
 const TicTacToe = lazy(() => {
@@ -52,8 +53,17 @@ const Minesweeper = lazy(() => {
 function App() {
   const location = useLocation();
   const { isDarkMode, toggle, enable, disable } = useDarkMode();
-  const { authState, axiosPrivate, axiosPublic, signIn, signOut, signUp } =
-    useAuth();
+  const {
+    authState,
+    axiosPrivate,
+    axiosPublic,
+    signIn,
+    signOut,
+    signUp,
+    deleteMyAccount,
+    updateMyPassword,
+    updateMyUsername,
+  } = useAuth();
 
   const themeOptions = createTheme({
     palette: {
@@ -132,6 +142,9 @@ function App() {
           signIn,
           signOut,
           signUp,
+          deleteMyAccount,
+          updateMyPassword,
+          updateMyUsername,
         }}
       >
         <MUIThemeProvider theme={themeOptions}>
