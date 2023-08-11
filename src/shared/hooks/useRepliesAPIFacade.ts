@@ -1,6 +1,6 @@
 import { useContext } from "react";
 
-import { AuthContext } from "./useAuth";
+import { AuthContext } from "../context/AuthContext";
 import { mapResponseErrorToMessage, wait } from "../utils";
 import { ErrorMessageKind } from "../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "./useUsersAPIFacade";
@@ -62,12 +62,13 @@ export type GetRepliesProps = {
   parentId: string;
   page: number;
   perPage: number;
+  gameName: string;
 };
 export type GetRepliesResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
   replies: ReplyDetailsType[] | null;
-  totalNumberOfReplies: number;
+  totalNumberOfReplies: number | null;
 }>;
 
 export type CreateReplyProps = {
@@ -335,8 +336,8 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
-        replies: [],
-        totalNumberOfReplies: 0,
+        replies: null,
+        totalNumberOfReplies: null,
       };
     }
   };

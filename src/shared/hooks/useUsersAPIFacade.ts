@@ -4,7 +4,7 @@ import {
   mapResponseErrorToMessage,
 } from "../utils/mapResponseErrorToMessage";
 import { wait } from "../utils";
-import { AuthContext } from "./useAuth";
+import { AuthContext } from "../context/AuthContext";
 
 export type UserDetailsType = {
   id: string;
@@ -52,8 +52,8 @@ export type GetUsersProps = {
 export type GetUsersResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
-  users: UserDetailsType[];
-  totalNumberOfUsers: number;
+  users: UserDetailsType[] | null;
+  totalNumberOfUsers: number | null;
 }>;
 
 export type GrantAdminPermissionsProps = { id: string };
@@ -151,8 +151,8 @@ export default function useUsersAPIFacade(): UsersActionsType {
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
-        users: [],
-        totalNumberOfUsers: 0,
+        users: null,
+        totalNumberOfUsers: null,
       };
     }
   };

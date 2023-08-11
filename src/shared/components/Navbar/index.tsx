@@ -15,7 +15,7 @@ import {
 import pages from "./tabPagesList.json";
 import DrawerComp from "./Drawer";
 import ThemeSwitch from "../ThemeSwitch";
-import { AuthContext } from "../../auth/useAuth";
+import { AuthContext } from "../../context/AuthContext";
 
 import { useNavigate, useLocation } from "react-router-dom";
 

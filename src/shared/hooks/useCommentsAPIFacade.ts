@@ -1,20 +1,17 @@
 import { useContext } from "react";
 
-import { AuthContext } from "./useAuth";
+import { AuthContext } from "../context/AuthContext";
 import { mapResponseErrorToMessage, wait } from "../utils";
 import { ErrorMessageKind } from "../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "./useUsersAPIFacade";
-import { ReplyDetailsType } from "./useRepliesAPIFacade";
-
-import { replies } from "./useRepliesAPIFacade";
 
 export type CommentDetailsType = {
   id: string;
   body: string;
   author: UserDetailsType;
-  replies: ReplyDetailsType[] | null;
   createdAt: string;
   lastUpdatedAt: string;
+  // replies: ReplyDetailsType[] | null;
 };
 
 export const comments: CommentDetailsType[] = [
@@ -30,7 +27,7 @@ export const comments: CommentDetailsType[] = [
     },
     createdAt: "2023-08-06T11:23:36.172Z",
     lastUpdatedAt: "2023-08-06T11:23:36.172Z",
-    replies: null,
+    // replies: null,
   },
   {
     id: "2",
@@ -44,7 +41,7 @@ export const comments: CommentDetailsType[] = [
     },
     createdAt: "2023-08-06T11:24:14.887Z",
     lastUpdatedAt: "2023-08-06T11:24:14.887Z",
-    replies: null,
+    // replies: null,
   },
 ];
 
@@ -53,7 +50,9 @@ export const comments: CommentDetailsType[] = [
 // -per_page (alternatively limit or count) - indicates how many items should be on one page of results
 // offset = page * per_page - per_page
 
-export type DeleteCommentProps = { id: string };
+export type DeleteCommentProps = {
+  id: string;
+};
 export type DeleteCommentResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
@@ -74,8 +73,8 @@ export type GetCommentsProps = {
 export type GetCommentsResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
-  comments: CommentDetailsType[];
-  totalNumberOfComments: number;
+  comments: CommentDetailsType[] | null;
+  totalNumberOfComments: number | null;
 }>;
 
 export type CreateCommentProps = {
@@ -99,18 +98,14 @@ export type UpdateCommentResultType = Promise<{
 }>;
 
 export type CommentsActionsType = {
-  getCommentsWithReplies: (
-    getCommentsProps: GetCommentsProps
-  ) => GetCommentsResultType;
-  getCommentsWithoutReplies: (
-    getCommentsProps: GetCommentsProps
-  ) => GetCommentsResultType;
-  getCommentWithReplies: (
-    getCommentProps: GetCommentProps
-  ) => GetCommentResultType;
-  getCommentWithoutReplies: (
-    getCommentProps: GetCommentProps
-  ) => GetCommentResultType;
+  // getCommentsWithReplies: (
+  //   getCommentsProps: GetCommentsProps
+  // ) => GetCommentsResultType;
+  getComments: (getCommentsProps: GetCommentsProps) => GetCommentsResultType;
+  // getCommentWithReplies: (
+  //   getCommentProps: GetCommentProps
+  // ) => GetCommentResultType;
+  getComment: (getCommentProps: GetCommentProps) => GetCommentResultType;
   createComment: (
     createCommentProps: CreateCommentProps
   ) => CreateCommentResultType;
@@ -256,7 +251,7 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
             lastUpdatedAt: authState.user.lastUpdatedAt,
           },
           body,
-          replies: [],
+          // replies: [],
           id: Math.random().toString(36).substr(2, 9),
           createdAt: now.toISOString(),
           lastUpdatedAt: now.toISOString(),
@@ -284,51 +279,49 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     }
   };
 
-  const getCommentWithReplies = async ({
-    id,
-  }: GetCommentProps): GetCommentResultType => {
-    try {
-      //   const response = await axiosPublic.get(
-      //     COMMENTS_URL,
-      //     JSON.stringify({id}),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      const comment = comments.find((comment) => comment.id === id);
+  // const getCommentWithReplies = async ({
+  //   id,
+  // }: GetCommentProps): GetCommentResultType => {
+  //   try {
+  //     //   const response = await axiosPublic.get(
+  //     //     COMMENTS_URL,
+  //     //     JSON.stringify({id}),
+  //     //     {
+  //     //       headers: { "Content-Type": "application/json" },
+  //     //       withCredentials: true,
+  //     //     }
+  //     //   );
+  //     //   console.log(JSON.stringify(response?.data));
+  //     //   console.log(JSON.stringify(response));
+  //     const comment = comments.find((comment) => comment.id === id);
 
-      await wait(0, 500);
-      if (comment) {
-        comment.replies = replies.filter(
-          (reply) => reply.parentId === comment.id
-        );
-        return {
-          comment,
-          message: "Success",
-          status: 200,
-        };
-      } else {
-        return {
-          message: "Not Found",
-          status: 404,
-          comment: null,
-        };
-      }
-    } catch (err: any) {
-      return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
-        comment: null,
-      };
-    }
-  };
+  //     await wait(0, 500);
+  //     if (comment) {
+  //       comment.replies = replies.filter(
+  //         (reply) => reply.parentId === comment.id
+  //       );
+  //       return {
+  //         comment,
+  //         message: "Success",
+  //         status: 200,
+  //       };
+  //     } else {
+  //       return {
+  //         message: "Not Found",
+  //         status: 404,
+  //         comment: null,
+  //       };
+  //     }
+  //   } catch (err: any) {
+  //     return {
+  //       message: mapResponseErrorToMessage(err),
+  //       status: err.response?.status,
+  //       comment: null,
+  //     };
+  //   }
+  // };
 
-  const getCommentWithoutReplies = async ({
-    id,
-  }: GetCommentProps): GetCommentResultType => {
+  const getComment = async ({ id }: GetCommentProps): GetCommentResultType => {
     try {
       //   const response = await axiosPublic.get(
       //     COMMENTS_URL,
@@ -364,7 +357,60 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     }
   };
 
-  const getCommentsWithReplies = async ({
+  // const getCommentsWithReplies = async ({
+  //   gameName,
+  //   page,
+  //   perPage,
+  // }: GetCommentsProps): GetCommentsResultType => {
+  //   try {
+  //     //   const response = await axiosPublic.get(
+  //     //     COMMENTS_URL,
+  //     //     JSON.stringify({
+  //     //       gameName
+  //     //       page,
+  //     //       perPage,
+  //     //     }),
+  //     //     {
+  //     //       headers: { "Content-Type": "application/json" },
+  //     //       withCredentials: true,
+  //     //     }
+  //     //   );
+  //     //   console.log(JSON.stringify(response?.data));
+  //     //   console.log(JSON.stringify(response));
+  //     await wait(0, 500);
+  //     const offset = page * perPage - perPage;
+
+  //     let commentsSet: CommentDetailsType[] = [];
+  //     if (offset > comments.length) {
+  //       if (offset + perPage < comments.length) {
+  //         commentsSet = comments.slice(offset, offset + perPage);
+  //       } else {
+  //         commentsSet = comments.slice(offset);
+  //       }
+  //     }
+  //     commentsSet.forEach((comment) => {
+  //       comment.replies = replies.filter(
+  //         (reply) => reply.parentId === comment.id
+  //       );
+  //     });
+
+  //     return {
+  //       comments: commentsSet,
+  //       message: "Success",
+  //       status: 200,
+  //       totalNumberOfComments: comments.length,
+  //     };
+  //   } catch (err: any) {
+  //     return {
+  //       message: mapResponseErrorToMessage(err),
+  //       status: err.response?.status,
+  //       comments: [],
+  //       totalNumberOfComments: 0,
+  //     };
+  //   }
+  // };
+
+  const getComments = async ({
     gameName,
     page,
     perPage,
@@ -395,11 +441,7 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
           commentsSet = comments.slice(offset);
         }
       }
-      commentsSet.forEach((comment) => {
-        comment.replies = replies.filter(
-          (reply) => reply.parentId === comment.id
-        );
-      });
+      // commentsSet.forEach((comment) => (comment.replies = null));
 
       return {
         comments: commentsSet,
@@ -411,57 +453,8 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
-        comments: [],
-        totalNumberOfComments: 0,
-      };
-    }
-  };
-
-  const getCommentsWithoutReplies = async ({
-    gameName,
-    page,
-    perPage,
-  }: GetCommentsProps): GetCommentsResultType => {
-    try {
-      //   const response = await axiosPublic.get(
-      //     COMMENTS_URL,
-      //     JSON.stringify({
-      //       gameName
-      //       page,
-      //       perPage,
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      await wait(0, 500);
-      const offset = page * perPage - perPage;
-
-      let commentsSet: CommentDetailsType[] = [];
-      if (offset > comments.length) {
-        if (offset + perPage < comments.length) {
-          commentsSet = comments.slice(offset, offset + perPage);
-        } else {
-          commentsSet = comments.slice(offset);
-        }
-      }
-      commentsSet.forEach((comment) => (comment.replies = null));
-
-      return {
-        comments: commentsSet,
-        message: "Success",
-        status: 200,
-        totalNumberOfComments: comments.length,
-      };
-    } catch (err: any) {
-      return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
-        comments: [],
-        totalNumberOfComments: 0,
+        comments: null,
+        totalNumberOfComments: null,
       };
     }
   };
@@ -470,9 +463,7 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     createComment,
     deleteComment,
     updateComment,
-    getCommentWithReplies,
-    getCommentWithoutReplies,
-    getCommentsWithReplies,
-    getCommentsWithoutReplies,
+    getComment,
+    getComments,
   };
 }
