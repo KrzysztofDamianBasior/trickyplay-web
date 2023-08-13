@@ -1,51 +1,44 @@
-import { CommentWithRepliesDetailsType } from "../components/CommentsSection/CommentsContext";
-import { CommentDetailsType } from "../hooks/useCommentsAPIFacade";
-import { ReplyDetailsType } from "../hooks/useRepliesAPIFacade";
+import { calculateNumberOfPages } from "./calculateNumberOfPages";
 
-export type EntitiesPaginatedCollectionType = (
-  | CommentDetailsType
-  | ReplyDetailsType
-  | CommentWithRepliesDetailsType
-)[][];
-export type EntitiesFlatCollectionType = (
-  | CommentDetailsType
-  | ReplyDetailsType
-)[];
-
-export const regroupEntities = ({
-  currentEntitiesCollection,
+export function regroupEntities<EntityType>({
+  currentEntitiesPaginatedCollection,
   currentPerPage,
   newPerPage,
   newTotalNumberOfAllEntities,
 }: {
-  currentEntitiesCollection: EntitiesPaginatedCollectionType;
+  currentEntitiesPaginatedCollection: EntityType[][];
   currentPerPage: number;
   newPerPage: number;
   newTotalNumberOfAllEntities: number;
-}): EntitiesPaginatedCollectionType => {
-  let entitiesFlatCollection: EntitiesFlatCollectionType = [];
-  if (currentEntitiesCollection.length > 0) {
-    for (let i = 0; i < currentEntitiesCollection.length; i++) {
-      if (currentEntitiesCollection[i].length < currentPerPage) {
+}): EntityType[][] {
+  let entitiesFlatCollection: EntityType[] = [];
+
+  if (currentEntitiesPaginatedCollection.length > 0) {
+    for (let i = 0; i < currentEntitiesPaginatedCollection.length; i++) {
+      if (currentEntitiesPaginatedCollection[i].length < currentPerPage) {
         const complement = new Array(
-          currentPerPage - currentEntitiesCollection[i].length
+          currentPerPage - currentEntitiesPaginatedCollection[i].length
         ).fill(null);
         entitiesFlatCollection = entitiesFlatCollection.concat([
-          ...currentEntitiesCollection[i],
+          ...currentEntitiesPaginatedCollection[i],
           ...complement,
         ]);
       } else {
         entitiesFlatCollection = entitiesFlatCollection.concat(
-          currentEntitiesCollection[i]
+          currentEntitiesPaginatedCollection[i]
         );
       }
     }
   }
 
-  const entitiesNewSet: EntitiesPaginatedCollectionType = [];
+  const entitiesNewSet: EntityType[][] = [];
   const efcl = entitiesFlatCollection.length;
-  const numberOfPages = Math.ceil(newTotalNumberOfAllEntities / newPerPage);
-  for (let i = 0; i <= numberOfPages - 1; i++) {
+  const numberOfPages = calculateNumberOfPages({
+    perPage: newPerPage,
+    totalNumberOfEntities: newTotalNumberOfAllEntities,
+  });
+
+  for (let i = 0; i < numberOfPages; i++) {
     if (efcl >= i * newPerPage + newPerPage) {
       entitiesNewSet.push(
         entitiesFlatCollection
@@ -64,4 +57,4 @@ export const regroupEntities = ({
   }
 
   return entitiesNewSet;
-};
+}
