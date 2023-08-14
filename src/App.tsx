@@ -27,6 +27,9 @@ import "@fontsource/open-sans/700.css";
 
 import useAuth from "./shared/hooks/useAuth";
 import { AuthContext } from "./shared/context/AuthContext";
+import { NotificationContext } from "./shared/services/snackbars/NotificationsContext";
+import useNotifications from "./shared/services/snackbars/useNotifications";
+import ConsecutiveNotifications from "./shared/services/snackbars/ConsecutiveNotifications";
 
 //lazy loading
 const TicTacToe = lazy(() => {
@@ -64,6 +67,13 @@ function App() {
     updateMyPassword,
     updateMyUsername,
   } = useAuth();
+  const {
+    closeSnackbar,
+    handleSnackbarExited,
+    isSnackbarOpened,
+    messageInfo,
+    openSnackbar,
+  } = useNotifications();
 
   const themeOptions = createTheme({
     palette: {
@@ -147,47 +157,55 @@ function App() {
           updateMyUsername,
         }}
       >
-        <MUIThemeProvider theme={themeOptions}>
-          <SCThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-            <CssBaseline />
-            <AnimatePresence mode="wait">
-              <Routes key={location.pathname} location={location}>
-                <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Navigate to="/" />} />
-                <Route path="/Home" element={<Navigate to="/" />} />
-                <Route path="/games" element={<Games />} />
-                <Route path="/Games" element={<Navigate to="/games" />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/Auth" element={<Navigate to="/auth" />} />
-                <Route
-                  path="/games/tic-tac-toe"
-                  element={
-                    <Suspense fallback={<Loading />}>
-                      <TicTacToe />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/games/snake"
-                  element={
-                    <Suspense fallback={<Loading />}>
-                      <Snake />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/games/minesweeper"
-                  element={
-                    <Suspense fallback={<Loading />}>
-                      <Minesweeper />
-                    </Suspense>
-                  }
-                />
-                <Route path="*" element={<NoMatch />} />
-              </Routes>
-            </AnimatePresence>
-          </SCThemeProvider>
-        </MUIThemeProvider>
+        <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
+          <MUIThemeProvider theme={themeOptions}>
+            <SCThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+              <CssBaseline />
+              <AnimatePresence mode="wait">
+                <Routes key={location.pathname} location={location}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/home" element={<Navigate to="/" />} />
+                  <Route path="/Home" element={<Navigate to="/" />} />
+                  <Route path="/games" element={<Games />} />
+                  <Route path="/Games" element={<Navigate to="/games" />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/Auth" element={<Navigate to="/auth" />} />
+                  <Route
+                    path="/games/tic-tac-toe"
+                    element={
+                      <Suspense fallback={<Loading />}>
+                        <TicTacToe />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/games/snake"
+                    element={
+                      <Suspense fallback={<Loading />}>
+                        <Snake />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/games/minesweeper"
+                    element={
+                      <Suspense fallback={<Loading />}>
+                        <Minesweeper />
+                      </Suspense>
+                    }
+                  />
+                  <Route path="*" element={<NoMatch />} />
+                  <ConsecutiveNotifications
+                    handleClose={closeSnackbar}
+                    handleExited={handleSnackbarExited}
+                    isOpened={isSnackbarOpened}
+                    messageInfo={messageInfo}
+                  />
+                </Routes>
+              </AnimatePresence>
+            </SCThemeProvider>
+          </MUIThemeProvider>
+        </NotificationContext.Provider>
       </AuthContext.Provider>
     </div>
   );
