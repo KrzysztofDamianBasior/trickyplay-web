@@ -42,7 +42,7 @@ export function regroupEntities<EntityType>({
     if (efcl >= i * newPerPage + newPerPage) {
       entitiesNewSet.push(
         entitiesFlatCollection
-          .slice(i * newPerPage, i * newPerPage + newPerPage)
+          .slice(i * newPerPage, i * newPerPage + newPerPage) // page * rowsPerPage, page * rowsPerPage + rowsPerPage
           .filter((val) => val !== null)
       );
     } else if (efcl >= i * newPerPage) {
