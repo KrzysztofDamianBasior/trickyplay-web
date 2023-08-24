@@ -2,9 +2,14 @@ import { useContext } from "react";
 import {
   ErrorMessageKind,
   mapResponseErrorToMessage,
-} from "../utils/mapResponseErrorToMessage";
-import { wait } from "../utils";
-import { AuthContext } from "../context/AuthContext";
+} from "../../utils/mapResponseErrorToMessage";
+import { wait } from "../../utils";
+import { AuthContext } from "../account/AccountContext";
+import { GameNameType } from "../games/gamesDetails";
+import { ReplyDetailsType } from "./useRepliesAPIFacade";
+import { CommentDetailsType } from "./useCommentsAPIFacade";
+import { comments } from "./useCommentsAPIFacade";
+import { replies } from "./useRepliesAPIFacade";
 
 export type UserDetailsType = {
   id: string;
@@ -63,6 +68,31 @@ export type GrantAdminPermissionsResultType = Promise<{
   user: UserDetailsType | null;
 }>;
 
+export type GetUserCommentsProps = {
+  page: number;
+  perPage: number;
+  gameName: GameNameType;
+  userId: string;
+};
+export type GetUserCommentsResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  comments: CommentDetailsType[] | null;
+  totalNumberOfComments: number | null;
+}>;
+
+export type GetUserRepliesProps = {
+  page: number;
+  perPage: number;
+  userId: string;
+};
+export type GetUserRepliesResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  replies: ReplyDetailsType[] | null;
+  totalNumberOfReplies: number | null;
+}>;
+
 export type UsersActionsType = {
   getUsers: (getUsersProps: GetUsersProps) => GetUsersResultType;
   getUser: (getUserProps: GetUserProps) => GetUserResultType;
@@ -70,6 +100,12 @@ export type UsersActionsType = {
   grantAdminPermissions: (
     grantAdminPermissionsProps: GrantAdminPermissionsProps
   ) => GrantAdminPermissionsResultType;
+  getUserComments: (
+    getUserCommentsProps: GetUserCommentsProps
+  ) => GetUserCommentsResultType;
+  getUserReplies: (
+    getUserRepliesProps: GetUserRepliesProps
+  ) => GetUserRepliesResultType;
 };
 
 export default function useUsersAPIFacade(): UsersActionsType {
@@ -116,9 +152,9 @@ export default function useUsersAPIFacade(): UsersActionsType {
     page,
     perPage,
   }: GetUsersProps): GetUsersResultType => {
-    await wait(0, 500);
-    const offset = page * perPage - perPage;
     try {
+      await wait(0, 500);
+      const offset = page * perPage - perPage;
       //   const response = await axiosPublic.get(
       //     USERS_URL?page=2&per_page=5,
       //     JSON.stringify({
@@ -160,21 +196,21 @@ export default function useUsersAPIFacade(): UsersActionsType {
   const grantAdminPermissions = async ({
     id,
   }: GrantAdminPermissionsProps): GrantAdminPermissionsResultType => {
-    await wait(0, 500);
     try {
-      //   const response = await axiosPrivate.patch(
-      //     USERS_URL + "/" + id, + "/grant-admin-permissions",
-      //     JSON.stringify({
-      //       id
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
       if (authState.user !== null) {
+        await wait(0, 500);
+        //   const response = await axiosPrivate.patch(
+        //     USERS_URL + "/" + id, + "/grant-admin-permissions",
+        //     JSON.stringify({
+        //       id
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
         const now = new Date();
         const user: UserDetailsType | undefined = users.find(
           (element) => element.id === id
@@ -210,9 +246,112 @@ export default function useUsersAPIFacade(): UsersActionsType {
     }
   };
 
+  const getUserComments = async ({
+    userId,
+    page,
+    perPage,
+    gameName,
+  }: GetUserCommentsProps): GetUserCommentsResultType => {
+    try {
+      await wait(0, 500);
+      const offset = page * perPage - perPage;
+      //   const response = await axiosPublic.get(
+      //     USERS_URL?page=2&per_page=5,
+      //     JSON.stringify({
+      //       offset,
+      //       perPage,
+      //     }),
+      //     {
+      //       headers: { "Content-Type": "application/json" },
+      //       withCredentials: true,
+      //     }
+      //   );
+      //   console.log(JSON.stringify(response?.data));
+      //   console.log(JSON.stringify(response));
+
+      let commentsSet: CommentDetailsType[] = [];
+      if (offset > comments.length) {
+        if (offset + perPage < comments.length) {
+          commentsSet = comments
+            .filter((comm) => (comm.author.id = userId))
+            .slice(offset, offset + perPage);
+        } else {
+          commentsSet = comments
+            .filter((comm) => comm.author.id === userId)
+            .slice(offset);
+        }
+      }
+      return {
+        comments: commentsSet,
+        message: "Success",
+        status: 200,
+        totalNumberOfComments: comments.length,
+      };
+    } catch (err: any) {
+      return {
+        message: mapResponseErrorToMessage(err),
+        status: err.response?.status,
+        comments: null,
+        totalNumberOfComments: null,
+      };
+    }
+  };
+
+  const getUserReplies = async ({
+    page,
+    perPage,
+    userId,
+  }: GetUserRepliesProps): GetUserRepliesResultType => {
+    try {
+      await wait(0, 500);
+      const offset = page * perPage - perPage;
+      //   const response = await axiosPublic.get(
+      //     USERS_URL?page=2&per_page=5,
+      //     JSON.stringify({
+      //       offset,
+      //       perPage,
+      //     }),
+      //     {
+      //       headers: { "Content-Type": "application/json" },
+      //       withCredentials: true,
+      //     }
+      //   );
+      //   console.log(JSON.stringify(response?.data));
+      //   console.log(JSON.stringify(response));
+
+      let repliesSet: ReplyDetailsType[] = [];
+      if (offset > replies.length) {
+        if (offset + perPage < replies.length) {
+          repliesSet = replies
+            .filter((reply) => reply.author.id === userId)
+            .slice(offset, offset + perPage);
+        } else {
+          repliesSet = replies
+            .filter((reply) => reply.author.id === userId)
+            .slice(offset);
+        }
+      }
+      return {
+        replies: repliesSet,
+        message: "Success",
+        status: 200,
+        totalNumberOfReplies: replies.length,
+      };
+    } catch (err: any) {
+      return {
+        message: mapResponseErrorToMessage(err),
+        status: err.response?.status,
+        replies: null,
+        totalNumberOfReplies: null,
+      };
+    }
+  };
+
   return {
     getUser,
     getUsers,
     grantAdminPermissions,
+    getUserComments,
+    getUserReplies,
   };
 }

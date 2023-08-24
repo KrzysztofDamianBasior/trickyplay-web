@@ -1,4 +1,4 @@
-import { ReplyDetailsType } from "../../hooks/useRepliesAPIFacade";
+import { ReplyDetailsType } from "../api/useRepliesAPIFacade";
 import { regroupEntities } from "../../utils";
 
 export const repliesPaginatedCollectionInitialState: RepliesPaginatedCollectionStateType =
@@ -13,19 +13,21 @@ export const repliesPaginatedCollectionInitialState: RepliesPaginatedCollectionS
   };
 
 export type RepliesPaginatedCollectionStateType = {
-  textAlignment: textAlignentType;
+  textAlignment: TextAlignentType;
   repliesPaginatedCollection: ReplyDetailsType[][];
   areRepliesLoading: boolean;
   repliesCurrentPage: number;
   repliesPerPage: number;
   totalNumberOfAllReplies: number;
-  activeReply: {
-    type: "Editing";
-    replyId: string;
-  } | null;
+  activeReply: ActiveReplyDetailsType;
 };
 
-export type textAlignentType = "center" | "left" | "right" | "justify";
+export type ActiveReplyDetailsType = {
+  type: "Editing";
+  replyId: string;
+} | null;
+
+export type TextAlignentType = "center" | "left" | "right" | "justify";
 
 export type RepliesPaginatedCollectionActionType =
   | AddReplyActionType
@@ -64,12 +66,12 @@ export type UpdateReplyActionType = {
 
 export type SetTextAlignmentActionType = {
   type: "SET_TEXT_ALIGNMENT";
-  payload: { textAlignment: textAlignentType };
+  payload: { textAlignment: TextAlignentType };
 };
 
 export type SetActiveReplyActionType = {
   type: "SET_ACTIVE_REPLY";
-  payload: { replyId: string; type: "Editing" };
+  payload: { replyId: string; type: "Editing" } | null;
 };
 export type SetRepliesLoadingActionType = {
   type: "SET_REPLIES_LOADING";
@@ -174,10 +176,15 @@ export function repliesPaginatedCollectionReducer(
     case "SET_ACTIVE_REPLY":
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies
 
-      repliesPaginatedCollectionNewState.activeReply = {
-        replyId: action.payload.replyId,
-        type: "Editing",
-      };
+      if (action.payload) {
+        repliesPaginatedCollectionNewState.activeReply = {
+          replyId: action.payload.replyId,
+          type: "Editing",
+        };
+      } else {
+        repliesPaginatedCollectionNewState.activeReply = null;
+      }
+
       return { ...repliesPaginatedCollectionNewState };
 
     case "SET_REPLIES_LOADING":

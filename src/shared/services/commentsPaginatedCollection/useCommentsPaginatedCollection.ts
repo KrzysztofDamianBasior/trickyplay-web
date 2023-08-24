@@ -2,17 +2,20 @@ import { useContext, useEffect, useReducer, useRef } from "react";
 
 import useCommentsAPIFacade, {
   CommentDetailsType,
-} from "../../hooks/useCommentsAPIFacade";
+} from "../api/useCommentsAPIFacade";
 import {
   commentsPaginatedCollectionReducer,
   commentsPaginatedCollectionInitialState,
+  CommentsPaginatedCollectionStateType,
 } from "./commentsPaginatedCollectionReducer";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../account/AccountContext";
 import { calculateNumberOfPages } from "../../utils";
 
 type Props = { gameName: string };
 
-const useCommentsPaginatedCollection = ({ gameName }: Props) => {
+const useCommentsPaginatedCollection = ({
+  gameName,
+}: Props): UseCommentsPaginatedCollectionResultType => {
   const { authState } = useContext(AuthContext);
 
   const isMounted = useRef(false);
@@ -281,20 +284,28 @@ const useCommentsPaginatedCollection = ({ gameName }: Props) => {
     }
   };
 
-  const handleSetActiveComment = ({
-    commentId,
-    type,
-  }: {
-    commentId: string;
-    type: "Editing" | "Replying";
-  }) => {
-    commentsPaginatedCollectionDispatch({
-      type: "SET_ACTIVE_COMMENT",
-      payload: { commentId, type },
-    });
+  const handleSetActiveComment = (
+    args: {
+      commentId: string;
+      type: "Editing" | "Replying";
+    } | null
+  ) => {
+    if (args) {
+      const { commentId, type } = args;
+      commentsPaginatedCollectionDispatch({
+        type: "SET_ACTIVE_COMMENT",
+        payload: { commentId, type },
+      });
+    } else {
+      commentsPaginatedCollectionDispatch({
+        type: "SET_ACTIVE_COMMENT",
+        payload: null,
+      });
+    }
   };
 
   return {
+    commentsPaginatedCollectionState,
     handleCommentAdd,
     handleCommentDelete,
     handleCommentUpdate,
@@ -306,3 +317,63 @@ const useCommentsPaginatedCollection = ({ gameName }: Props) => {
 };
 
 export default useCommentsPaginatedCollection;
+
+export type UseCommentsPaginatedCollectionResultType = {
+  commentsPaginatedCollectionState: CommentsPaginatedCollectionStateType;
+  handleCommentAdd: handleCommentAddType;
+  handleCommentDelete: handleCommentDeleteType;
+  handleCommentUpdate: handleCommentUpdateType;
+  handleCommentsPageChange: handleCommentsPageChangeType;
+  handleCommentsRowsPerPageChange: handleCommentsRowsPerPageChangeType;
+  handleSetActiveComment: handleSetActiveCommentType;
+  handleTextAlignmentChange: handleTextAlignmentChangeType;
+};
+
+export type handleCommentAddType = ({
+  content,
+}: {
+  content: string;
+}) => Promise<void>;
+
+export type handleCommentDeleteType = ({
+  comment,
+  commentPage,
+}: {
+  comment: CommentDetailsType;
+  commentPage: number;
+}) => Promise<void>;
+
+export type handleCommentUpdateType = ({
+  comment,
+  newContent,
+  page,
+}: {
+  comment: CommentDetailsType;
+  newContent: string;
+  page: number;
+}) => Promise<void>;
+
+export type handleCommentsPageChangeType = ({
+  nextPage,
+}: {
+  nextPage: number;
+}) => Promise<void>;
+
+export type handleCommentsRowsPerPageChangeType = ({
+  commentsPerPage,
+}: {
+  commentsPerPage: number;
+}) => Promise<void>;
+
+export type handleSetActiveCommentType = (
+  args: {
+    commentId: string;
+    type: "Editing" | "Replying";
+  } | null
+) => void;
+
+export type handleTextAlignmentChangeType = ({
+  newAlignment,
+}: {
+  newAlignment: "left" | "center" | "right" | "justify";
+}) => void;

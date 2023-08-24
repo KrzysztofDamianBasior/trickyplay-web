@@ -12,7 +12,6 @@ import Auth from "./pages/Auth";
 import { useDarkMode } from "usehooks-ts";
 
 import { ThemeProvider as SCThemeProvider } from "styled-components";
-
 import { darkTheme, lightTheme } from "./styles/themes";
 
 import { ThemeProvider as MUIThemeProvider, createTheme } from "@mui/material";
@@ -25,10 +24,10 @@ import "@fontsource/open-sans/400.css";
 import "@fontsource/open-sans/500.css";
 import "@fontsource/open-sans/700.css";
 
-import useAuth from "./shared/hooks/useAuth";
-import { AuthContext } from "./shared/context/AuthContext";
-import { NotificationContext } from "./shared/services/snackbars/NotificationsContext";
+import useAuth from "./shared/services/account/useAccount";
+import { AuthContext } from "./shared/services/account/AccountContext";
 import useNotifications from "./shared/services/snackbars/useNotifications";
+import { NotificationContext } from "./shared/services/snackbars/NotificationsContext";
 import ConsecutiveNotifications from "./shared/services/snackbars/ConsecutiveNotifications";
 
 //lazy loading

@@ -2,12 +2,13 @@ import { useContext, useEffect, useReducer, useRef } from "react";
 
 import useRepliesAPIFacade, {
   ReplyDetailsType,
-} from "../../hooks/useRepliesAPIFacade";
+} from "../api/useRepliesAPIFacade";
 import {
   repliesPaginatedCollectionReducer,
   repliesPaginatedCollectionInitialState,
+  RepliesPaginatedCollectionStateType,
 } from "./repliesPaginatedCollectionReducer";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../account/AccountContext";
 import { calculateNumberOfPages } from "../../utils";
 
 type Props = { gameName: string; parentCommentId: string };
@@ -15,7 +16,7 @@ type Props = { gameName: string; parentCommentId: string };
 const useRepliesPaginatedCollection = ({
   gameName,
   parentCommentId,
-}: Props) => {
+}: Props): UseRepliessPaginatedCollectionResultType => {
   const { authState } = useContext(AuthContext);
 
   const isMounted = useRef(false);
@@ -282,20 +283,28 @@ const useRepliesPaginatedCollection = ({
     }
   };
 
-  const handleSetActiveReply = ({
-    replyId,
-    type,
-  }: {
-    replyId: string;
-    type: "Editing";
-  }) => {
-    repliesPaginatedCollectionDispatch({
-      type: "SET_ACTIVE_REPLY",
-      payload: { replyId, type },
-    });
+  const handleSetActiveReply = (
+    args: {
+      replyId: string;
+      type: "Editing";
+    } | null
+  ) => {
+    if (args) {
+      const { replyId, type } = args;
+      repliesPaginatedCollectionDispatch({
+        type: "SET_ACTIVE_REPLY",
+        payload: { replyId, type },
+      });
+    } else {
+      repliesPaginatedCollectionDispatch({
+        type: "SET_ACTIVE_REPLY",
+        payload: null,
+      });
+    }
   };
 
   return {
+    repliesPaginatedCollectionState,
     handleReplyAdd,
     handleReplyDelete,
     handleReplyUpdate,
@@ -307,3 +316,59 @@ const useRepliesPaginatedCollection = ({
 };
 
 export default useRepliesPaginatedCollection;
+
+export type UseRepliessPaginatedCollectionResultType = {
+  repliesPaginatedCollectionState: RepliesPaginatedCollectionStateType;
+  handleReplyAdd: handleReplyAddType;
+  handleReplyDelete: handleReplyDeleteType;
+  handleReplyUpdate: handleReplyUpdateType;
+  handleRepliesPageChange: handleRepliesPageChangeType;
+  handleRepliesRowsPerPageChange: handleRepliesRowsPerPageChangeType;
+  handleSetActiveReply: handleSetActiveReplyType;
+  handleTextAlignmentChange: handleTextAlignmentChangeType;
+};
+
+type handleReplyAddType = ({ content }: { content: string }) => Promise<void>;
+
+type handleReplyDeleteType = ({
+  reply,
+  replyPage,
+}: {
+  reply: ReplyDetailsType;
+  replyPage: number;
+}) => Promise<void>;
+
+type handleReplyUpdateType = ({
+  reply,
+  newContent,
+  page,
+}: {
+  reply: ReplyDetailsType;
+  newContent: string;
+  page: number;
+}) => Promise<void>;
+
+type handleRepliesPageChangeType = ({
+  nextPage,
+}: {
+  nextPage: number;
+}) => Promise<void>;
+
+type handleRepliesRowsPerPageChangeType = ({
+  repliesPerPage,
+}: {
+  repliesPerPage: number;
+}) => Promise<void>;
+
+type handleSetActiveReplyType = (
+  args: {
+    replyId: string;
+    type: "Editing";
+  } | null
+) => void;
+
+type handleTextAlignmentChangeType = ({
+  newAlignment,
+}: {
+  newAlignment: "left" | "center" | "right" | "justify";
+}) => void;

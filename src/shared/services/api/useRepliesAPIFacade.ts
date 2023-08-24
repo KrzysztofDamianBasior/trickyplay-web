@@ -1,8 +1,8 @@
 import { useContext } from "react";
 
-import { AuthContext } from "../context/AuthContext";
-import { mapResponseErrorToMessage, wait } from "../utils";
-import { ErrorMessageKind } from "../utils/mapResponseErrorToMessage";
+import { AuthContext } from "../account/AccountContext";
+import { mapResponseErrorToMessage, wait } from "../../utils";
+import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "./useUsersAPIFacade";
 
 export const replies: ReplyDetailsType[] = [
@@ -107,20 +107,20 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
     id,
   }: DeleteReplyProps): DeleteReplyResultType => {
     try {
-      //   const response = await axiosPrivate.delete(
-      //     REPLIES_URL,
-      //     JSON.stringify({
-      //       id
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      await wait(0, 500);
       if (authState.user !== null) {
+        //   const response = await axiosPrivate.delete(
+        //     REPLIES_URL,
+        //     JSON.stringify({
+        //       id
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
+        await wait(0, 500);
         const replyIndex: number = replies.findIndex(
           (reply) => reply.id === id
         );
@@ -155,20 +155,20 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
     body,
   }: UpdateReplyProps): UpdateReplyResultType => {
     try {
-      //   const response = await axiosPrivate.patch(
-      //     REPLIES_URL,
-      //     JSON.stringify({
-      //       id, body
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      await wait(0, 500);
       if (authState.user !== null) {
+        //   const response = await axiosPrivate.patch(
+        //     REPLIES_URL,
+        //     JSON.stringify({
+        //       id, body
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
+        await wait(0, 500);
         const now = new Date();
         const reply: ReplyDetailsType | undefined = replies.find(
           (reply) => reply.id === id
@@ -209,20 +209,20 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
     parentId,
   }: CreateReplyProps): CreateReplyResultType => {
     try {
-      //   const response = await axiosPrivate.post(
-      //     REPLIES_URL,
-      //     JSON.stringify({
-      //       body,
-      //       parentId
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
       if (authState.user !== null) {
+        //   const response = await axiosPrivate.post(
+        //     REPLIES_URL,
+        //     JSON.stringify({
+        //       body,
+        //       parentId
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
         const now = new Date();
         const reply: ReplyDetailsType = {
           author: authState.user,

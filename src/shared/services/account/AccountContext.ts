@@ -1,8 +1,8 @@
 import { createContext } from "react";
 import { AxiosInstance } from "axios";
-import { ErrorMessageKind } from "../utils/mapResponseErrorToMessage";
-import { UserDetailsType } from "../hooks/useUsersAPIFacade";
-import { axiosPrivate, axiosPublic } from "../hooks/useAuth";
+import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
+import { UserDetailsType } from "../api/useUsersAPIFacade";
+import { axiosPrivate, axiosPublic } from "./useAccount";
 
 export type AuthStatusType = "LOGGED_IN" | "LOGGED_OUT" | "LOADING";
 

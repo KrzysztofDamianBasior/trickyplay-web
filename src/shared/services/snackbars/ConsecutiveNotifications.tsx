@@ -24,7 +24,7 @@ export default function ConsecutiveNotifications({
     <Snackbar
       key={messageInfo?.key}
       open={isOpened}
-      autoHideDuration={6000}
+      autoHideDuration={4000}
       onClose={handleClose}
       TransitionProps={{ onExited: handleExited }}
       TransitionComponent={SlideTransition}

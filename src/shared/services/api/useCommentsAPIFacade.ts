@@ -1,9 +1,10 @@
 import { useContext } from "react";
 
-import { AuthContext } from "../context/AuthContext";
-import { mapResponseErrorToMessage, wait } from "../utils";
-import { ErrorMessageKind } from "../utils/mapResponseErrorToMessage";
+import { AuthContext } from "../account/AccountContext";
+import { mapResponseErrorToMessage, wait } from "../../utils";
+import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "./useUsersAPIFacade";
+import { GameNameType } from "../games/gamesDetails";
 
 export type CommentDetailsType = {
   id: string;
@@ -11,7 +12,7 @@ export type CommentDetailsType = {
   author: UserDetailsType;
   createdAt: string;
   lastUpdatedAt: string;
-  // replies: ReplyDetailsType[] | null;
+  gameName: GameNameType;
 };
 
 export const comments: CommentDetailsType[] = [
@@ -27,7 +28,7 @@ export const comments: CommentDetailsType[] = [
     },
     createdAt: "2023-08-06T11:23:36.172Z",
     lastUpdatedAt: "2023-08-06T11:23:36.172Z",
-    // replies: null,
+    gameName: "Minesweeper",
   },
   {
     id: "2",
@@ -41,14 +42,9 @@ export const comments: CommentDetailsType[] = [
     },
     createdAt: "2023-08-06T11:24:14.887Z",
     lastUpdatedAt: "2023-08-06T11:24:14.887Z",
-    // replies: null,
+    gameName: "Minesweeper",
   },
 ];
-
-// offset-based pagination:
-// -offset (alternatively page or skip) - indicates how many elements should be omitted from the response
-// -per_page (alternatively limit or count) - indicates how many items should be on one page of results
-// offset = page * per_page - per_page
 
 export type DeleteCommentProps = {
   id: string;
@@ -98,13 +94,7 @@ export type UpdateCommentResultType = Promise<{
 }>;
 
 export type CommentsActionsType = {
-  // getCommentsWithReplies: (
-  //   getCommentsProps: GetCommentsProps
-  // ) => GetCommentsResultType;
   getComments: (getCommentsProps: GetCommentsProps) => GetCommentsResultType;
-  // getCommentWithReplies: (
-  //   getCommentProps: GetCommentProps
-  // ) => GetCommentResultType;
   getComment: (getCommentProps: GetCommentProps) => GetCommentResultType;
   createComment: (
     createCommentProps: CreateCommentProps
@@ -115,6 +105,12 @@ export type CommentsActionsType = {
   deleteComment: (
     deleteCommentProps: DeleteCommentProps
   ) => DeleteCommentResultType;
+  // getCommentsWithReplies: (
+  //   getCommentsProps: GetCommentsProps
+  // ) => GetCommentsWithRepliesResultType;
+  // getCommentWithReplies: (
+  //   getCommentProps: GetCommentProps
+  // ) => GetCommentWithRepliesResultType;
 };
 
 export default function useCommentsAPIFacade(): CommentsActionsType {
@@ -125,20 +121,20 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     id,
   }: DeleteCommentProps): DeleteCommentResultType => {
     try {
-      //   const response = await axiosPrivate.delete(
-      //     COMMENTS_URL,
-      //     JSON.stringify({
-      //       id
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      await wait(0, 500);
       if (authState.user !== null) {
+        //   const response = await axiosPrivate.delete(
+        //     COMMENTS_URL,
+        //     JSON.stringify({
+        //       id
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
+        await wait(0, 500);
         const commentIndex: number = comments.findIndex(
           (comment) => comment.id === id
         );
@@ -173,20 +169,20 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     body,
   }: UpdateCommentProps): UpdateCommentResultType => {
     try {
-      //   const response = await axiosPrivate.patch(
-      //     COMMENTS_URL,
-      //     JSON.stringify({
-      //       id, body
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      await wait(0, 500);
       if (authState.user !== null) {
+        //   const response = await axiosPrivate.patch(
+        //     COMMENTS_URL,
+        //     JSON.stringify({
+        //       id, body
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
+        await wait(0, 500);
         const now = new Date();
         const comment: CommentDetailsType | undefined = comments.find(
           (comment) => comment.id === id
@@ -243,15 +239,9 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
       if (authState.user !== null) {
         const now = new Date();
         const comment: CommentDetailsType = {
-          author: {
-            id: authState.user.id,
-            name: authState.user?.name,
-            roles: ["User"],
-            createdAt: authState.user.createdAt,
-            lastUpdatedAt: authState.user.lastUpdatedAt,
-          },
+          author: authState.user,
           body,
-          // replies: [],
+          gameName: "Minesweeper",
           id: Math.random().toString(36).substr(2, 9),
           createdAt: now.toISOString(),
           lastUpdatedAt: now.toISOString(),
@@ -278,48 +268,6 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
       };
     }
   };
-
-  // const getCommentWithReplies = async ({
-  //   id,
-  // }: GetCommentProps): GetCommentResultType => {
-  //   try {
-  //     //   const response = await axiosPublic.get(
-  //     //     COMMENTS_URL,
-  //     //     JSON.stringify({id}),
-  //     //     {
-  //     //       headers: { "Content-Type": "application/json" },
-  //     //       withCredentials: true,
-  //     //     }
-  //     //   );
-  //     //   console.log(JSON.stringify(response?.data));
-  //     //   console.log(JSON.stringify(response));
-  //     const comment = comments.find((comment) => comment.id === id);
-
-  //     await wait(0, 500);
-  //     if (comment) {
-  //       comment.replies = replies.filter(
-  //         (reply) => reply.parentId === comment.id
-  //       );
-  //       return {
-  //         comment,
-  //         message: "Success",
-  //         status: 200,
-  //       };
-  //     } else {
-  //       return {
-  //         message: "Not Found",
-  //         status: 404,
-  //         comment: null,
-  //       };
-  //     }
-  //   } catch (err: any) {
-  //     return {
-  //       message: mapResponseErrorToMessage(err),
-  //       status: err.response?.status,
-  //       comment: null,
-  //     };
-  //   }
-  // };
 
   const getComment = async ({ id }: GetCommentProps): GetCommentResultType => {
     try {
@@ -357,59 +305,6 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
     }
   };
 
-  // const getCommentsWithReplies = async ({
-  //   gameName,
-  //   page,
-  //   perPage,
-  // }: GetCommentsProps): GetCommentsResultType => {
-  //   try {
-  //     //   const response = await axiosPublic.get(
-  //     //     COMMENTS_URL,
-  //     //     JSON.stringify({
-  //     //       gameName
-  //     //       page,
-  //     //       perPage,
-  //     //     }),
-  //     //     {
-  //     //       headers: { "Content-Type": "application/json" },
-  //     //       withCredentials: true,
-  //     //     }
-  //     //   );
-  //     //   console.log(JSON.stringify(response?.data));
-  //     //   console.log(JSON.stringify(response));
-  //     await wait(0, 500);
-  //     const offset = page * perPage - perPage;
-
-  //     let commentsSet: CommentDetailsType[] = [];
-  //     if (offset > comments.length) {
-  //       if (offset + perPage < comments.length) {
-  //         commentsSet = comments.slice(offset, offset + perPage);
-  //       } else {
-  //         commentsSet = comments.slice(offset);
-  //       }
-  //     }
-  //     commentsSet.forEach((comment) => {
-  //       comment.replies = replies.filter(
-  //         (reply) => reply.parentId === comment.id
-  //       );
-  //     });
-
-  //     return {
-  //       comments: commentsSet,
-  //       message: "Success",
-  //       status: 200,
-  //       totalNumberOfComments: comments.length,
-  //     };
-  //   } catch (err: any) {
-  //     return {
-  //       message: mapResponseErrorToMessage(err),
-  //       status: err.response?.status,
-  //       comments: [],
-  //       totalNumberOfComments: 0,
-  //     };
-  //   }
-  // };
-
   const getComments = async ({
     gameName,
     page,
@@ -436,9 +331,13 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
       let commentsSet: CommentDetailsType[] = [];
       if (offset > comments.length) {
         if (offset + perPage < comments.length) {
-          commentsSet = comments.slice(offset, offset + perPage);
+          commentsSet = comments
+            .filter((comm) => comm.gameName === gameName)
+            .slice(offset, offset + perPage);
         } else {
-          commentsSet = comments.slice(offset);
+          commentsSet = comments
+            .filter((comm) => comm.gameName === gameName)
+            .slice(offset);
         }
       }
       // commentsSet.forEach((comment) => (comment.replies = null));

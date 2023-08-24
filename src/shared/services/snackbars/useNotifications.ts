@@ -8,12 +8,6 @@ export type NotificationDetailsType = {
   severity: "error" | "warning" | "info" | "success";
 };
 
-export type NotificationsStateType = {
-  open: boolean;
-  snackPack: readonly NotificationDetailsType[];
-  messageInfo?: NotificationDetailsType;
-};
-
 export default function useNotifications() {
   const [snackPack, setSnackPack] = useState<
     readonly NotificationDetailsType[]
@@ -30,9 +24,9 @@ export default function useNotifications() {
       setSnackPack((prev) => prev.slice(1));
       setIsSnackbarOpened(true);
     } else if (snackPack.length && messageInfo && isSnackbarOpened) {
-      // Close an active snack when a new one is added
+      // wait 1.5s and close an active snack when a new one is added
       (async () => {
-        await wait(null, 1000);
+        await wait(null, 1500);
         setIsSnackbarOpened(false);
       })();
     }
@@ -48,7 +42,7 @@ export default function useNotifications() {
     };
 
   const closeSnackbar = (
-    event: React.SyntheticEvent | Event,
+    event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
     if (reason === "clickaway") {

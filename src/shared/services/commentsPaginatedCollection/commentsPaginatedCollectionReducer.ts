@@ -1,4 +1,4 @@
-import { CommentDetailsType } from "../../hooks/useCommentsAPIFacade";
+import { CommentDetailsType } from "../api/useCommentsAPIFacade";
 import { regroupEntities } from "../../utils";
 
 export const commentsPaginatedCollectionInitialState: CommentsPaginatedCollectionStateType =
@@ -13,19 +13,21 @@ export const commentsPaginatedCollectionInitialState: CommentsPaginatedCollectio
   };
 
 export type CommentsPaginatedCollectionStateType = {
-  textAlignment: textAlignentType;
+  textAlignment: TextAlignentType;
   commentsPaginatedCollection: CommentDetailsType[][];
   areCommentsLoading: boolean;
   commentsCurrentPage: number;
   commentsPerPage: number;
   totalNumberOfAllComments: number;
-  activeComment: {
-    type: "Editing" | "Replying";
-    id: string;
-  } | null;
+  activeComment: ActiveCommentDetailsType;
 };
 
-export type textAlignentType = "center" | "left" | "right" | "justify";
+export type ActiveCommentDetailsType = {
+  type: "Editing" | "Replying";
+  id: string;
+} | null;
+
+export type TextAlignentType = "center" | "left" | "right" | "justify";
 
 export type CommentsPaginatedCollectionActionType =
   | AddCommentActionType
@@ -64,12 +66,12 @@ export type UpdateCommentActionType = {
 
 export type SetTextAlignmentActionType = {
   type: "SET_TEXT_ALIGNMENT";
-  payload: { textAlignment: textAlignentType };
+  payload: { textAlignment: TextAlignentType };
 };
 
 export type SetActiveCommentActionType = {
   type: "SET_ACTIVE_COMMENT";
-  payload: { commentId: string; type: "Editing" | "Replying" };
+  payload: { commentId: string; type: "Editing" | "Replying" } | null;
 };
 export type SetCommentsLoadingActionType = {
   type: "SET_COMMENTS_LOADING";
@@ -173,10 +175,14 @@ export function commentsPaginatedCollectionReducer(
     case "SET_ACTIVE_COMMENT":
       // modifies: commentsPaginatedCollection, totalNumberOfAllComments
 
-      commentsSectionNewState.activeComment = {
-        id: action.payload.commentId,
-        type: action.payload.type,
-      };
+      if (action.payload) {
+        commentsSectionNewState.activeComment = {
+          id: action.payload.commentId,
+          type: action.payload.type,
+        };
+      } else {
+        commentsSectionNewState.activeComment = null;
+      }
       return { ...commentsSectionNewState };
 
     case "SET_COMMENTS_LOADING":

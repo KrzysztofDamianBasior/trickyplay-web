@@ -8,7 +8,7 @@ import crosswordImage from "../assets/gameBanners/crossword.png";
 
 export type Genre =
   | "all"
-  | "shooters"
+  | "arcade"
   | "puzzles"
   | "mazes"
   | "memory-games"
@@ -16,12 +16,14 @@ export type Genre =
 
 export const genres: Genre[] = [
   "all",
-  "shooters",
+  "arcade",
   "puzzles",
   "mazes",
   "memory-games",
   "strategy",
 ];
+
+export type GameNameType = "Minesweeper" | "TicTacToe" | "Snake";
 
 export type GameObject = {
   id: number;
@@ -69,10 +71,10 @@ export const gamesList: GameObject[] = [
   },
   {
     id: 6,
-    title: "shooter",
+    title: "dexterity",
     description: "",
     image: shooterImage,
-    genres: ["shooters"],
+    genres: ["arcade"],
   },
   {
     id: 7,

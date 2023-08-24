@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import axios from "axios";
 
@@ -17,11 +17,31 @@ import {
   type UpdateUsernameProps,
   type UpdateUsernameResultType,
   authInitialState,
-} from "../context/AuthContext";
-import { mapResponseErrorToMessage, wait } from "../utils";
-import { UserDetailsType } from "./useUsersAPIFacade";
+} from "./AccountContext";
+import { NotificationContext } from "../snackbars/NotificationsContext";
+import {
+  getEnvironmentVariable,
+  mapResponseErrorToMessage,
+  wait,
+} from "../../utils";
+import { UserDetailsType } from "../api/useUsersAPIFacade";
 
-const BASE_URL = process.env.REACT_APP_BASE_URL;
+const BASE_URL: string = getEnvironmentVariable("REACT_APP_BASE_URL");
+const AUTH_URL: string = getEnvironmentVariable("REACT_APP_AUTH_URL");
+const MYACCOUNT_URL: string = getEnvironmentVariable("REACT_APP_AUTH_URL");
+
+const REFRESH_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_REFRESH_ENDPOINT"
+);
+const SIGNIN_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_SIGNIN_ENDPOINT"
+);
+const SIGNUP_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_SIGNUP_ENDPOINT"
+);
+const SIGNOUT_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_SIGNOUT_ENDPOINT"
+);
 
 export const axiosPublic = axios.create({
   baseURL: BASE_URL,
@@ -38,22 +58,9 @@ export default function useAuth(): AuthContextType {
     "AUTH_STATE",
     authInitialState
   );
+  const { openSnackbar } = useContext(NotificationContext);
 
   useEffect(() => {
-    const refresh = async (): Promise<string> => {
-      const response = await axiosPublic.post(
-        "/refresh",
-        { refreshToken: authState.refreshToken },
-        { withCredentials: true }
-      );
-
-      setAuthState((prev) => {
-        console.log(response.data.accessToken);
-        return { ...prev, accessToken: response.data.accessToken };
-      });
-      return response.data.accessToken;
-    };
-
     const requestIntercept = axiosPrivate.interceptors.request.use(
       (config) => {
         if (!config.headers["Authorization"]) {
@@ -63,39 +70,51 @@ export default function useAuth(): AuthContextType {
       },
       (error) => Promise.reject(error)
     );
-
-    //     axios.defaults.baseURL = 'http://localhost:8000/api/';
-    //     let refresh = false;
-    //     axios.interceptors.response.use(resp => resp, async error => {
-    //         if (error.response.status === 401 && !refresh) { // 401- unauntehnticated
-    //             refresh = true;
-    //             const response = await axios.post('refresh', {}, {withCredentials: true});
-    //             if (response.status === 200) { // response is successful
-    //                 axios.defaults.headers.common['Authorization'] = `Bearer ${response.data['token']}`;
-    //                 return axios(error.config);
-    //             }
-    //         }
-    //         refresh = false;
-    //         return error;
-    //     });
-
     const responseIntercept = axiosPrivate.interceptors.response.use(
       (response) => response, // just return the response
       async (error) => {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        // console.log(error.response.data);
+        // console.log(error.response.status);
+        // console.log(error.response.headers);
+
         const prevRequest = error?.config;
-        // 403- forbiden due to expiration
+        let refreshRetry = false;
+        // 403- forbiden due to token expiration
         // 401- unauntehnticated
         // we only want to retry once
-        if (error?.response?.status === 403 && !prevRequest?.sent) {
+
+        if (
+          (error?.response?.status === 403 || error.response.status === 401) &&
+          !prevRequest?.sent &&
+          !refreshRetry
+        ) {
+          // if (error.response.status === 401 && !refreshRetry) { // 401- unauntehnticated
+          refreshRetry = true;
           prevRequest.sent = true;
-          const newAccessToken = await refresh();
-          prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return axiosPrivate(prevRequest);
+
+          const response = await axiosPublic.post(
+            AUTH_URL + REFRESH_ENDPOINT,
+            { refreshToken: authState.refreshToken },
+            { withCredentials: true }
+          );
+          // const newAccessToken = await refresh();
+
+          if (response.status === 200) {
+            // response is successful
+            setAuthState((prev) => {
+              return { ...prev, accessToken: response.data.accessToken };
+            });
+            prevRequest.headers[
+              "Authorization"
+            ] = `Bearer ${response.data.accessToken}`;
+            return axiosPrivate(prevRequest);
+          }
         }
         return Promise.reject(error);
       }
     );
-
     return () => {
       axiosPrivate.interceptors.request.eject(requestIntercept);
       axiosPrivate.interceptors.response.eject(responseIntercept);
