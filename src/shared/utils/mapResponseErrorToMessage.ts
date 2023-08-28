@@ -4,23 +4,26 @@
  * @returns message
  */
 export const mapResponseErrorToMessage = (err: any): ErrorMessageKind => {
-  if (!err?.response) {
-    return "No Server Response";
-  } else if (err.response?.status === 400) {
-    return "Missing Username or Password";
+  if (err.response?.status === 400) {
+    return "Bad request";
   } else if (err.response?.status === 401) {
-    return "Unauthorized";
+    return "Unauthenticated";
   } else if (err.response?.status === 404) {
-    return "Not Found";
+    return "Not found";
+  } else if (err.response?.status === 403) {
+    return "Lack of sufficient permissions";
+  } else if (err.response?.status === 500) {
+    return "Internal server error";
   } else {
-    return "Request Failed";
+    return "Request failed";
   }
 };
 
 // I prefer union types to enums
 export type ErrorMessageKind =
-  | "No Server Response"
-  | "Missing Username or Password"
-  | "Unauthorized"
-  | "Request Failed"
-  | "Not Found";
+  | "Bad request"
+  | "Lack of sufficient permissions"
+  | "Unauthenticated"
+  | "Request failed"
+  | "Internal server error"
+  | "Not found";
