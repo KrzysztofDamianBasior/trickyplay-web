@@ -4,12 +4,13 @@ import {
   mapResponseErrorToMessage,
 } from "../../utils/mapResponseErrorToMessage";
 import { wait } from "../../utils";
-import { AuthContext } from "../account/AccountContext";
+import { AccountContext } from "../account/AccountContext";
 import { GameNameType } from "../games/gamesDetails";
 import { ReplyDetailsType } from "./useRepliesAPIFacade";
 import { CommentDetailsType } from "./useCommentsAPIFacade";
 import { comments } from "./useCommentsAPIFacade";
 import { replies } from "./useRepliesAPIFacade";
+import { NotificationContext } from "../snackbars/NotificationsContext";
 
 export type UserDetailsType = {
   id: string;
@@ -109,7 +110,8 @@ export type UsersActionsType = {
 };
 
 export default function useUsersAPIFacade(): UsersActionsType {
-  const { axiosPrivate, axiosPublic, authState } = useContext(AuthContext);
+  const { axiosPrivate, axiosPublic, authState } = useContext(AccountContext);
+  const { openSnackbar } = useContext(NotificationContext);
   const USERS_URL = process.env.REACT_APP_USERS_URL;
 
   const getUser = async ({ id }: GetUserProps): GetUserResultType => {
@@ -127,19 +129,34 @@ export default function useUsersAPIFacade(): UsersActionsType {
       //   console.log(JSON.stringify(response));
       const user = users.find((element) => element.id === id);
       if (user) {
+        openSnackbar({
+          title: `successfully performed actions on user with id: ${id}`,
+          body: "user successfully fetched",
+          severity: "success",
+        });
         return {
           user,
           message: "Success",
           status: 200,
         };
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the user with id: ${id}`,
+          body: "user not found",
+          severity: "error",
+        });
         return {
-          message: "Not Found",
+          message: "Not found",
           status: 404,
           user: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the user with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -177,6 +194,11 @@ export default function useUsersAPIFacade(): UsersActionsType {
           usersSet = users.slice(offset);
         }
       }
+      openSnackbar({
+        title: "successfully performed actions on users",
+        body: "users successfully fetched",
+        severity: "success",
+      });
       return {
         users: usersSet,
         message: "Success",
@@ -184,6 +206,11 @@ export default function useUsersAPIFacade(): UsersActionsType {
         totalNumberOfUsers: users.length,
       };
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on users`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -218,26 +245,46 @@ export default function useUsersAPIFacade(): UsersActionsType {
         if (user) {
           user.roles = ["User", "Admin"];
           user.lastUpdatedAt = now.toISOString();
+          openSnackbar({
+            title: `successfully performed actions on user with id: ${id}`,
+            body: "permissions granted",
+            severity: "success",
+          });
           return {
             user,
             message: "Success",
             status: 200,
           };
         } else {
+          openSnackbar({
+            title: `failed to perform actions on the user with id: ${id}`,
+            body: "user not found",
+            severity: "error",
+          });
           return {
-            message: "Not Found",
+            message: "Not found",
             status: 404,
             user: null,
           };
         }
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the user with id: ${id}`,
+          body: "You do not have sufficient permissions",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
           user: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the user with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -281,6 +328,11 @@ export default function useUsersAPIFacade(): UsersActionsType {
             .slice(offset);
         }
       }
+      openSnackbar({
+        title: "successfully performed actions on comments",
+        body: "comments fetched successfully",
+        severity: "success",
+      });
       return {
         comments: commentsSet,
         message: "Success",
@@ -288,6 +340,11 @@ export default function useUsersAPIFacade(): UsersActionsType {
         totalNumberOfComments: comments.length,
       };
     } catch (err: any) {
+      openSnackbar({
+        title: "failed to fetch comments",
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -331,6 +388,11 @@ export default function useUsersAPIFacade(): UsersActionsType {
             .slice(offset);
         }
       }
+      openSnackbar({
+        title: "successfully performed actions on replies",
+        body: "replies fetched successfully",
+        severity: "success",
+      });
       return {
         replies: repliesSet,
         message: "Success",
@@ -338,6 +400,11 @@ export default function useUsersAPIFacade(): UsersActionsType {
         totalNumberOfReplies: replies.length,
       };
     } catch (err: any) {
+      openSnackbar({
+        title: "failed to fetch replies",
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,

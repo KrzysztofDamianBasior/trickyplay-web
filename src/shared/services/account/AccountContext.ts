@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import { AxiosInstance } from "axios";
+
 import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "../api/useUsersAPIFacade";
 import { axiosPrivate, axiosPublic } from "./useAccount";
@@ -59,7 +60,7 @@ export type UpdateUsernameResultType = Promise<{
   user: UserDetailsType | null;
 }>;
 
-export type AuthContextType = {
+export type AccountContextType = {
   signIn: (userData: SignInProps) => SignInResultType;
   signUp: (userData: SignUpProps) => SignUpResultType;
   signOut: () => SignOutResultType;
@@ -79,7 +80,7 @@ export const authInitialState: AuthStateType = {
   user: null,
 };
 
-export const AuthContext = createContext<AuthContextType>({
+export const AccountContext = createContext<AccountContextType>({
   authState: authInitialState,
   signIn: async (userData: SignInProps) => {
     return { message: "No Server Response", status: 500, user: null };

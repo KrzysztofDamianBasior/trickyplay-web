@@ -11,9 +11,6 @@ import Auth from "./pages/Auth";
 
 import { useDarkMode } from "usehooks-ts";
 
-import { ThemeProvider as SCThemeProvider } from "styled-components";
-import { darkTheme, lightTheme } from "./styles/themes";
-
 import { ThemeProvider as MUIThemeProvider, createTheme } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 
@@ -24,8 +21,8 @@ import "@fontsource/open-sans/400.css";
 import "@fontsource/open-sans/500.css";
 import "@fontsource/open-sans/700.css";
 
-import useAuth from "./shared/services/account/useAccount";
-import { AuthContext } from "./shared/services/account/AccountContext";
+import useAccount from "./shared/services/account/useAccount";
+import { AccountContext } from "./shared/services/account/AccountContext";
 import useNotifications from "./shared/services/snackbars/useNotifications";
 import { NotificationContext } from "./shared/services/snackbars/NotificationsContext";
 import ConsecutiveNotifications from "./shared/services/snackbars/ConsecutiveNotifications";
@@ -65,7 +62,7 @@ function App() {
     deleteMyAccount,
     updateMyPassword,
     updateMyUsername,
-  } = useAuth();
+  } = useAccount();
   const {
     closeSnackbar,
     handleSnackbarExited,
@@ -143,7 +140,7 @@ function App() {
 
   return (
     <div className="app">
-      <AuthContext.Provider
+      <AccountContext.Provider
         value={{
           authState,
           axiosPrivate,
@@ -158,54 +155,52 @@ function App() {
       >
         <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
           <MUIThemeProvider theme={themeOptions}>
-            <SCThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-              <CssBaseline />
-              <AnimatePresence mode="wait">
-                <Routes key={location.pathname} location={location}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/home" element={<Navigate to="/" />} />
-                  <Route path="/Home" element={<Navigate to="/" />} />
-                  <Route path="/games" element={<Games />} />
-                  <Route path="/Games" element={<Navigate to="/games" />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/Auth" element={<Navigate to="/auth" />} />
-                  <Route
-                    path="/games/tic-tac-toe"
-                    element={
-                      <Suspense fallback={<Loading />}>
-                        <TicTacToe />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/games/snake"
-                    element={
-                      <Suspense fallback={<Loading />}>
-                        <Snake />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/games/minesweeper"
-                    element={
-                      <Suspense fallback={<Loading />}>
-                        <Minesweeper />
-                      </Suspense>
-                    }
-                  />
-                  <Route path="*" element={<NoMatch />} />
-                  <ConsecutiveNotifications
-                    handleClose={closeSnackbar}
-                    handleExited={handleSnackbarExited}
-                    isOpened={isSnackbarOpened}
-                    messageInfo={messageInfo}
-                  />
-                </Routes>
-              </AnimatePresence>
-            </SCThemeProvider>
+            <CssBaseline />
+            <AnimatePresence mode="wait">
+              <Routes key={location.pathname} location={location}>
+                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Navigate to="/" />} />
+                <Route path="/Home" element={<Navigate to="/" />} />
+                <Route path="/games" element={<Games />} />
+                <Route path="/Games" element={<Navigate to="/games" />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/Auth" element={<Navigate to="/auth" />} />
+                <Route
+                  path="/games/tic-tac-toe"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <TicTacToe />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/games/snake"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <Snake />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/games/minesweeper"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <Minesweeper />
+                    </Suspense>
+                  }
+                />
+                <Route path="*" element={<NoMatch />} />
+              </Routes>
+              <ConsecutiveNotifications
+                handleClose={closeSnackbar}
+                handleExited={handleSnackbarExited}
+                isOpened={isSnackbarOpened}
+                messageInfo={messageInfo}
+              />
+            </AnimatePresence>
           </MUIThemeProvider>
         </NotificationContext.Provider>
-      </AuthContext.Provider>
+      </AccountContext.Provider>
     </div>
   );
 }

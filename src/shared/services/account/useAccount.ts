@@ -4,7 +4,7 @@ import axios from "axios";
 
 import {
   type AuthStateType,
-  type AuthContextType,
+  type AccountContextType,
   type DeleteAccountProps,
   type DeleteAccountResultType,
   type SignInProps,
@@ -53,7 +53,7 @@ export const axiosPrivate = axios.create({
   withCredentials: true,
 });
 
-export default function useAuth(): AuthContextType {
+export default function useAccount(): AccountContextType {
   const [authState, setAuthState] = useLocalStorage<AuthStateType>(
     "AUTH_STATE",
     authInitialState
@@ -66,10 +66,12 @@ export default function useAuth(): AuthContextType {
         if (!config.headers["Authorization"]) {
           config.headers["Authorization"] = `Bearer ${authState?.accessToken}`;
         }
+        console.log("auth token has been set");
         return config;
       },
       (error) => Promise.reject(error)
     );
+
     const responseIntercept = axiosPrivate.interceptors.response.use(
       (response) => response, // just return the response
       async (error) => {
@@ -94,6 +96,15 @@ export default function useAuth(): AuthContextType {
           refreshRetry = true;
           prevRequest.sent = true;
 
+          console.log(
+            "access token has expired, a request to renew the token has been sent"
+          );
+          openSnackbar({
+            title: "authentication info",
+            body: "access token has expired, a request to renew the token has been sent",
+            severity: "info",
+          });
+
           const response = await axiosPublic.post(
             AUTH_URL + REFRESH_ENDPOINT,
             { refreshToken: authState.refreshToken },
@@ -103,6 +114,14 @@ export default function useAuth(): AuthContextType {
 
           if (response.status === 200) {
             // response is successful
+
+            console.log("the access token has been renewed");
+            openSnackbar({
+              title: "successfully authenticated",
+              body: "access token has been renewed",
+              severity: "success",
+            });
+
             setAuthState((prev) => {
               return { ...prev, accessToken: response.data.accessToken };
             });
@@ -110,6 +129,13 @@ export default function useAuth(): AuthContextType {
               "Authorization"
             ] = `Bearer ${response.data.accessToken}`;
             return axiosPrivate(prevRequest);
+          } else {
+            console.log("access token failed to renew");
+            openSnackbar({
+              title: "authentication actions failed",
+              body: "access token failed to renew",
+              severity: "error",
+            });
           }
         }
         return Promise.reject(error);
@@ -123,8 +149,17 @@ export default function useAuth(): AuthContextType {
 
   const signOut = async (): SignOutResultType => {
     // await axiosPrivate.post('logout', {}, {withCredentials: true});
-    setAuthState(authInitialState);
     await wait(0, 500);
+
+    if (authState.user) {
+      openSnackbar({
+        title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
+        body: "successfully logged out",
+        severity: "success",
+      });
+      setAuthState(authInitialState);
+    }
+
     return {
       message: "Success",
       status: 200,
@@ -165,6 +200,11 @@ export default function useAuth(): AuthContextType {
         lastUpdatedAt: now.toISOString(),
       };
 
+      openSnackbar({
+        title: `actions were successfully performed on the account belonging to the user with the id: ${newUser.id}`,
+        body: "successfully logged in",
+        severity: "success",
+      });
       setAuthState({
         user: newUser,
         accessToken: "asdf",
@@ -179,6 +219,11 @@ export default function useAuth(): AuthContextType {
       };
     } catch (err: any) {
       setAuthState(authInitialState);
+      openSnackbar({
+        title: `actions on the account could not be performed`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -226,6 +271,11 @@ export default function useAuth(): AuthContextType {
         iss: "TrickyPlay",
         status: "LOGGED_IN",
       });
+      openSnackbar({
+        title: `actions were successfully performed on the account belonging to the user with the id: ${newUser.id}`,
+        body: "successfully signed up",
+        severity: "success",
+      });
       return {
         user: newUser,
         message: "Success",
@@ -233,6 +283,11 @@ export default function useAuth(): AuthContextType {
       };
     } catch (err: any) {
       setAuthState(authInitialState);
+      openSnackbar({
+        title: `actions on the account could not be performed`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -265,6 +320,11 @@ export default function useAuth(): AuthContextType {
         if (user) {
           user.name = newName;
           user.lastUpdatedAt = now.toISOString();
+          openSnackbar({
+            title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
+            body: "username changed",
+            severity: "error",
+          });
           setAuthState((prev) => {
             return { ...prev, user };
           });
@@ -275,22 +335,37 @@ export default function useAuth(): AuthContextType {
           };
         } else {
           setAuthState(authInitialState);
+          openSnackbar({
+            title: `actions on the account could not be performed`,
+            body: "user not found",
+            severity: "error",
+          });
           return {
-            message: "Not Found",
+            message: "Not found",
             status: 404,
             user: null,
           };
         }
       } else {
+        openSnackbar({
+          title: `actions on the account could not be performed`,
+          body: "authorization failed",
+          severity: "error",
+        });
         setAuthState(authInitialState);
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
           user: null,
         };
       }
     } catch (err: any) {
       setAuthState(authInitialState);
+      openSnackbar({
+        title: `actions on the account could not be performed`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -322,6 +397,11 @@ export default function useAuth(): AuthContextType {
         const user: UserDetailsType = authState.user;
         if (user) {
           user.lastUpdatedAt = now.toISOString();
+          openSnackbar({
+            title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
+            body: "password changed successfully",
+            severity: "success",
+          });
           setAuthState((prev) => {
             return { ...prev, user };
           });
@@ -332,22 +412,37 @@ export default function useAuth(): AuthContextType {
           };
         } else {
           setAuthState(authInitialState);
+          openSnackbar({
+            title: `actions on the account could not be performed`,
+            body: "user not found",
+            severity: "error",
+          });
           return {
-            message: "Not Found",
+            message: "Not found",
             status: 404,
             user: null,
           };
         }
       } else {
         setAuthState(authInitialState);
+        openSnackbar({
+          title: `actions on the account could not be performed`,
+          body: "authorization failed",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
           user: null,
         };
       }
     } catch (err: any) {
       setAuthState(authInitialState);
+      openSnackbar({
+        title: `actions on the account could not be performed`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -374,18 +469,33 @@ export default function useAuth(): AuthContextType {
       //   console.log(JSON.stringify(response?.data));
       //   console.log(JSON.stringify(response));
       if (authState.user !== null) {
+        openSnackbar({
+          title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
+          body: "account deleted successfully",
+          severity: "success",
+        });
         setAuthState(authInitialState);
         return {
           message: "Success",
           status: 200,
         };
       } else {
+        openSnackbar({
+          title: `actions on the account could not be performed`,
+          body: "authorization failed",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `actions on the account could not be performed`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,

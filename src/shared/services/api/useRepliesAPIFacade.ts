@@ -1,9 +1,10 @@
 import { useContext } from "react";
 
-import { AuthContext } from "../account/AccountContext";
+import { AccountContext } from "../account/AccountContext";
 import { mapResponseErrorToMessage, wait } from "../../utils";
 import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "./useUsersAPIFacade";
+import { NotificationContext } from "../snackbars/NotificationsContext";
 
 export const replies: ReplyDetailsType[] = [
   {
@@ -100,7 +101,8 @@ export type RepliesActionsType = {
 };
 
 export default function useRepliesAPIFacade(): RepliesActionsType {
-  const { axiosPrivate, axiosPublic, authState } = useContext(AuthContext);
+  const { axiosPrivate, axiosPublic, authState } = useContext(AccountContext);
+  const { openSnackbar } = useContext(NotificationContext);
   const REPLIES_URL = process.env.REACT_APP_REPLIES_URL;
 
   const deleteReply = async ({
@@ -126,23 +128,43 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         );
         if (replyIndex !== -1) {
           replies.splice(replyIndex);
+          openSnackbar({
+            title: `successfully performed actions on the reply with id: ${id}`,
+            body: "reply removed successfully",
+            severity: "success",
+          });
           return {
             message: "Success",
             status: 200,
           };
         } else {
+          openSnackbar({
+            title: `failed to perform actions on the reply with id: ${id}`,
+            body: "reply not found",
+            severity: "error",
+          });
           return {
-            message: "Not Found",
+            message: "Not found",
             status: 404,
           };
         }
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the reply with id: ${id}`,
+          body: "You do not have sufficient permissions",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the reply with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -176,26 +198,46 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         if (reply) {
           reply.body = body;
           reply.lastUpdatedAt = now.toISOString();
+          openSnackbar({
+            title: `successfully performed actions on the reply with id: ${id}`,
+            body: "reply updated successfully",
+            severity: "success",
+          });
           return {
             reply,
             message: "Success",
             status: 200,
           };
         } else {
+          openSnackbar({
+            title: `failed to perform actions on the reply with id: ${id}`,
+            body: "reply not found",
+            severity: "error",
+          });
           return {
-            message: "Not Found",
+            message: "Not found",
             status: 404,
             reply: null,
           };
         }
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the reply with id: ${id}`,
+          body: "You do not have sufficient permissions",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
           reply: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the reply with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -234,19 +276,34 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         };
         replies.push(reply);
         await wait(0, 500);
+        openSnackbar({
+          title: `successfully performed actions on the reply with id: ${reply.id}`,
+          body: "reply created successfully",
+          severity: "success",
+        });
         return {
           reply,
           message: "Success",
           status: 200,
         };
       } else {
+        openSnackbar({
+          title: `failed to create new reply`,
+          body: "you do not have sufficient permissions",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
           reply: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to create new reply`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -270,19 +327,34 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
       const reply = replies.find((reply) => reply.id === id);
       await wait(0, 500);
       if (reply) {
+        openSnackbar({
+          title: `successfully performed actions on the reply with id: ${id}`,
+          body: "reply fetched successfully",
+          severity: "success",
+        });
         return {
           reply,
           message: "Success",
           status: 200,
         };
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the reply with id: ${id}`,
+          body: "reply not found",
+          severity: "error",
+        });
         return {
-          message: "Not Found",
+          message: "Not found",
           status: 404,
           reply: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the reply with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -325,6 +397,11 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
           repliesSet = replies.slice(offset);
         }
       }
+      openSnackbar({
+        title: "successfully performed actions on replies",
+        body: "replies fetched successfully",
+        severity: "success",
+      });
 
       return {
         replies: repliesSet,
@@ -333,6 +410,11 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         totalNumberOfReplies: repliesSet.length,
       };
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to fetch replies`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,

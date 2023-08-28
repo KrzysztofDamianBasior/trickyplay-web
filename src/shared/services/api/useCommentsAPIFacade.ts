@@ -1,10 +1,11 @@
 import { useContext } from "react";
 
-import { AuthContext } from "../account/AccountContext";
+import { AccountContext } from "../account/AccountContext";
 import { mapResponseErrorToMessage, wait } from "../../utils";
 import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
 import { UserDetailsType } from "./useUsersAPIFacade";
 import { GameNameType } from "../games/gamesDetails";
+import { NotificationContext } from "../snackbars/NotificationsContext";
 
 export type CommentDetailsType = {
   id: string;
@@ -23,11 +24,11 @@ export const comments: CommentDetailsType[] = [
       id: "1",
       name: "Dinotrex",
       roles: ["User"],
-      createdAt: "2023-08-06T11:23:36.172Z",
-      lastUpdatedAt: "2023-08-06T11:23:36.172Z",
+      createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
+      lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
     },
-    createdAt: "2023-08-06T11:23:36.172Z",
-    lastUpdatedAt: "2023-08-06T11:23:36.172Z",
+    createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
+    lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
     gameName: "Minesweeper",
   },
   {
@@ -37,11 +38,11 @@ export const comments: CommentDetailsType[] = [
       id: "2",
       name: "Margary",
       roles: ["User"],
-      createdAt: "2023-08-06T11:23:36.172Z",
-      lastUpdatedAt: "2023-08-06T11:23:36.172Z",
+      createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
+      lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
     },
-    createdAt: "2023-08-06T11:24:14.887Z",
-    lastUpdatedAt: "2023-08-06T11:24:14.887Z",
+    createdAt: "2023-08-06T11:24:14.887Z", // ISO-8601 stored in UTC
+    lastUpdatedAt: "2023-08-06T11:24:14.887Z", // ISO-8601 stored in UTC
     gameName: "Minesweeper",
   },
 ];
@@ -114,7 +115,8 @@ export type CommentsActionsType = {
 };
 
 export default function useCommentsAPIFacade(): CommentsActionsType {
-  const { axiosPrivate, axiosPublic, authState } = useContext(AuthContext);
+  const { axiosPrivate, axiosPublic, authState } = useContext(AccountContext);
+  const { openSnackbar } = useContext(NotificationContext);
   const COMMENTS_URL = process.env.REACT_APP_COMMENTS_URL;
 
   const deleteComment = async ({
@@ -140,23 +142,43 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
         );
         if (commentIndex !== -1) {
           comments.splice(commentIndex);
+          openSnackbar({
+            title: `successfully performed actions on the comment with id: ${id}`,
+            body: "comment removed successfully",
+            severity: "success",
+          });
           return {
             message: "Success",
             status: 200,
           };
         } else {
+          openSnackbar({
+            title: `failed to perform actions on the comment with id: ${id}`,
+            body: "comment not found",
+            severity: "error",
+          });
           return {
-            message: "Not Found",
+            message: "Not found",
             status: 404,
           };
         }
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the comment with id: ${id}`,
+          body: "you do not have sufficient permissions",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the comment with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -190,26 +212,46 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
         if (comment) {
           comment.body = body;
           comment.lastUpdatedAt = now.toISOString();
+          openSnackbar({
+            title: `successfully performed actions on the comment with id: ${id}`,
+            body: "comment updated successfully",
+            severity: "error",
+          });
           return {
             comment,
             message: "Success",
             status: 200,
           };
         } else {
+          openSnackbar({
+            title: `failed to perform actions on the comment with id: ${id}`,
+            body: "comment not found",
+            severity: "error",
+          });
           return {
-            message: "Not Found",
+            message: "Not found",
             status: 404,
             comment: null,
           };
         }
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the comment with id: ${id}`,
+          body: "you do not have sufficient permissions",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
           comment: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the comment with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -248,19 +290,34 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
         };
         comments.push(comment);
         await wait(0, 500);
+        openSnackbar({
+          title: `successfully performed actions on the comment with id: ${comment.id}`,
+          body: "comment created successfully",
+          severity: "error",
+        });
         return {
           comment,
           message: "Success",
           status: 200,
         };
       } else {
+        openSnackbar({
+          title: `failed to create new comment`,
+          body: "you do not have sufficient permissions",
+          severity: "error",
+        });
         return {
-          message: "Unauthorized",
+          message: "Lack of sufficient permissions",
           status: 401,
           comment: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to create new comment`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -284,19 +341,34 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
       const comment = comments.find((comment) => comment.id === id);
       await wait(0, 500);
       if (comment) {
+        openSnackbar({
+          title: "success",
+          body: `successfully performed actions on the comment with id: ${comment.id}`,
+          severity: "success",
+        });
         return {
           comment,
           message: "Success",
           status: 200,
         };
       } else {
+        openSnackbar({
+          title: `failed to perform actions on the comment with id: ${id}`,
+          body: "comment not found",
+          severity: "error",
+        });
         return {
-          message: "Not Found",
+          message: "Not found",
           status: 404,
           comment: null,
         };
       }
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the comment with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
@@ -341,7 +413,11 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
         }
       }
       // commentsSet.forEach((comment) => (comment.replies = null));
-
+      openSnackbar({
+        title: "successfully performed actions on comments",
+        body: "comments fetched successfully",
+        severity: "success",
+      });
       return {
         comments: commentsSet,
         message: "Success",
@@ -349,6 +425,11 @@ export default function useCommentsAPIFacade(): CommentsActionsType {
         totalNumberOfComments: comments.length,
       };
     } catch (err: any) {
+      openSnackbar({
+        title: `failed to fetch comments`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
       return {
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
