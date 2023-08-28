@@ -4,19 +4,19 @@ import { regroupEntities } from "../../utils";
 export const repliesPaginatedCollectionInitialState: RepliesPaginatedCollectionStateType =
   {
     textAlignment: "left",
-    repliesCurrentPage: 0,
+    repliesActivePage: 0,
     repliesPaginatedCollection: [[], [], [], [], []],
-    areRepliesLoading: false,
+    status: "LOADING",
     repliesPerPage: 10,
-    totalNumberOfAllReplies: 0,
+    totalNumberOfAllReplies: 50,
     activeReply: null,
   };
 
 export type RepliesPaginatedCollectionStateType = {
   textAlignment: TextAlignentType;
   repliesPaginatedCollection: ReplyDetailsType[][];
-  areRepliesLoading: boolean;
-  repliesCurrentPage: number;
+  status: RepliesPaginatedCollectionStatusType;
+  repliesActivePage: number;
   repliesPerPage: number;
   totalNumberOfAllReplies: number;
   activeReply: ActiveReplyDetailsType;
@@ -29,6 +29,11 @@ export type ActiveReplyDetailsType = {
 
 export type TextAlignentType = "center" | "left" | "right" | "justify";
 
+export type RepliesPaginatedCollectionStatusType =
+  | "LOADING"
+  | "READY"
+  | "ERROR";
+
 export type RepliesPaginatedCollectionActionType =
   | AddReplyActionType
   | AddRepliesActionType
@@ -36,8 +41,8 @@ export type RepliesPaginatedCollectionActionType =
   | UpdateReplyActionType
   | SetTextAlignmentActionType
   | SetActiveReplyActionType
-  | SetRepliesLoadingActionType
-  | SetCurrentRepliesPageActionType
+  | SetRepliesStatusActionType
+  | SetActiveRepliesPageActionType
   | SetRepliesRowsPerPageActionType;
 
 export type AddReplyActionType = {
@@ -73,14 +78,14 @@ export type SetActiveReplyActionType = {
   type: "SET_ACTIVE_REPLY";
   payload: { replyId: string; type: "Editing" } | null;
 };
-export type SetRepliesLoadingActionType = {
-  type: "SET_REPLIES_LOADING";
-  payload: { areRepliesLoading: boolean };
+export type SetRepliesStatusActionType = {
+  type: "SET_REPLIES_STATUS";
+  payload: { newRepliesStatus: RepliesPaginatedCollectionStatusType };
 };
 
-export type SetCurrentRepliesPageActionType = {
-  type: "SET_CURRENT_REPLIES_PAGE";
-  payload: { currentRepliesPage: number };
+export type SetActiveRepliesPageActionType = {
+  type: "SET_ACTIVE_REPLIES_PAGE";
+  payload: { newActiveRepliesPage: number };
 };
 
 export type SetRepliesRowsPerPageActionType = {
@@ -95,22 +100,23 @@ export function repliesPaginatedCollectionReducer(
   let repliesPaginatedCollectionNewState: RepliesPaginatedCollectionStateType =
     JSON.parse(JSON.stringify(state));
   let reply: ReplyDetailsType | undefined | null = null;
+
   const currentPaginatedCollectionLength =
     state.repliesPaginatedCollection.length;
-  const currentIndexOfLastPaginatedCollectionPage =
+  const indexOfLastPaginatedCollectionPage =
     currentPaginatedCollectionLength - 1;
 
   switch (action.type) {
     case "ADD_REPLY":
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies
       if (
-        currentIndexOfLastPaginatedCollectionPage >= 0 &&
+        indexOfLastPaginatedCollectionPage >= 0 &&
         repliesPaginatedCollectionNewState.repliesPaginatedCollection[
-          currentIndexOfLastPaginatedCollectionPage
+          indexOfLastPaginatedCollectionPage
         ].length < repliesPaginatedCollectionNewState.repliesPerPage
       ) {
         repliesPaginatedCollectionNewState.repliesPaginatedCollection[
-          currentIndexOfLastPaginatedCollectionPage
+          indexOfLastPaginatedCollectionPage
         ].push(action.payload.reply);
       } else {
         repliesPaginatedCollectionNewState.repliesPaginatedCollection.push([
@@ -169,6 +175,13 @@ export function repliesPaginatedCollectionReducer(
             newTotalNumberOfAllEntities:
               repliesPaginatedCollectionNewState.totalNumberOfAllReplies,
           });
+        if (
+          repliesPaginatedCollectionNewState.repliesPaginatedCollection.length -
+            1 <
+          repliesPaginatedCollectionNewState.repliesActivePage
+        ) {
+          repliesPaginatedCollectionNewState.repliesActivePage = 0;
+        }
       }
 
       return { ...repliesPaginatedCollectionNewState };
@@ -187,11 +200,11 @@ export function repliesPaginatedCollectionReducer(
 
       return { ...repliesPaginatedCollectionNewState };
 
-    case "SET_REPLIES_LOADING":
+    case "SET_REPLIES_STATUS":
       // modifies: areRepliesLoading
 
-      repliesPaginatedCollectionNewState.areRepliesLoading =
-        action.payload.areRepliesLoading;
+      repliesPaginatedCollectionNewState.status =
+        action.payload.newRepliesStatus;
       return { ...repliesPaginatedCollectionNewState };
 
     case "UPDATE_REPLY":
@@ -205,9 +218,14 @@ export function repliesPaginatedCollectionReducer(
 
       return { ...repliesPaginatedCollectionNewState };
 
-    case "SET_CURRENT_REPLIES_PAGE":
-      repliesPaginatedCollectionNewState.repliesCurrentPage =
-        action.payload.currentRepliesPage;
+    case "SET_ACTIVE_REPLIES_PAGE":
+      if (
+        action.payload.newActiveRepliesPage <
+        repliesPaginatedCollectionNewState.repliesPaginatedCollection.length
+      ) {
+        repliesPaginatedCollectionNewState.repliesActivePage =
+          action.payload.newActiveRepliesPage;
+      }
 
       return { ...repliesPaginatedCollectionNewState };
 
@@ -229,6 +247,13 @@ export function repliesPaginatedCollectionReducer(
           newTotalNumberOfAllEntities:
             repliesPaginatedCollectionNewState.totalNumberOfAllReplies,
         });
+      if (
+        repliesPaginatedCollectionNewState.repliesPaginatedCollection.length -
+          1 <
+        repliesPaginatedCollectionNewState.repliesActivePage
+      ) {
+        repliesPaginatedCollectionNewState.repliesActivePage = 0;
+      }
 
       return { ...repliesPaginatedCollectionNewState };
 

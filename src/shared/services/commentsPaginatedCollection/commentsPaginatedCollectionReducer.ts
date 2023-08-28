@@ -4,9 +4,9 @@ import { regroupEntities } from "../../utils";
 export const commentsPaginatedCollectionInitialState: CommentsPaginatedCollectionStateType =
   {
     textAlignment: "left",
-    commentsCurrentPage: 0,
+    commentsActivePage: 0,
     commentsPaginatedCollection: [[], [], [], [], []],
-    areCommentsLoading: false,
+    status: "LOADING",
     commentsPerPage: 10,
     totalNumberOfAllComments: 50,
     activeComment: null,
@@ -14,13 +14,18 @@ export const commentsPaginatedCollectionInitialState: CommentsPaginatedCollectio
 
 export type CommentsPaginatedCollectionStateType = {
   textAlignment: TextAlignentType;
-  commentsPaginatedCollection: CommentDetailsType[][];
-  areCommentsLoading: boolean;
-  commentsCurrentPage: number;
+  commentsPaginatedCollection: CommentDetailsType[][]; // [numOfPages][commentsPerPage]
+  status: CommentsPaginatedCollectionStatusType;
+  commentsActivePage: number;
   commentsPerPage: number;
   totalNumberOfAllComments: number;
   activeComment: ActiveCommentDetailsType;
 };
+
+export type CommentsPaginatedCollectionStatusType =
+  | "LOADING"
+  | "READY"
+  | "ERROR";
 
 export type ActiveCommentDetailsType = {
   type: "Editing" | "Replying";
@@ -37,7 +42,7 @@ export type CommentsPaginatedCollectionActionType =
   | SetTextAlignmentActionType
   | SetActiveCommentActionType
   | SetCommentsLoadingActionType
-  | SetCurrentCommentsPageActionType
+  | SetActiveCommentsPageActionType
   | SetCommentsRowsPerPageActionType;
 
 export type AddCommentActionType = {
@@ -74,13 +79,13 @@ export type SetActiveCommentActionType = {
   payload: { commentId: string; type: "Editing" | "Replying" } | null;
 };
 export type SetCommentsLoadingActionType = {
-  type: "SET_COMMENTS_LOADING";
-  payload: { areCommentsLoading: boolean };
+  type: "SET_COMMENTS_STATUS";
+  payload: { newStatus: CommentsPaginatedCollectionStatusType };
 };
 
-export type SetCurrentCommentsPageActionType = {
-  type: "SET_CURRENT_COMMENTS_PAGE";
-  payload: { currentCommentsPage: number };
+export type SetActiveCommentsPageActionType = {
+  type: "SET_ACTIVE_COMMENTS_PAGE";
+  payload: { newActiveCommentsPage: number };
 };
 
 export type SetCommentsRowsPerPageActionType = {
@@ -168,6 +173,12 @@ export function commentsPaginatedCollectionReducer(
             newTotalNumberOfAllEntities:
               commentsSectionNewState.totalNumberOfAllComments,
           });
+        if (
+          commentsSectionNewState.commentsPaginatedCollection.length - 1 <
+          commentsSectionNewState.commentsActivePage
+        ) {
+          commentsSectionNewState.commentsActivePage = 0;
+        }
       }
 
       return { ...commentsSectionNewState };
@@ -185,11 +196,10 @@ export function commentsPaginatedCollectionReducer(
       }
       return { ...commentsSectionNewState };
 
-    case "SET_COMMENTS_LOADING":
+    case "SET_COMMENTS_STATUS":
       // modifies: areCommentsLoading
 
-      commentsSectionNewState.areCommentsLoading =
-        action.payload.areCommentsLoading;
+      commentsSectionNewState.status = action.payload.newStatus;
       return { ...commentsSectionNewState };
 
     case "UPDATE_COMMENT":
@@ -203,14 +213,20 @@ export function commentsPaginatedCollectionReducer(
 
       return { ...commentsSectionNewState };
 
-    case "SET_CURRENT_COMMENTS_PAGE":
-      commentsSectionNewState.commentsCurrentPage =
-        action.payload.currentCommentsPage;
+    case "SET_ACTIVE_COMMENTS_PAGE":
+      if (
+        action.payload.newActiveCommentsPage <
+        commentsSectionNewState.commentsPaginatedCollection.length
+      ) {
+        commentsSectionNewState.commentsActivePage =
+          action.payload.newActiveCommentsPage;
+      }
 
       return { ...commentsSectionNewState };
 
     case "SET_TEXT_ALIGNMENT":
       commentsSectionNewState.textAlignment = action.payload.textAlignment;
+
       return { ...commentsSectionNewState };
 
     case "SET_COMMENTS_PER_PAGE":
@@ -225,6 +241,12 @@ export function commentsPaginatedCollectionReducer(
           newTotalNumberOfAllEntities:
             commentsSectionNewState.totalNumberOfAllComments,
         });
+      if (
+        commentsSectionNewState.commentsPaginatedCollection.length - 1 <
+        commentsSectionNewState.commentsActivePage
+      ) {
+        commentsSectionNewState.commentsActivePage = 0;
+      }
 
       return { ...commentsSectionNewState };
 

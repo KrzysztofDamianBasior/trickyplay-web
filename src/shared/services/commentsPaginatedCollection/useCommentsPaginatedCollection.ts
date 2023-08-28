@@ -8,15 +8,17 @@ import {
   commentsPaginatedCollectionInitialState,
   CommentsPaginatedCollectionStateType,
 } from "./commentsPaginatedCollectionReducer";
-import { AuthContext } from "../account/AccountContext";
+import { AccountContext } from "../account/AccountContext";
 import { calculateNumberOfPages } from "../../utils";
+import { NotificationContext } from "../snackbars/NotificationsContext";
 
 type Props = { gameName: string };
 
 const useCommentsPaginatedCollection = ({
   gameName,
 }: Props): UseCommentsPaginatedCollectionResultType => {
-  const { authState } = useContext(AuthContext);
+  const { authState } = useContext(AccountContext);
+  const { openSnackbar } = useContext(NotificationContext);
 
   const isMounted = useRef(false);
 
@@ -34,13 +36,13 @@ const useCommentsPaginatedCollection = ({
   useEffect(() => {
     const fetchComments = async () => {
       commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: true },
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "LOADING" },
       });
 
       const getCommentsResultType = await getComments({
         gameName,
-        page: commentsPaginatedCollectionState.commentsCurrentPage,
+        page: commentsPaginatedCollectionState.commentsActivePage,
         perPage: commentsPaginatedCollectionState.commentsPerPage,
       });
 
@@ -57,14 +59,27 @@ const useCommentsPaginatedCollection = ({
               getCommentsResultType.totalNumberOfComments,
           },
         });
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "READY" },
+        });
+        openSnackbar({
+          severity: "success",
+          title: "successfully fetch comments",
+          body: "comments section successfully populated",
+        });
       } else {
         ///////////////// notify user of an error
+        openSnackbar({
+          severity: "error",
+          title: "failed to fetch comments",
+          body: "failed to populate comments section",
+        });
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "ERROR" },
+        });
       }
-
-      commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: false },
-      });
     };
 
     fetchComments();
@@ -74,8 +89,8 @@ const useCommentsPaginatedCollection = ({
   useEffect(() => {
     if (isMounted.current) {
       (async () => {
-        const currentCommentsPage =
-          commentsPaginatedCollectionState.commentsCurrentPage;
+        const activeCommentsPage =
+          commentsPaginatedCollectionState.commentsActivePage;
 
         const commentsPaginatedCollectionLength =
           commentsPaginatedCollectionState.commentsPaginatedCollection.length;
@@ -84,19 +99,19 @@ const useCommentsPaginatedCollection = ({
           commentsPaginatedCollectionState.commentsPerPage;
 
         if (
-          currentCommentsPage < commentsPaginatedCollectionLength - 1 &&
+          activeCommentsPage < commentsPaginatedCollectionLength - 1 &&
           commentsPaginatedCollectionState.commentsPaginatedCollection[
-            currentCommentsPage
+            activeCommentsPage
           ].length < commentsPerPage
         ) {
           commentsPaginatedCollectionDispatch({
-            type: "SET_COMMENTS_LOADING",
-            payload: { areCommentsLoading: true },
+            type: "SET_COMMENTS_STATUS",
+            payload: { newStatus: "LOADING" },
           });
 
           const getCommentsResult = await getComments({
             gameName,
-            page: currentCommentsPage,
+            page: activeCommentsPage,
             perPage: commentsPerPage,
           });
           if (
@@ -104,9 +119,9 @@ const useCommentsPaginatedCollection = ({
             getCommentsResult.totalNumberOfComments !== null
           ) {
             if (
-              currentCommentsPage <
+              activeCommentsPage <
               calculateNumberOfPages({
-                perPage: currentCommentsPage,
+                perPage: activeCommentsPage,
                 totalNumberOfEntities: getCommentsResult.totalNumberOfComments,
               })
             ) {
@@ -114,24 +129,44 @@ const useCommentsPaginatedCollection = ({
                 type: "ADD_COMMENTS",
                 payload: {
                   comments: getCommentsResult.comments,
-                  commentsPage: currentCommentsPage,
+                  commentsPage: activeCommentsPage,
                   totalNumberOfAllComments:
                     getCommentsResult.totalNumberOfComments,
                 },
               });
+              openSnackbar({
+                severity: "success",
+                title: "successfully fetch comments",
+                body: "comments sections successfully populated",
+              });
             } else {
               commentsPaginatedCollectionDispatch({
-                type: "SET_CURRENT_COMMENTS_PAGE",
-                payload: { currentCommentsPage: 0 },
+                type: "SET_ACTIVE_COMMENTS_PAGE",
+                payload: { newActiveCommentsPage: 0 },
+              });
+              openSnackbar({
+                severity: "info",
+                title:
+                  "the active comments page exceeds the total number of comments",
+                body: "page 0 is set",
               });
             }
+            commentsPaginatedCollectionDispatch({
+              type: "SET_COMMENTS_STATUS",
+              payload: { newStatus: "READY" },
+            });
           } else {
             ///////////////// notify user of an error
+            openSnackbar({
+              severity: "error",
+              title: "failed to fetch comments",
+              body: "failed to populate comments section",
+            });
+            commentsPaginatedCollectionDispatch({
+              type: "SET_COMMENTS_STATUS",
+              payload: { newStatus: "ERROR" },
+            });
           }
-          commentsPaginatedCollectionDispatch({
-            type: "SET_COMMENTS_LOADING",
-            payload: { areCommentsLoading: false },
-          });
         }
       })();
     } else {
@@ -143,7 +178,7 @@ const useCommentsPaginatedCollection = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    commentsPaginatedCollectionState.commentsCurrentPage,
+    commentsPaginatedCollectionState.commentsActivePage,
     commentsPaginatedCollectionState.commentsPerPage,
   ]);
 
@@ -168,11 +203,21 @@ const useCommentsPaginatedCollection = ({
       commentsPaginatedCollectionState.commentsPaginatedCollection.length
     ) {
       commentsPaginatedCollectionDispatch({
-        type: "SET_CURRENT_COMMENTS_PAGE",
-        payload: { currentCommentsPage: nextPage },
+        type: "SET_ACTIVE_COMMENTS_PAGE",
+        payload: { newActiveCommentsPage: nextPage },
+      });
+      openSnackbar({
+        severity: "success",
+        title: "the active comments page has changed",
+        body: `successfully changed active comment page to page: ${nextPage}`,
       });
     } else {
       ///////////////// notify user of an error
+      openSnackbar({
+        severity: "error",
+        title: `failed to change the active comments page to page: ${nextPage}`,
+        body: "new comments page exceeds the total number of comments",
+      });
     }
   };
 
@@ -187,6 +232,11 @@ const useCommentsPaginatedCollection = ({
         commentsPerPage,
       },
     });
+    openSnackbar({
+      severity: "success",
+      title: "the number of comments per page has changed",
+      body: `the number of comments per page has changed to ${commentsPerPage} comments per page`,
+    });
   };
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,10 +244,9 @@ const useCommentsPaginatedCollection = ({
   const handleCommentAdd = async ({ content }: { content: string }) => {
     if (authState.user) {
       commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: true },
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "LOADING" },
       });
-
       const createCommentResult = await createComment({
         gameName,
         body: content,
@@ -208,14 +257,27 @@ const useCommentsPaginatedCollection = ({
           type: "ADD_COMMENT",
           payload: { comment: createCommentResult.comment },
         });
+        openSnackbar({
+          severity: "success",
+          title: "new comment added",
+          body: `added comment with id: ${createCommentResult.comment.id}`,
+        });
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "READY" },
+        });
       } else {
         ///////////////// notify user of an error
+        openSnackbar({
+          severity: "error",
+          title: `failed to add new comment`,
+          body: "comment could not be added",
+        });
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "ERROR" },
+        });
       }
-
-      commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: false },
-      });
     }
   };
 
@@ -228,8 +290,8 @@ const useCommentsPaginatedCollection = ({
   }) => {
     if (authState.user && comment.author.id === authState.user.id) {
       commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: true },
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "LOADING" },
       });
 
       const deleteCommentResult = await deleteComment({ id: comment.id });
@@ -239,13 +301,27 @@ const useCommentsPaginatedCollection = ({
           type: "DELETE_COMMENT",
           payload: { commentId: comment.id, commentPage },
         });
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "READY" },
+        });
+        openSnackbar({
+          severity: "success",
+          title: "comment deleted",
+          body: `successfully deleted comment with id: ${comment.id}`,
+        });
       } else {
         ///////////////// notify user of an error
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "ERROR" },
+        });
+        openSnackbar({
+          severity: "error",
+          title: `comment not deleted`,
+          body: `could not delete comment with id: ${comment.id}`,
+        });
       }
-      commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: false },
-      });
     }
   };
 
@@ -260,8 +336,8 @@ const useCommentsPaginatedCollection = ({
   }) => {
     if (authState.user && comment.author.id === authState.user.id) {
       commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: true },
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "LOADING" },
       });
 
       const updateCommentResult = await updateComment({
@@ -274,13 +350,27 @@ const useCommentsPaginatedCollection = ({
           type: "UPDATE_COMMENT",
           payload: { comment: updateCommentResult.comment, page },
         });
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "READY" },
+        });
+        openSnackbar({
+          severity: "success",
+          title: "comment updated",
+          body: `successfully updated comment with id: ${comment.id}`,
+        });
       } else {
         ///////////////// notify user of an error
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "ERROR" },
+        });
+        openSnackbar({
+          severity: "error",
+          title: `comment not updated`,
+          body: `could not update comment with id: ${comment.id}`,
+        });
       }
-      commentsPaginatedCollectionDispatch({
-        type: "SET_COMMENTS_LOADING",
-        payload: { areCommentsLoading: false },
-      });
     }
   };
 
