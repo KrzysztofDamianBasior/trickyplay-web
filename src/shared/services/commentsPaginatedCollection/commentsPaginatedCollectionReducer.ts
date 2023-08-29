@@ -28,9 +28,11 @@ export type CommentsPaginatedCollectionStatusType =
   | "ERROR";
 
 export type ActiveCommentDetailsType = {
-  type: "Editing" | "Replying";
+  type: ActiveCommentActionType;
   id: string;
 } | null;
+
+export type ActiveCommentActionType = "Editing" | "Replying";
 
 export type TextAlignentType = "center" | "left" | "right" | "justify";
 

@@ -6,16 +6,14 @@ import {
 import { wait } from "../../utils";
 import { AccountContext } from "../account/AccountContext";
 import { GameNameType } from "../games/gamesDetails";
-import { ReplyDetailsType } from "./useRepliesAPIFacade";
-import { CommentDetailsType } from "./useCommentsAPIFacade";
-import { comments } from "./useCommentsAPIFacade";
-import { replies } from "./useRepliesAPIFacade";
+import { ReplyDetailsType, replies } from "./useRepliesAPIFacade";
+import { CommentDetailsType, comments } from "./useCommentsAPIFacade";
 import { NotificationContext } from "../snackbars/NotificationsContext";
 
 export type UserDetailsType = {
   id: string;
   name: string;
-  roles: ("User" | "Admin")[];
+  roles: ("User" | "Admin" | "Banned")[];
   createdAt: string;
   lastUpdatedAt: string;
 };
@@ -25,22 +23,22 @@ const users: UserDetailsType[] = [
     id: "1",
     name: "Dinotrex",
     roles: ["User"],
-    createdAt: "2023-08-06T11:23:36.172Z",
-    lastUpdatedAt: "2023-08-06T11:23:36.172Z",
+    createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 UTC
+    lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 UTC
   },
   {
     id: "2",
     name: "Margary",
     roles: ["User"],
-    createdAt: "2023-08-06T11:23:36.172Z",
-    lastUpdatedAt: "2023-08-06T11:23:36.172Z",
+    createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 UTC
+    lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 UTC
   },
   {
     id: "3",
     name: "Everday",
     roles: ["User", "Admin"],
-    createdAt: "2023-08-06T11:23:36.172Z",
-    lastUpdatedAt: "2023-08-06T11:23:36.172Z",
+    createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 UTC
+    lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 UTC
   },
 ];
 
@@ -64,6 +62,20 @@ export type GetUsersResultType = Promise<{
 
 export type GrantAdminPermissionsProps = { id: string };
 export type GrantAdminPermissionsResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  user: UserDetailsType | null;
+}>;
+
+export type BanUserProps = { id: string };
+export type BanUserResultType = Promise<{
+  status: number;
+  message: ErrorMessageKind | "Success";
+  user: UserDetailsType | null;
+}>;
+
+export type UnbanUserProps = { id: string };
+export type UnbanUserResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
   user: UserDetailsType | null;
@@ -107,6 +119,9 @@ export type UsersActionsType = {
   getUserReplies: (
     getUserRepliesProps: GetUserRepliesProps
   ) => GetUserRepliesResultType;
+
+  banUser: (banUserProps: BanUserProps) => BanUserResultType;
+  unbanUser: (unbanUserProps: UnbanUserProps) => UnbanUserResultType;
 };
 
 export default function useUsersAPIFacade(): UsersActionsType {
@@ -293,6 +308,150 @@ export default function useUsersAPIFacade(): UsersActionsType {
     }
   };
 
+  const banUser = async ({ id }: BanUserProps): BanUserResultType => {
+    try {
+      if (authState.user !== null && authState.user.roles.includes("Admin")) {
+        await wait(0, 500);
+        //   const response = await axiosPrivate.patch(
+        //     USERS_URL + "/" + id, + "/grant-admin-permissions",
+        //     JSON.stringify({
+        //       id
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
+        const now = new Date();
+        const user: UserDetailsType | undefined = users.find(
+          (element) => element.id === id
+        );
+        if (user) {
+          user.roles = ["Banned"];
+          user.lastUpdatedAt = now.toISOString();
+          openSnackbar({
+            title: `successfully performed actions on user with id: ${id}`,
+            body: "user banned",
+            severity: "success",
+          });
+          return {
+            user,
+            message: "Success",
+            status: 200,
+          };
+        } else {
+          openSnackbar({
+            title: `failed to perform actions on the user with id: ${id}`,
+            body: "user not found",
+            severity: "error",
+          });
+          return {
+            message: "Not found",
+            status: 404,
+            user: null,
+          };
+        }
+      } else {
+        openSnackbar({
+          title: `failed to perform actions on the user with id: ${id}`,
+          body: "You do not have sufficient permissions",
+          severity: "error",
+        });
+        return {
+          message: "Lack of sufficient permissions",
+          status: 401,
+          user: null,
+        };
+      }
+    } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the user with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
+      return {
+        message: mapResponseErrorToMessage(err),
+        status: err.response?.status,
+        user: null,
+      };
+    }
+  };
+
+  const unbanUser = async ({
+    id,
+  }: GrantAdminPermissionsProps): GrantAdminPermissionsResultType => {
+    try {
+      if (authState.user !== null && authState.user.roles.includes("Admin")) {
+        await wait(0, 500);
+        //   const response = await axiosPrivate.patch(
+        //     USERS_URL + "/" + id, + "/grant-admin-permissions",
+        //     JSON.stringify({
+        //       id
+        //     }),
+        //     {
+        //       headers: { "Content-Type": "application/json" },
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   console.log(JSON.stringify(response?.data));
+        //   console.log(JSON.stringify(response));
+        const now = new Date();
+        const user: UserDetailsType | undefined = users.find(
+          (element) => element.id === id
+        );
+        if (user) {
+          user.roles = ["User"];
+          user.lastUpdatedAt = now.toISOString();
+          openSnackbar({
+            title: `successfully performed actions on user with id: ${id}`,
+            body: "user unbanned",
+            severity: "success",
+          });
+          return {
+            user,
+            message: "Success",
+            status: 200,
+          };
+        } else {
+          openSnackbar({
+            title: `failed to perform actions on the user with id: ${id}`,
+            body: "user not found",
+            severity: "error",
+          });
+          return {
+            message: "Not found",
+            status: 404,
+            user: null,
+          };
+        }
+      } else {
+        openSnackbar({
+          title: `failed to perform actions on the user with id: ${id}`,
+          body: "You do not have sufficient permissions",
+          severity: "error",
+        });
+        return {
+          message: "Lack of sufficient permissions",
+          status: 401,
+          user: null,
+        };
+      }
+    } catch (err: any) {
+      openSnackbar({
+        title: `failed to perform actions on the user with id: ${id}`,
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
+      return {
+        message: mapResponseErrorToMessage(err),
+        status: err.response?.status,
+        user: null,
+      };
+    }
+  };
+
   const getUserComments = async ({
     userId,
     page,
@@ -420,5 +579,7 @@ export default function useUsersAPIFacade(): UsersActionsType {
     grantAdminPermissions,
     getUserComments,
     getUserReplies,
+    banUser,
+    unbanUser,
   };
 }

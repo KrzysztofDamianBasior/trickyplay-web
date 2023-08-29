@@ -12,12 +12,17 @@ import { AccountContext } from "../account/AccountContext";
 import { calculateNumberOfPages } from "../../utils";
 import { NotificationContext } from "../snackbars/NotificationsContext";
 
-type Props = { gameName: string; parentCommentId: string };
+type Props = {
+  gameName: string;
+  parentCommentId: string;
+  userId: string | null;
+};
 
 const useRepliesPaginatedCollection = ({
   gameName,
   parentCommentId,
-}: Props): UseRepliessPaginatedCollectionResultType => {
+  userId = null,
+}: Props): UseRepliesPaginatedCollectionResultType => {
   const { authState } = useContext(AccountContext);
   const { openSnackbar } = useContext(NotificationContext);
 
@@ -30,7 +35,7 @@ const useRepliesPaginatedCollection = ({
     );
 
   const { createReply, deleteReply, getReplies, updateReply } =
-    useRepliesAPIFacade();
+    useRepliesAPIFacade({ userId });
 
   useEffect(() => {
     const fetchReplies = async () => {
@@ -408,7 +413,7 @@ const useRepliesPaginatedCollection = ({
 
 export default useRepliesPaginatedCollection;
 
-export type UseRepliessPaginatedCollectionResultType = {
+export type UseRepliesPaginatedCollectionResultType = {
   repliesPaginatedCollectionState: RepliesPaginatedCollectionStateType;
   handleReplyAdd: handleReplyAddType;
   handleReplyDelete: handleReplyDeleteType;
@@ -419,9 +424,13 @@ export type UseRepliessPaginatedCollectionResultType = {
   handleTextAlignmentChange: handleTextAlignmentChangeType;
 };
 
-type handleReplyAddType = ({ content }: { content: string }) => Promise<void>;
+export type handleReplyAddType = ({
+  content,
+}: {
+  content: string;
+}) => Promise<void>;
 
-type handleReplyDeleteType = ({
+export type handleReplyDeleteType = ({
   reply,
   replyPage,
 }: {
@@ -429,7 +438,7 @@ type handleReplyDeleteType = ({
   replyPage: number;
 }) => Promise<void>;
 
-type handleReplyUpdateType = ({
+export type handleReplyUpdateType = ({
   reply,
   newContent,
   page,
@@ -439,26 +448,26 @@ type handleReplyUpdateType = ({
   page: number;
 }) => Promise<void>;
 
-type handleRepliesPageChangeType = ({
+export type handleRepliesPageChangeType = ({
   nextPage,
 }: {
   nextPage: number;
 }) => Promise<void>;
 
-type handleRepliesRowsPerPageChangeType = ({
+export type handleRepliesRowsPerPageChangeType = ({
   repliesPerPage,
 }: {
   repliesPerPage: number;
 }) => Promise<void>;
 
-type handleSetActiveReplyType = (
+export type handleSetActiveReplyType = (
   args: {
     replyId: string;
     type: "Editing";
   } | null
 ) => void;
 
-type handleTextAlignmentChangeType = ({
+export type handleTextAlignmentChangeType = ({
   newAlignment,
 }: {
   newAlignment: "left" | "center" | "right" | "justify";

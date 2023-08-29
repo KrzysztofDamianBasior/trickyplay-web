@@ -23,9 +23,11 @@ export type RepliesPaginatedCollectionStateType = {
 };
 
 export type ActiveReplyDetailsType = {
-  type: "Editing";
+  type: ActiveReplyActionType;
   replyId: string;
 } | null;
+
+export type ActiveReplyActionType = "Editing";
 
 export type TextAlignentType = "center" | "left" | "right" | "justify";
 

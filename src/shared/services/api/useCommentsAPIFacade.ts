@@ -114,7 +114,13 @@ export type CommentsActionsType = {
   // ) => GetCommentWithRepliesResultType;
 };
 
-export default function useCommentsAPIFacade(): CommentsActionsType {
+type Props = {
+  userId?: string;
+};
+
+export default function useCommentsAPIFacade({
+  userId,
+}: Props): CommentsActionsType {
   const { axiosPrivate, axiosPublic, authState } = useContext(AccountContext);
   const { openSnackbar } = useContext(NotificationContext);
   const COMMENTS_URL = process.env.REACT_APP_COMMENTS_URL;

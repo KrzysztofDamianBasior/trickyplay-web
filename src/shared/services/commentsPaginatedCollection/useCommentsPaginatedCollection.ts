@@ -12,7 +12,7 @@ import { AccountContext } from "../account/AccountContext";
 import { calculateNumberOfPages } from "../../utils";
 import { NotificationContext } from "../snackbars/NotificationsContext";
 
-type Props = { gameName: string };
+type Props = { gameName: string; userId?: string };
 
 const useCommentsPaginatedCollection = ({
   gameName,

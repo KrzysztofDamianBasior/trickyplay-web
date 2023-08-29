@@ -100,7 +100,13 @@ export type RepliesActionsType = {
   deleteReply: (deleteReplyProps: DeleteReplyProps) => DeleteReplyResultType;
 };
 
-export default function useRepliesAPIFacade(): RepliesActionsType {
+type Props = {
+  userId: string | null;
+};
+
+export default function useRepliesAPIFacade({
+  userId = null,
+}: Props): RepliesActionsType {
   const { axiosPrivate, axiosPublic, authState } = useContext(AccountContext);
   const { openSnackbar } = useContext(NotificationContext);
   const REPLIES_URL = process.env.REACT_APP_REPLIES_URL;
