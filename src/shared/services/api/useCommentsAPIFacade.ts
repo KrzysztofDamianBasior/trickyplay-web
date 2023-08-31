@@ -115,11 +115,11 @@ export type CommentsActionsType = {
 };
 
 type Props = {
-  userId?: string;
+  userId: string | null;
 };
 
 export default function useCommentsAPIFacade({
-  userId,
+  userId = null,
 }: Props): CommentsActionsType {
   const { axiosPrivate, axiosPublic, authState } = useContext(AccountContext);
   const { openSnackbar } = useContext(NotificationContext);

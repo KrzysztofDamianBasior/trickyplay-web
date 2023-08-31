@@ -1,4 +1,4 @@
-import { useContext, useEffect, useReducer, useRef } from "react";
+import { useContext, useEffect, useReducer, useRef, useState } from "react";
 
 import useRepliesAPIFacade, {
   ReplyDetailsType,
@@ -34,6 +34,9 @@ const useRepliesPaginatedCollection = ({
       repliesPaginatedCollectionInitialState
     );
 
+  const [repliesActivePage, setRepliesActivePage] = useState<number>(0);
+  const [repliesPerPage, setRepliesPerPage] = useState<number>(10);
+
   const { createReply, deleteReply, getReplies, updateReply } =
     useRepliesAPIFacade({ userId });
 
@@ -46,18 +49,21 @@ const useRepliesPaginatedCollection = ({
 
       const getRepliesResultType = await getReplies({
         gameName,
-        page: repliesPaginatedCollectionInitialState.repliesActivePage,
+        page: repliesActivePage,
         parentId: parentCommentId,
-        perPage: repliesPaginatedCollectionInitialState.repliesPerPage,
+        perPage: repliesPerPage,
       });
 
       if (
         getRepliesResultType.totalNumberOfReplies &&
         getRepliesResultType.replies
       ) {
+        setRepliesActivePage(0);
         repliesPaginatedCollectionDispatch({
           type: "ADD_REPLIES",
           payload: {
+            repliesActivePage: 0,
+            repliesPerPage,
             replies: getRepliesResultType.replies,
             repliesPage: 0,
             totalNumberOfAllReplies: getRepliesResultType.totalNumberOfReplies,
@@ -93,18 +99,18 @@ const useRepliesPaginatedCollection = ({
   useEffect(() => {
     if (isMounted.current) {
       (async () => {
-        const currentRepliesPage =
-          repliesPaginatedCollectionState.repliesActivePage;
+        // const currentRepliesPage =
+        //   repliesPaginatedCollectionState.repliesActivePage;
 
         const repliesPaginatedCollectionLength =
           repliesPaginatedCollectionState.repliesPaginatedCollection.length;
 
-        const repliesPerPage = repliesPaginatedCollectionState.repliesPerPage;
+        // const repliesPerPage = repliesPaginatedCollectionState.repliesPerPage;
 
         if (
-          currentRepliesPage < repliesPaginatedCollectionLength - 1 &&
+          repliesActivePage < repliesPaginatedCollectionLength - 1 &&
           repliesPaginatedCollectionState.repliesPaginatedCollection[
-            currentRepliesPage
+            repliesActivePage
           ].length < repliesPerPage
         ) {
           repliesPaginatedCollectionDispatch({
@@ -115,7 +121,7 @@ const useRepliesPaginatedCollection = ({
           const getRepliesResult = await getReplies({
             parentId: parentCommentId,
             gameName,
-            page: currentRepliesPage,
+            page: repliesActivePage,
             perPage: repliesPerPage,
           });
           if (
@@ -123,17 +129,19 @@ const useRepliesPaginatedCollection = ({
             getRepliesResult.totalNumberOfReplies !== null
           ) {
             if (
-              currentRepliesPage <
+              repliesActivePage <
               calculateNumberOfPages({
-                perPage: currentRepliesPage,
+                perPage: repliesActivePage,
                 totalNumberOfEntities: getRepliesResult.totalNumberOfReplies,
               })
             ) {
               repliesPaginatedCollectionDispatch({
                 type: "ADD_REPLIES",
                 payload: {
+                  repliesActivePage,
+                  repliesPerPage,
                   replies: getRepliesResult.replies,
-                  repliesPage: currentRepliesPage,
+                  repliesPage: repliesActivePage,
                   totalNumberOfAllReplies:
                     getRepliesResult.totalNumberOfReplies,
                 },
@@ -144,10 +152,11 @@ const useRepliesPaginatedCollection = ({
                 body: "replies section successfully populated",
               });
             } else {
-              repliesPaginatedCollectionDispatch({
-                type: "SET_ACTIVE_REPLIES_PAGE",
-                payload: { newActiveRepliesPage: 0 },
-              });
+              setRepliesActivePage(0);
+              // repliesPaginatedCollectionDispatch({
+              //   type: "SET_ACTIVE_REPLIES_PAGE",
+              //   payload: { newActiveRepliesPage: 0 },
+              // });
               openSnackbar({
                 severity: "info",
                 title:
@@ -181,10 +190,75 @@ const useRepliesPaginatedCollection = ({
     //   };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    repliesPaginatedCollectionState.repliesActivePage,
-    repliesPaginatedCollectionState.repliesPerPage,
-  ]);
+  }, [repliesActivePage, repliesPerPage]);
+
+  const refreshActivePage = async () => {
+    repliesPaginatedCollectionDispatch({
+      type: "SET_REPLIES_STATUS",
+      payload: { newRepliesStatus: "LOADING" },
+    });
+
+    const getRepliesResult = await getReplies({
+      gameName,
+      page: repliesActivePage,
+      perPage: repliesPerPage,
+      parentId: parentCommentId,
+    });
+    if (
+      getRepliesResult.replies !== null &&
+      getRepliesResult.totalNumberOfReplies !== null
+    ) {
+      if (
+        repliesActivePage <
+        calculateNumberOfPages({
+          perPage: repliesPerPage,
+          totalNumberOfEntities: getRepliesResult.totalNumberOfReplies,
+        })
+      ) {
+        repliesPaginatedCollectionDispatch({
+          type: "ADD_REPLIES",
+          payload: {
+            repliesActivePage,
+            repliesPerPage,
+            replies: getRepliesResult.replies,
+            repliesPage: repliesActivePage,
+            totalNumberOfAllReplies: getRepliesResult.totalNumberOfReplies,
+          },
+        });
+        openSnackbar({
+          severity: "success",
+          title: "successfully fetch comments",
+          body: "replies sections successfully populated",
+        });
+      } else {
+        setRepliesActivePage(0);
+        // commentsPaginatedCollectionDispatch({
+        //   type: "SET_ACTIVE_COMMENTS_PAGE",
+        //   payload: { newActiveCommentsPage: 0 },
+        // });
+        openSnackbar({
+          severity: "info",
+          title: "the active replies page exceeds the total number of replies",
+          body: "page 0 is set",
+        });
+      }
+      repliesPaginatedCollectionDispatch({
+        type: "SET_REPLIES_STATUS",
+        payload: { newRepliesStatus: "READY" },
+      });
+    } else {
+      ///////////////// notify user of an error
+      openSnackbar({
+        severity: "error",
+        title: "failed to fetch replies",
+        body: "failed to populate replies section",
+      });
+      repliesPaginatedCollectionDispatch({
+        type: "SET_REPLIES_STATUS",
+        payload: { newRepliesStatus: "ERROR" },
+      });
+    }
+  };
 
   const handleTextAlignmentChange = ({
     newAlignment,
@@ -206,10 +280,11 @@ const useRepliesPaginatedCollection = ({
       nextPage <
       repliesPaginatedCollectionState.repliesPaginatedCollection.length
     ) {
-      repliesPaginatedCollectionDispatch({
-        type: "SET_ACTIVE_REPLIES_PAGE",
-        payload: { newActiveRepliesPage: nextPage },
-      });
+      setRepliesActivePage(nextPage);
+      // repliesPaginatedCollectionDispatch({
+      //   type: "SET_ACTIVE_REPLIES_PAGE",
+      //   payload: { newActiveRepliesPage: nextPage },
+      // });
       openSnackbar({
         severity: "success",
         title: "the active replies page has changed",
@@ -220,30 +295,51 @@ const useRepliesPaginatedCollection = ({
       openSnackbar({
         severity: "error",
         title: `failed to change the active replies page to page: ${nextPage}`,
-        body: "newreplies page exceeds the total number of replies",
+        body: "new replies page exceeds the total number of replies",
       });
     }
   };
 
   const handleRepliesRowsPerPageChange = async ({
-    repliesPerPage,
+    newRepliesPerPage,
   }: {
-    repliesPerPage: number;
+    newRepliesPerPage: number;
   }) => {
-    repliesPaginatedCollectionDispatch({
-      type: "SET_REPLIES_PER_PAGE",
-      payload: {
-        repliesPerPage,
-      },
-    });
-    openSnackbar({
-      severity: "success",
-      title: "the number of replies per page has changed",
-      body: `the number of replies per page has changed to ${repliesPerPage} replies per page`,
-    });
-  };
+    const prevRepliesPerPage = repliesPerPage;
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (
+      repliesActivePage <
+      calculateNumberOfPages({
+        perPage: newRepliesPerPage,
+        totalNumberOfEntities:
+          repliesPaginatedCollectionState.totalNumberOfAllReplies,
+      })
+    ) {
+      repliesPaginatedCollectionDispatch({
+        type: "SET_REPLIES_PER_PAGE",
+        payload: {
+          newRepliesPerPage,
+          prevRepliesPerPage,
+        },
+      });
+      openSnackbar({
+        severity: "success",
+        title: "the number of replies per page has changed",
+        body: `the number of replies per page has changed to ${repliesPerPage} replies per page`,
+      });
+    } else {
+      setRepliesActivePage(0);
+      // commentsPaginatedCollectionDispatch({
+      //   type: "SET_ACTIVE_COMMENTS_PAGE",
+      //   payload: { newActiveCommentsPage: 0 },
+      // });
+      openSnackbar({
+        severity: "info",
+        title: "the active replies page exceeds the total number of replies",
+        body: "page 0 is set",
+      });
+    }
+  };
 
   const handleReplyAdd = async ({ content }: { content: string }) => {
     if (authState.user) {
@@ -260,7 +356,7 @@ const useRepliesPaginatedCollection = ({
       if (createReplyResult.reply !== null) {
         repliesPaginatedCollectionDispatch({
           type: "ADD_REPLY",
-          payload: { reply: createReplyResult.reply },
+          payload: { reply: createReplyResult.reply, repliesPerPage },
         });
         openSnackbar({
           severity: "success",
@@ -283,6 +379,16 @@ const useRepliesPaginatedCollection = ({
           payload: { newRepliesStatus: "ERROR" },
         });
       }
+    } else {
+      openSnackbar({
+        severity: "error",
+        title: `failed to add new reply`,
+        body: `lack of sufficient permissions`,
+      });
+      repliesPaginatedCollectionDispatch({
+        type: "SET_REPLIES_STATUS",
+        payload: { newRepliesStatus: "ERROR" },
+      });
     }
   };
 
@@ -327,6 +433,16 @@ const useRepliesPaginatedCollection = ({
           body: `could not delete reply with id: ${reply.id}`,
         });
       }
+    } else {
+      openSnackbar({
+        severity: "error",
+        title: `reply not deleted`,
+        body: `could not delete reply with id: ${reply.id}, lack of sufficient permissions`,
+      });
+      repliesPaginatedCollectionDispatch({
+        type: "SET_REPLIES_STATUS",
+        payload: { newRepliesStatus: "ERROR" },
+      });
     }
   };
 
@@ -361,8 +477,8 @@ const useRepliesPaginatedCollection = ({
         });
         openSnackbar({
           severity: "success",
-          title: "comment updated",
-          body: `successfully updated comment with id: ${reply.id}`,
+          title: "reply updated",
+          body: `successfully updated reply with id: ${reply.id}`,
         });
       } else {
         ///////////////// notify user of an error
@@ -372,10 +488,20 @@ const useRepliesPaginatedCollection = ({
         });
         openSnackbar({
           severity: "error",
-          title: `comment not updated`,
-          body: `could not update comment with id: ${reply.id}`,
+          title: `reply not updated`,
+          body: `could not update reply with id: ${reply.id}`,
         });
       }
+    } else {
+      openSnackbar({
+        severity: "error",
+        title: `reply not updated`,
+        body: `could not update reply with id: ${reply.id}, lack of sufficient permissions`,
+      });
+      repliesPaginatedCollectionDispatch({
+        type: "SET_REPLIES_STATUS",
+        payload: { newRepliesStatus: "ERROR" },
+      });
     }
   };
 
@@ -401,6 +527,8 @@ const useRepliesPaginatedCollection = ({
 
   return {
     repliesPaginatedCollectionState,
+    repliesActivePage,
+    repliesPerPage,
     handleReplyAdd,
     handleReplyDelete,
     handleReplyUpdate,
@@ -408,6 +536,7 @@ const useRepliesPaginatedCollection = ({
     handleRepliesRowsPerPageChange,
     handleSetActiveReply,
     handleTextAlignmentChange,
+    refreshActivePage,
   };
 };
 
@@ -415,6 +544,8 @@ export default useRepliesPaginatedCollection;
 
 export type UseRepliesPaginatedCollectionResultType = {
   repliesPaginatedCollectionState: RepliesPaginatedCollectionStateType;
+  repliesPerPage: number;
+  repliesActivePage: number;
   handleReplyAdd: handleReplyAddType;
   handleReplyDelete: handleReplyDeleteType;
   handleReplyUpdate: handleReplyUpdateType;
@@ -422,6 +553,7 @@ export type UseRepliesPaginatedCollectionResultType = {
   handleRepliesRowsPerPageChange: handleRepliesRowsPerPageChangeType;
   handleSetActiveReply: handleSetActiveReplyType;
   handleTextAlignmentChange: handleTextAlignmentChangeType;
+  refreshActivePage: () => void;
 };
 
 export type handleReplyAddType = ({
@@ -455,9 +587,9 @@ export type handleRepliesPageChangeType = ({
 }) => Promise<void>;
 
 export type handleRepliesRowsPerPageChangeType = ({
-  repliesPerPage,
+  newRepliesPerPage,
 }: {
-  repliesPerPage: number;
+  newRepliesPerPage: number;
 }) => Promise<void>;
 
 export type handleSetActiveReplyType = (

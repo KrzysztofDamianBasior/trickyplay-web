@@ -1,4 +1,4 @@
-import { useContext, useEffect, useReducer, useRef } from "react";
+import { useContext, useEffect, useReducer, useRef, useState } from "react";
 
 import useCommentsAPIFacade, {
   CommentDetailsType,
@@ -12,10 +12,11 @@ import { AccountContext } from "../account/AccountContext";
 import { calculateNumberOfPages } from "../../utils";
 import { NotificationContext } from "../snackbars/NotificationsContext";
 
-type Props = { gameName: string; userId?: string };
+type Props = { gameName: string; userId: string | null };
 
 const useCommentsPaginatedCollection = ({
   gameName,
+  userId = null,
 }: Props): UseCommentsPaginatedCollectionResultType => {
   const { authState } = useContext(AccountContext);
   const { openSnackbar } = useContext(NotificationContext);
@@ -30,8 +31,11 @@ const useCommentsPaginatedCollection = ({
     commentsPaginatedCollectionInitialState
   );
 
+  const [commentsActivePage, setCommentsActivePage] = useState<number>(0);
+  const [commentsPerPage, setCommentsPerPage] = useState<number>(10);
+
   const { createComment, deleteComment, getComments, updateComment } =
-    useCommentsAPIFacade();
+    useCommentsAPIFacade({ userId });
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -42,23 +46,32 @@ const useCommentsPaginatedCollection = ({
 
       const getCommentsResultType = await getComments({
         gameName,
-        page: commentsPaginatedCollectionState.commentsActivePage,
-        perPage: commentsPaginatedCollectionState.commentsPerPage,
+        page: commentsActivePage,
+        perPage: commentsPerPage,
       });
 
       if (
         getCommentsResultType.totalNumberOfComments &&
         getCommentsResultType.comments
       ) {
+        setCommentsActivePage(0);
         commentsPaginatedCollectionDispatch({
           type: "ADD_COMMENTS",
           payload: {
+            commentsActivePage: 0,
+            commentsPerPage,
             comments: getCommentsResultType.comments,
             commentsPage: 0,
             totalNumberOfAllComments:
               getCommentsResultType.totalNumberOfComments,
           },
         });
+        // if (
+        //   commentsSectionNewState.commentsPaginatedCollection.length - 1 <
+        //   commentsActivePage
+        // ) {
+        //   commentsActivePage = 0;
+        // }
         commentsPaginatedCollectionDispatch({
           type: "SET_COMMENTS_STATUS",
           payload: { newStatus: "READY" },
@@ -89,19 +102,18 @@ const useCommentsPaginatedCollection = ({
   useEffect(() => {
     if (isMounted.current) {
       (async () => {
-        const activeCommentsPage =
-          commentsPaginatedCollectionState.commentsActivePage;
+        // const activeCommentsPage = commentsActivePage;
 
         const commentsPaginatedCollectionLength =
           commentsPaginatedCollectionState.commentsPaginatedCollection.length;
 
-        const commentsPerPage =
-          commentsPaginatedCollectionState.commentsPerPage;
+        // const commentsPerPage =
+        //   commentsPaginatedCollectionState.commentsPerPage;
 
         if (
-          activeCommentsPage < commentsPaginatedCollectionLength - 1 &&
+          commentsActivePage < commentsPaginatedCollectionLength - 1 &&
           commentsPaginatedCollectionState.commentsPaginatedCollection[
-            activeCommentsPage
+            commentsActivePage
           ].length < commentsPerPage
         ) {
           commentsPaginatedCollectionDispatch({
@@ -111,7 +123,7 @@ const useCommentsPaginatedCollection = ({
 
           const getCommentsResult = await getComments({
             gameName,
-            page: activeCommentsPage,
+            page: commentsActivePage,
             perPage: commentsPerPage,
           });
           if (
@@ -119,17 +131,19 @@ const useCommentsPaginatedCollection = ({
             getCommentsResult.totalNumberOfComments !== null
           ) {
             if (
-              activeCommentsPage <
+              commentsActivePage <
               calculateNumberOfPages({
-                perPage: activeCommentsPage,
+                perPage: commentsPerPage,
                 totalNumberOfEntities: getCommentsResult.totalNumberOfComments,
               })
             ) {
               commentsPaginatedCollectionDispatch({
                 type: "ADD_COMMENTS",
                 payload: {
+                  commentsActivePage,
+                  commentsPerPage,
                   comments: getCommentsResult.comments,
-                  commentsPage: activeCommentsPage,
+                  commentsPage: commentsActivePage,
                   totalNumberOfAllComments:
                     getCommentsResult.totalNumberOfComments,
                 },
@@ -140,10 +154,11 @@ const useCommentsPaginatedCollection = ({
                 body: "comments sections successfully populated",
               });
             } else {
-              commentsPaginatedCollectionDispatch({
-                type: "SET_ACTIVE_COMMENTS_PAGE",
-                payload: { newActiveCommentsPage: 0 },
-              });
+              setCommentsActivePage(0);
+              // commentsPaginatedCollectionDispatch({
+              //   type: "SET_ACTIVE_COMMENTS_PAGE",
+              //   payload: { newActiveCommentsPage: 0 },
+              // });
               openSnackbar({
                 severity: "info",
                 title:
@@ -177,10 +192,82 @@ const useCommentsPaginatedCollection = ({
     //   };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    commentsPaginatedCollectionState.commentsActivePage,
-    commentsPaginatedCollectionState.commentsPerPage,
-  ]);
+
+    // if (
+    //   commentsSectionNewState.commentsPaginatedCollection.length - 1 <
+    //   commentsSectionNewState.commentsActivePage
+    // ) {
+    //   commentsSectionNewState.commentsActivePage = 0;
+    // }
+  }, [commentsActivePage, commentsPerPage]);
+
+  const refreshActivePage = async () => {
+    commentsPaginatedCollectionDispatch({
+      type: "SET_COMMENTS_STATUS",
+      payload: { newStatus: "LOADING" },
+    });
+
+    const getCommentsResult = await getComments({
+      gameName,
+      page: commentsActivePage,
+      perPage: commentsPerPage,
+    });
+    if (
+      getCommentsResult.comments !== null &&
+      getCommentsResult.totalNumberOfComments !== null
+    ) {
+      if (
+        commentsActivePage <
+        calculateNumberOfPages({
+          perPage: commentsPerPage,
+          totalNumberOfEntities: getCommentsResult.totalNumberOfComments,
+        })
+      ) {
+        commentsPaginatedCollectionDispatch({
+          type: "ADD_COMMENTS",
+          payload: {
+            commentsActivePage,
+            commentsPerPage,
+            comments: getCommentsResult.comments,
+            commentsPage: commentsActivePage,
+            totalNumberOfAllComments: getCommentsResult.totalNumberOfComments,
+          },
+        });
+        openSnackbar({
+          severity: "success",
+          title: "successfully fetch comments",
+          body: "comments sections successfully populated",
+        });
+      } else {
+        setCommentsActivePage(0);
+        // commentsPaginatedCollectionDispatch({
+        //   type: "SET_ACTIVE_COMMENTS_PAGE",
+        //   payload: { newActiveCommentsPage: 0 },
+        // });
+        openSnackbar({
+          severity: "info",
+          title:
+            "the active comments page exceeds the total number of comments",
+          body: "page 0 is set",
+        });
+      }
+      commentsPaginatedCollectionDispatch({
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "READY" },
+      });
+    } else {
+      ///////////////// notify user of an error
+      openSnackbar({
+        severity: "error",
+        title: "failed to fetch comments",
+        body: "failed to populate comments section",
+      });
+      commentsPaginatedCollectionDispatch({
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "ERROR" },
+      });
+    }
+  };
 
   const handleTextAlignmentChange = ({
     newAlignment,
@@ -198,14 +285,22 @@ const useCommentsPaginatedCollection = ({
   }: {
     nextPage: number;
   }) => {
+    //   if (
+    //     action.payload.newActiveCommentsPage <
+    //     commentsSectionNewState.commentsPaginatedCollection.length
+    //   ) {
+    //     commentsSectionNewState.commentsActivePage =
+    //       action.payload.newActiveCommentsPage;
+    //   }
     if (
       nextPage <
       commentsPaginatedCollectionState.commentsPaginatedCollection.length
     ) {
-      commentsPaginatedCollectionDispatch({
-        type: "SET_ACTIVE_COMMENTS_PAGE",
-        payload: { newActiveCommentsPage: nextPage },
-      });
+      setCommentsActivePage(nextPage);
+      // commentsPaginatedCollectionDispatch({
+      //   type: "SET_ACTIVE_COMMENTS_PAGE",
+      //   payload: { newActiveCommentsPage: nextPage },
+      // });
       openSnackbar({
         severity: "success",
         title: "the active comments page has changed",
@@ -222,21 +317,50 @@ const useCommentsPaginatedCollection = ({
   };
 
   const handleCommentsRowsPerPageChange = async ({
-    commentsPerPage,
+    newCommentsPerPage,
   }: {
-    commentsPerPage: number;
+    newCommentsPerPage: number;
   }) => {
-    commentsPaginatedCollectionDispatch({
-      type: "SET_COMMENTS_PER_PAGE",
-      payload: {
-        commentsPerPage,
-      },
-    });
-    openSnackbar({
-      severity: "success",
-      title: "the number of comments per page has changed",
-      body: `the number of comments per page has changed to ${commentsPerPage} comments per page`,
-    });
+    const prevCommentsPerPage = commentsPerPage;
+    // if (
+    //   commentsSectionNewState.commentsPaginatedCollection.length - 1 <
+    //   commentsSectionNewState.commentsActivePage
+    // ) {
+    //   commentsSectionNewState.commentsActivePage = 0;
+    // }
+    if (
+      commentsActivePage <
+      calculateNumberOfPages({
+        perPage: newCommentsPerPage,
+        totalNumberOfEntities:
+          commentsPaginatedCollectionState.totalNumberOfAllComments,
+      })
+    ) {
+      commentsPaginatedCollectionDispatch({
+        type: "SET_COMMENTS_PER_PAGE", //IF
+        payload: {
+          newCommentsPerPage,
+          prevCommentsPerPage,
+        },
+      });
+      setCommentsPerPage(newCommentsPerPage);
+      openSnackbar({
+        severity: "success",
+        title: "the number of comments per page has changed",
+        body: `the number of comments per page has changed to ${commentsPerPage} comments per page`,
+      });
+    } else {
+      setCommentsActivePage(0);
+      // commentsPaginatedCollectionDispatch({
+      //   type: "SET_ACTIVE_COMMENTS_PAGE",
+      //   payload: { newActiveCommentsPage: 0 },
+      // });
+      openSnackbar({
+        severity: "info",
+        title: "the active comments page exceeds the total number of comments",
+        body: "page 0 is set",
+      });
+    }
   };
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,7 +379,7 @@ const useCommentsPaginatedCollection = ({
       if (createCommentResult.comment !== null) {
         commentsPaginatedCollectionDispatch({
           type: "ADD_COMMENT",
-          payload: { comment: createCommentResult.comment },
+          payload: { comment: createCommentResult.comment, commentsPerPage },
         });
         openSnackbar({
           severity: "success",
@@ -278,6 +402,16 @@ const useCommentsPaginatedCollection = ({
           payload: { newStatus: "ERROR" },
         });
       }
+    } else {
+      openSnackbar({
+        severity: "error",
+        title: `failed to add new comment`,
+        body: `lack of sufficient permissions`,
+      });
+      commentsPaginatedCollectionDispatch({
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "ERROR" },
+      });
     }
   };
 
@@ -321,7 +455,17 @@ const useCommentsPaginatedCollection = ({
           title: `comment not deleted`,
           body: `could not delete comment with id: ${comment.id}`,
         });
+        commentsPaginatedCollectionDispatch({
+          type: "SET_COMMENTS_STATUS",
+          payload: { newStatus: "ERROR" },
+        });
       }
+    } else {
+      openSnackbar({
+        severity: "error",
+        title: `comment not deleted`,
+        body: `could not delete comment with id: ${comment.id}, lack of sufficient permissions`,
+      });
     }
   };
 
@@ -371,6 +515,16 @@ const useCommentsPaginatedCollection = ({
           body: `could not update comment with id: ${comment.id}`,
         });
       }
+    } else {
+      openSnackbar({
+        severity: "error",
+        title: `comment not updated`,
+        body: `could not update comment with id: ${comment.id}, lack of sufficient permissions`,
+      });
+      commentsPaginatedCollectionDispatch({
+        type: "SET_COMMENTS_STATUS",
+        payload: { newStatus: "ERROR" },
+      });
     }
   };
 
@@ -396,6 +550,8 @@ const useCommentsPaginatedCollection = ({
 
   return {
     commentsPaginatedCollectionState,
+    commentsActivePage,
+    commentsPerPage,
     handleCommentAdd,
     handleCommentDelete,
     handleCommentUpdate,
@@ -403,6 +559,7 @@ const useCommentsPaginatedCollection = ({
     handleCommentsRowsPerPageChange,
     handleSetActiveComment,
     handleTextAlignmentChange,
+    refreshActivePage,
   };
 };
 
@@ -410,6 +567,8 @@ export default useCommentsPaginatedCollection;
 
 export type UseCommentsPaginatedCollectionResultType = {
   commentsPaginatedCollectionState: CommentsPaginatedCollectionStateType;
+  commentsPerPage: number;
+  commentsActivePage: number;
   handleCommentAdd: handleCommentAddType;
   handleCommentDelete: handleCommentDeleteType;
   handleCommentUpdate: handleCommentUpdateType;
@@ -417,6 +576,7 @@ export type UseCommentsPaginatedCollectionResultType = {
   handleCommentsRowsPerPageChange: handleCommentsRowsPerPageChangeType;
   handleSetActiveComment: handleSetActiveCommentType;
   handleTextAlignmentChange: handleTextAlignmentChangeType;
+  refreshActivePage: () => void;
 };
 
 export type handleCommentAddType = ({
@@ -450,9 +610,9 @@ export type handleCommentsPageChangeType = ({
 }) => Promise<void>;
 
 export type handleCommentsRowsPerPageChangeType = ({
-  commentsPerPage,
+  newCommentsPerPage,
 }: {
-  commentsPerPage: number;
+  newCommentsPerPage: number;
 }) => Promise<void>;
 
 export type handleSetActiveCommentType = (

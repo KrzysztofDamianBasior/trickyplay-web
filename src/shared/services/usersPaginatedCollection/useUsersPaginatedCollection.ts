@@ -1,4 +1,4 @@
-import { useContext, useEffect, useReducer, useRef } from "react";
+import { useContext, useEffect, useReducer, useRef, useState } from "react";
 
 import useUsersAPIFacade, { UserDetailsType } from "../api/useUsersAPIFacade";
 import {
@@ -23,6 +23,9 @@ const useUsersPaginatedCollection =
         usersPaginatedCollectionInitialState
       );
 
+    const [usersActivePage, setUsersActivePage] = useState<number>(0);
+    const [usersPerPage, setUsersPerPage] = useState<number>(10);
+
     const {
       banUser,
       getUser,
@@ -41,14 +44,17 @@ const useUsersPaginatedCollection =
         });
 
         const getUsersResultType = await getUsers({
-          page: usersPaginatedCollectionInitialState.usersActivePage,
-          perPage: usersPaginatedCollectionInitialState.usersPerPage,
+          page: usersActivePage,
+          perPage: usersPerPage,
         });
 
         if (getUsersResultType.totalNumberOfUsers && getUsersResultType.users) {
+          setUsersActivePage(0);
           usersPaginatedCollectionDispatch({
             type: "ADD_USERS",
             payload: {
+              usersActivePage: 0,
+              usersPerPage,
               users: getUsersResultType.users,
               usersPage: 0,
               totalNumberOfAllUsers: getUsersResultType.totalNumberOfUsers,
@@ -84,18 +90,18 @@ const useUsersPaginatedCollection =
     useEffect(() => {
       if (isMounted.current) {
         (async () => {
-          const currentUsersPage =
-            usersPaginatedCollectionState.usersActivePage;
+          // const currentUsersPage =
+          //   usersPaginatedCollectionState.usersActivePage;
 
           const usersPaginatedCollectionLength =
             usersPaginatedCollectionState.usersPaginatedCollection.length;
 
-          const usersPerPage = usersPaginatedCollectionState.usersPerPage;
+          // const usersPerPage = usersPaginatedCollectionState.usersPerPage;
 
           if (
-            currentUsersPage < usersPaginatedCollectionLength - 1 &&
+            usersActivePage < usersPaginatedCollectionLength - 1 &&
             usersPaginatedCollectionState.usersPaginatedCollection[
-              currentUsersPage
+              usersActivePage
             ].length < usersPerPage
           ) {
             usersPaginatedCollectionDispatch({
@@ -104,7 +110,7 @@ const useUsersPaginatedCollection =
             });
 
             const getUsersResult = await getUsers({
-              page: currentUsersPage,
+              page: usersActivePage,
               perPage: usersPerPage,
             });
             if (
@@ -112,17 +118,19 @@ const useUsersPaginatedCollection =
               getUsersResult.totalNumberOfUsers !== null
             ) {
               if (
-                currentUsersPage <
+                usersActivePage <
                 calculateNumberOfPages({
-                  perPage: currentUsersPage,
+                  perPage: usersActivePage,
                   totalNumberOfEntities: getUsersResult.totalNumberOfUsers,
                 })
               ) {
                 usersPaginatedCollectionDispatch({
                   type: "ADD_USERS",
                   payload: {
+                    usersActivePage,
+                    usersPerPage,
                     users: getUsersResult.users,
-                    usersPage: currentUsersPage,
+                    usersPage: usersActivePage,
                     totalNumberOfAllUsers: getUsersResult.totalNumberOfUsers,
                   },
                 });
@@ -132,10 +140,11 @@ const useUsersPaginatedCollection =
                   body: "users section successfully populated",
                 });
               } else {
-                usersPaginatedCollectionDispatch({
-                  type: "SET_ACTIVE_USERS_PAGE",
-                  payload: { newActiveUsersPage: 0 },
-                });
+                setUsersActivePage(0);
+                // usersPaginatedCollectionDispatch({
+                //   type: "SET_ACTIVE_USERS_PAGE",
+                //   payload: { newActiveUsersPage: 0 },
+                // });
                 openSnackbar({
                   severity: "info",
                   title:
@@ -169,10 +178,73 @@ const useUsersPaginatedCollection =
       //   };
 
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-      usersPaginatedCollectionState.usersActivePage,
-      usersPaginatedCollectionState.usersPerPage,
-    ]);
+    }, [usersActivePage, usersPerPage]);
+
+    const refreshActivePage = async () => {
+      usersPaginatedCollectionDispatch({
+        type: "SET_USERS_STATUS",
+        payload: { newUsersStatus: "LOADING" },
+      });
+
+      const getUsersResult = await getUsers({
+        page: usersActivePage,
+        perPage: usersPerPage,
+      });
+      if (
+        getUsersResult.users !== null &&
+        getUsersResult.totalNumberOfUsers !== null
+      ) {
+        if (
+          usersActivePage <
+          calculateNumberOfPages({
+            perPage: usersPerPage,
+            totalNumberOfEntities: getUsersResult.totalNumberOfUsers,
+          })
+        ) {
+          usersPaginatedCollectionDispatch({
+            type: "ADD_USERS",
+            payload: {
+              usersActivePage,
+              usersPerPage,
+              users: getUsersResult.users,
+              usersPage: usersActivePage,
+              totalNumberOfAllUsers: getUsersResult.totalNumberOfUsers,
+            },
+          });
+          openSnackbar({
+            severity: "success",
+            title: "successfully fetch users",
+            body: "users section successfully populated",
+          });
+        } else {
+          setUsersActivePage(0);
+          // commentsPaginatedCollectionDispatch({
+          //   type: "SET_ACTIVE_COMMENTS_PAGE",
+          //   payload: { newActiveCommentsPage: 0 },
+          // });
+          openSnackbar({
+            severity: "info",
+            title: "the active users page exceeds the total number of users",
+            body: "page 0 is set",
+          });
+        }
+        usersPaginatedCollectionDispatch({
+          type: "SET_USERS_STATUS",
+          payload: { newUsersStatus: "READY" },
+        });
+      } else {
+        ///////////////// notify user of an error
+        openSnackbar({
+          severity: "error",
+          title: "failed to fetch users",
+          body: "failed to populate users section",
+        });
+        usersPaginatedCollectionDispatch({
+          type: "SET_USERS_STATUS",
+          payload: { newUsersStatus: "ERROR" },
+        });
+      }
+    };
 
     const handleUsersPageChange = async ({
       nextPage,
@@ -182,10 +254,11 @@ const useUsersPaginatedCollection =
       if (
         nextPage < usersPaginatedCollectionState.usersPaginatedCollection.length
       ) {
-        usersPaginatedCollectionDispatch({
-          type: "SET_ACTIVE_USERS_PAGE",
-          payload: { newActiveUsersPage: nextPage },
-        });
+        setUsersActivePage(nextPage);
+        // usersPaginatedCollectionDispatch({
+        //   type: "SET_ACTIVE_USERS_PAGE",
+        //   payload: { newActiveUsersPage: nextPage },
+        // });
         openSnackbar({
           severity: "success",
           title: "the active users page has changed",
@@ -202,21 +275,44 @@ const useUsersPaginatedCollection =
     };
 
     const handleUsersRowsPerPageChange = async ({
-      usersPerPage,
+      newUsersPerPage,
     }: {
-      usersPerPage: number;
+      newUsersPerPage: number;
     }) => {
-      usersPaginatedCollectionDispatch({
-        type: "SET_USERS_PER_PAGE",
-        payload: {
-          usersPerPage,
-        },
-      });
-      openSnackbar({
-        severity: "success",
-        title: "the number of users per page has changed",
-        body: `the number of users per page has changed to ${usersPerPage} users per page`,
-      });
+      const prevUsersPerPage = usersPerPage;
+      if (
+        usersActivePage <
+        calculateNumberOfPages({
+          perPage: newUsersPerPage,
+          totalNumberOfEntities:
+            usersPaginatedCollectionState.totalNumberOfAllUsers,
+        })
+      ) {
+        usersPaginatedCollectionDispatch({
+          type: "SET_USERS_PER_PAGE",
+          payload: {
+            prevUsersPerPage,
+            newUsersPerPage,
+          },
+        });
+        setUsersPerPage(newUsersPerPage);
+        openSnackbar({
+          severity: "success",
+          title: "the number of users per page has changed",
+          body: `the number of users per page has changed to ${usersPerPage} users per page`,
+        });
+      } else {
+        setUsersActivePage(0);
+        // commentsPaginatedCollectionDispatch({
+        //   type: "SET_ACTIVE_COMMENTS_PAGE",
+        //   payload: { newActiveCommentsPage: 0 },
+        // });
+        openSnackbar({
+          severity: "info",
+          title: "the active users page exceeds the total number of users",
+          body: "page 0 is set",
+        });
+      }
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -389,22 +485,30 @@ const useUsersPaginatedCollection =
     };
 
     return {
+      usersPaginatedCollectionState,
+      usersActivePage,
+      usersPerPage,
       handleGrantAdminPermissions,
       handleUserBan,
       handleUsersPageChange,
       handleUsersRowsPerPageChange,
       handleUserUnban,
+      refreshActivePage,
     };
   };
 
 export default useUsersPaginatedCollection;
 
 export type UseUsersPaginatedCollectionResultType = {
+  usersPaginatedCollectionState: UsersPaginatedCollectionStateType;
+  usersPerPage: number;
+  usersActivePage: number;
   handleGrantAdminPermissions: HandleGrantAdminPermissionsType;
   handleUserBan: HandleUserBanType;
   handleUserUnban: HandleUserUnbanType;
   handleUsersPageChange: HandleUsersPageChangeType;
   handleUsersRowsPerPageChange: HandleUsersRowsPerPageChangeType;
+  refreshActivePage: () => void;
 };
 
 export type HandleGrantAdminPermissionsType = ({
@@ -438,7 +542,7 @@ export type HandleUsersPageChangeType = ({
 }) => Promise<void>;
 
 export type HandleUsersRowsPerPageChangeType = ({
-  usersPerPage,
+  newUsersPerPage,
 }: {
-  usersPerPage: number;
+  newUsersPerPage: number;
 }) => Promise<void>;

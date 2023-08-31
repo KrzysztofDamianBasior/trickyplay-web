@@ -3,19 +3,19 @@ import { regroupEntities } from "../../utils";
 
 export const usersPaginatedCollectionInitialState: UsersPaginatedCollectionStateType =
   {
-    usersActivePage: 0,
     usersPaginatedCollection: [[], [], [], [], []],
     status: "LOADING",
-    usersPerPage: 10,
     totalNumberOfAllUsers: 50,
+    // usersPerPage: 10,
+    // usersActivePage: 0,
   };
 
 export type UsersPaginatedCollectionStateType = {
   usersPaginatedCollection: UserDetailsType[][];
   status: UsersPaginatedCollectionStatusType;
-  usersActivePage: number;
-  usersPerPage: number;
   totalNumberOfAllUsers: number;
+  // usersActivePage: number;
+  // usersPerPage: number;
 };
 
 export type UsersPaginatedCollectionStatusType = "LOADING" | "READY" | "ERROR";
@@ -25,14 +25,14 @@ export type UsersPaginatedCollectionActionType =
   | AddUsersActionType
   | SetUsersStatusActionType
   | SetUsersRowsPerPageActionType
-  | SetActiveUsersPageActionType
+  // | SetActiveUsersPageActionType
   | BanUserActionType
   | UnbanUserActionType
   | GrantAdminPermissionsActionType;
 
 export type AddUserActionType = {
   type: "ADD_USER";
-  payload: { user: UserDetailsType };
+  payload: { user: UserDetailsType; usersPerPage: number };
 };
 
 export type AddUsersActionType = {
@@ -41,6 +41,8 @@ export type AddUsersActionType = {
     users: UserDetailsType[];
     usersPage: number;
     totalNumberOfAllUsers: number;
+    usersPerPage: number;
+    usersActivePage: number;
   };
 };
 export type SetUsersStatusActionType = {
@@ -48,14 +50,14 @@ export type SetUsersStatusActionType = {
   payload: { newUsersStatus: UsersPaginatedCollectionStatusType };
 };
 
-export type SetActiveUsersPageActionType = {
-  type: "SET_ACTIVE_USERS_PAGE";
-  payload: { newActiveUsersPage: number };
-};
+// export type SetActiveUsersPageActionType = {
+//   type: "SET_ACTIVE_USERS_PAGE";
+//   payload: { newActiveUsersPage: number };
+// };
 
 export type SetUsersRowsPerPageActionType = {
   type: "SET_USERS_PER_PAGE";
-  payload: { usersPerPage: number };
+  payload: { prevUsersPerPage: number; newUsersPerPage: number };
 };
 
 export type GrantAdminPermissionsActionType = {
@@ -93,7 +95,7 @@ export function usersPaginatedCollectionReducer(
         indexOfLastPaginatedCollectionPage >= 0 &&
         usersPaginatedCollectionNewState.usersPaginatedCollection[
           indexOfLastPaginatedCollectionPage
-        ].length < usersPaginatedCollectionNewState.usersPerPage
+        ].length < action.payload.usersPerPage
       ) {
         usersPaginatedCollectionNewState.usersPaginatedCollection[
           indexOfLastPaginatedCollectionPage
@@ -126,17 +128,17 @@ export function usersPaginatedCollectionReducer(
           regroupEntities<UserDetailsType>({
             currentEntitiesPaginatedCollection:
               usersPaginatedCollectionNewState.usersPaginatedCollection,
-            currentPerPage: usersPaginatedCollectionNewState.usersPerPage,
-            newPerPage: usersPaginatedCollectionNewState.usersPerPage,
+            currentPerPage: action.payload.usersPerPage,
+            newPerPage: action.payload.usersPerPage,
             newTotalNumberOfAllEntities:
               usersPaginatedCollectionNewState.totalNumberOfAllUsers,
           });
-        if (
-          usersPaginatedCollectionNewState.usersPaginatedCollection.length - 1 <
-          usersPaginatedCollectionNewState.usersActivePage
-        ) {
-          usersPaginatedCollectionNewState.usersActivePage = 0;
-        }
+        // if (
+        //   usersPaginatedCollectionNewState.usersPaginatedCollection.length - 1 <
+        //   usersPaginatedCollectionNewState.usersActivePage
+        // ) {
+        //   usersPaginatedCollectionNewState.usersActivePage = 0;
+        // }
       }
 
       return { ...usersPaginatedCollectionNewState };
@@ -180,36 +182,36 @@ export function usersPaginatedCollectionReducer(
 
       return { ...usersPaginatedCollectionNewState };
 
-    case "SET_ACTIVE_USERS_PAGE":
-      if (
-        action.payload.newActiveUsersPage <
-        usersPaginatedCollectionNewState.usersPaginatedCollection.length
-      ) {
-        usersPaginatedCollectionNewState.usersActivePage =
-          action.payload.newActiveUsersPage;
-      }
+    // case "SET_ACTIVE_USERS_PAGE":
+    //   if (
+    //     action.payload.newActiveUsersPage <
+    //     usersPaginatedCollectionNewState.usersPaginatedCollection.length
+    //   ) {
+    //     usersPaginatedCollectionNewState.usersActivePage =
+    //       action.payload.newActiveUsersPage;
+    //   }
 
-      return { ...usersPaginatedCollectionNewState };
+    //   return { ...usersPaginatedCollectionNewState };
 
     case "SET_USERS_PER_PAGE":
-      usersPaginatedCollectionNewState.usersPerPage =
-        action.payload.usersPerPage;
+      let prevUsersPerPage = action.payload.prevUsersPerPage;
+      let newUsersPerPage = action.payload.newUsersPerPage;
 
       usersPaginatedCollectionNewState.usersPaginatedCollection =
         regroupEntities<UserDetailsType>({
           currentEntitiesPaginatedCollection:
             usersPaginatedCollectionNewState.usersPaginatedCollection,
-          currentPerPage: state.usersPerPage,
-          newPerPage: action.payload.usersPerPage,
+          currentPerPage: prevUsersPerPage,
+          newPerPage: newUsersPerPage,
           newTotalNumberOfAllEntities:
             usersPaginatedCollectionNewState.totalNumberOfAllUsers,
         });
-      if (
-        usersPaginatedCollectionNewState.usersPaginatedCollection.length - 1 <
-        usersPaginatedCollectionNewState.usersActivePage
-      ) {
-        usersPaginatedCollectionNewState.usersActivePage = 0;
-      }
+      // if (
+      //   usersPaginatedCollectionNewState.usersPaginatedCollection.length - 1 <
+      //   usersPaginatedCollectionNewState.usersActivePage
+      // ) {
+      //   usersPaginatedCollectionNewState.usersActivePage = 0;
+      // }
 
       return { ...usersPaginatedCollectionNewState };
 

@@ -4,22 +4,22 @@ import { regroupEntities } from "../../utils";
 export const repliesPaginatedCollectionInitialState: RepliesPaginatedCollectionStateType =
   {
     textAlignment: "left",
-    repliesActivePage: 0,
     repliesPaginatedCollection: [[], [], [], [], []],
     status: "LOADING",
-    repliesPerPage: 10,
     totalNumberOfAllReplies: 50,
     activeReply: null,
+    // repliesActivePage: 0,
+    // repliesPerPage: 10,
   };
 
 export type RepliesPaginatedCollectionStateType = {
   textAlignment: TextAlignentType;
   repliesPaginatedCollection: ReplyDetailsType[][];
   status: RepliesPaginatedCollectionStatusType;
-  repliesActivePage: number;
-  repliesPerPage: number;
   totalNumberOfAllReplies: number;
   activeReply: ActiveReplyDetailsType;
+  // repliesActivePage: number;
+  // repliesPerPage: number;
 };
 
 export type ActiveReplyDetailsType = {
@@ -44,20 +44,22 @@ export type RepliesPaginatedCollectionActionType =
   | SetTextAlignmentActionType
   | SetActiveReplyActionType
   | SetRepliesStatusActionType
-  | SetActiveRepliesPageActionType
+  // | SetActiveRepliesPageActionType
   | SetRepliesRowsPerPageActionType;
 
 export type AddReplyActionType = {
   type: "ADD_REPLY";
-  payload: { reply: ReplyDetailsType };
+  payload: { reply: ReplyDetailsType; repliesPerPage: number };
 };
 
 export type AddRepliesActionType = {
   type: "ADD_REPLIES";
   payload: {
     replies: ReplyDetailsType[];
-    repliesPage: number;
+    repliesPage: number; //where to add replies
     totalNumberOfAllReplies: number;
+    repliesPerPage: number;
+    repliesActivePage: number;
   };
 };
 
@@ -85,14 +87,14 @@ export type SetRepliesStatusActionType = {
   payload: { newRepliesStatus: RepliesPaginatedCollectionStatusType };
 };
 
-export type SetActiveRepliesPageActionType = {
-  type: "SET_ACTIVE_REPLIES_PAGE";
-  payload: { newActiveRepliesPage: number };
-};
+// export type SetActiveRepliesPageActionType = {
+//   type: "SET_ACTIVE_REPLIES_PAGE";
+//   payload: { newActiveRepliesPage: number };
+// };
 
 export type SetRepliesRowsPerPageActionType = {
   type: "SET_REPLIES_PER_PAGE";
-  payload: { repliesPerPage: number };
+  payload: { prevRepliesPerPage: number; newRepliesPerPage: number };
 };
 
 export function repliesPaginatedCollectionReducer(
@@ -111,11 +113,12 @@ export function repliesPaginatedCollectionReducer(
   switch (action.type) {
     case "ADD_REPLY":
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies
+
       if (
         indexOfLastPaginatedCollectionPage >= 0 &&
         repliesPaginatedCollectionNewState.repliesPaginatedCollection[
           indexOfLastPaginatedCollectionPage
-        ].length < repliesPaginatedCollectionNewState.repliesPerPage
+        ].length < action.payload.repliesPerPage
       ) {
         repliesPaginatedCollectionNewState.repliesPaginatedCollection[
           indexOfLastPaginatedCollectionPage
@@ -172,18 +175,18 @@ export function repliesPaginatedCollectionReducer(
           regroupEntities<ReplyDetailsType>({
             currentEntitiesPaginatedCollection:
               repliesPaginatedCollectionNewState.repliesPaginatedCollection,
-            currentPerPage: repliesPaginatedCollectionNewState.repliesPerPage,
-            newPerPage: repliesPaginatedCollectionNewState.repliesPerPage,
+            currentPerPage: action.payload.repliesPerPage,
+            newPerPage: action.payload.repliesPerPage,
             newTotalNumberOfAllEntities:
               repliesPaginatedCollectionNewState.totalNumberOfAllReplies,
           });
-        if (
-          repliesPaginatedCollectionNewState.repliesPaginatedCollection.length -
-            1 <
-          repliesPaginatedCollectionNewState.repliesActivePage
-        ) {
-          repliesPaginatedCollectionNewState.repliesActivePage = 0;
-        }
+        // if (
+        //   repliesPaginatedCollectionNewState.repliesPaginatedCollection.length -
+        //     1 <
+        //   repliesPaginatedCollectionNewState.repliesActivePage
+        // ) {
+        //   repliesPaginatedCollectionNewState.repliesActivePage = 0;
+        // }
       }
 
       return { ...repliesPaginatedCollectionNewState };
@@ -220,16 +223,16 @@ export function repliesPaginatedCollectionReducer(
 
       return { ...repliesPaginatedCollectionNewState };
 
-    case "SET_ACTIVE_REPLIES_PAGE":
-      if (
-        action.payload.newActiveRepliesPage <
-        repliesPaginatedCollectionNewState.repliesPaginatedCollection.length
-      ) {
-        repliesPaginatedCollectionNewState.repliesActivePage =
-          action.payload.newActiveRepliesPage;
-      }
+    // case "SET_ACTIVE_REPLIES_PAGE":
+    //   if (
+    //     action.payload.newActiveRepliesPage <
+    //     repliesPaginatedCollectionNewState.repliesPaginatedCollection.length
+    //   ) {
+    //     repliesPaginatedCollectionNewState.repliesActivePage =
+    //       action.payload.newActiveRepliesPage;
+    //   }
 
-      return { ...repliesPaginatedCollectionNewState };
+    //   return { ...repliesPaginatedCollectionNewState };
 
     case "SET_TEXT_ALIGNMENT":
       repliesPaginatedCollectionNewState.textAlignment =
@@ -237,25 +240,25 @@ export function repliesPaginatedCollectionReducer(
       return { ...repliesPaginatedCollectionNewState };
 
     case "SET_REPLIES_PER_PAGE":
-      repliesPaginatedCollectionNewState.repliesPerPage =
-        action.payload.repliesPerPage;
+      let prevRepliesPerPage = action.payload.prevRepliesPerPage;
+      let newRepliesPerPage = action.payload.newRepliesPerPage;
 
       repliesPaginatedCollectionNewState.repliesPaginatedCollection =
         regroupEntities<ReplyDetailsType>({
           currentEntitiesPaginatedCollection:
             repliesPaginatedCollectionNewState.repliesPaginatedCollection,
-          currentPerPage: state.repliesPerPage,
-          newPerPage: action.payload.repliesPerPage,
+          currentPerPage: prevRepliesPerPage,
+          newPerPage: newRepliesPerPage,
           newTotalNumberOfAllEntities:
             repliesPaginatedCollectionNewState.totalNumberOfAllReplies,
         });
-      if (
-        repliesPaginatedCollectionNewState.repliesPaginatedCollection.length -
-          1 <
-        repliesPaginatedCollectionNewState.repliesActivePage
-      ) {
-        repliesPaginatedCollectionNewState.repliesActivePage = 0;
-      }
+      // if (
+      //   repliesPaginatedCollectionNewState.repliesPaginatedCollection.length -
+      //     1 <
+      //   repliesPaginatedCollectionNewState.repliesActivePage
+      // ) {
+      //   repliesPaginatedCollectionNewState.repliesActivePage = 0;
+      // }
 
       return { ...repliesPaginatedCollectionNewState };
 

@@ -26,6 +26,8 @@ import { AccountContext } from "./shared/services/account/AccountContext";
 import useNotifications from "./shared/services/snackbars/useNotifications";
 import { NotificationContext } from "./shared/services/snackbars/NotificationsContext";
 import ConsecutiveNotifications from "./shared/services/snackbars/ConsecutiveNotifications";
+import useDialogs from "./shared/services/dialogs/useDialogs";
+import { DialogsContext } from "./shared/services/dialogs/DialogsContext";
 
 //lazy loading
 const TicTacToe = lazy(() => {
@@ -70,6 +72,7 @@ function App() {
     messageInfo,
     openSnackbar,
   } = useNotifications();
+  const { deleteEntitiesConfirmationDialogManager } = useDialogs();
 
   const themeOptions = createTheme({
     palette: {
@@ -154,51 +157,55 @@ function App() {
         }}
       >
         <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
-          <MUIThemeProvider theme={themeOptions}>
-            <CssBaseline />
-            <AnimatePresence mode="wait">
-              <Routes key={location.pathname} location={location}>
-                <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Navigate to="/" />} />
-                <Route path="/Home" element={<Navigate to="/" />} />
-                <Route path="/games" element={<Games />} />
-                <Route path="/Games" element={<Navigate to="/games" />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/Auth" element={<Navigate to="/auth" />} />
-                <Route
-                  path="/games/tic-tac-toe"
-                  element={
-                    <Suspense fallback={<Loading />}>
-                      <TicTacToe />
-                    </Suspense>
-                  }
+          <DialogsContext.Provider
+            value={{ deleteEntitiesConfirmationDialogManager }}
+          >
+            <MUIThemeProvider theme={themeOptions}>
+              <CssBaseline />
+              <AnimatePresence mode="wait">
+                <Routes key={location.pathname} location={location}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/home" element={<Navigate to="/" />} />
+                  <Route path="/Home" element={<Navigate to="/" />} />
+                  <Route path="/games" element={<Games />} />
+                  <Route path="/Games" element={<Navigate to="/games" />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/Auth" element={<Navigate to="/auth" />} />
+                  <Route
+                    path="/games/tic-tac-toe"
+                    element={
+                      <Suspense fallback={<Loading />}>
+                        <TicTacToe />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/games/snake"
+                    element={
+                      <Suspense fallback={<Loading />}>
+                        <Snake />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/games/minesweeper"
+                    element={
+                      <Suspense fallback={<Loading />}>
+                        <Minesweeper />
+                      </Suspense>
+                    }
+                  />
+                  <Route path="*" element={<NoMatch />} />
+                </Routes>
+                <ConsecutiveNotifications
+                  handleClose={closeSnackbar}
+                  handleExited={handleSnackbarExited}
+                  isOpened={isSnackbarOpened}
+                  messageInfo={messageInfo}
                 />
-                <Route
-                  path="/games/snake"
-                  element={
-                    <Suspense fallback={<Loading />}>
-                      <Snake />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/games/minesweeper"
-                  element={
-                    <Suspense fallback={<Loading />}>
-                      <Minesweeper />
-                    </Suspense>
-                  }
-                />
-                <Route path="*" element={<NoMatch />} />
-              </Routes>
-              <ConsecutiveNotifications
-                handleClose={closeSnackbar}
-                handleExited={handleSnackbarExited}
-                isOpened={isSnackbarOpened}
-                messageInfo={messageInfo}
-              />
-            </AnimatePresence>
-          </MUIThemeProvider>
+              </AnimatePresence>
+            </MUIThemeProvider>
+          </DialogsContext.Provider>
         </NotificationContext.Provider>
       </AccountContext.Provider>
     </div>
