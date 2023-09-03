@@ -1,76 +1,55 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
-import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
 
-import { DialogsContext } from "../../services/dialogs/DialogsContext";
+import {
+  DeleteEntitiesOnConfirmResultType,
+  DialogsContext,
+} from "../../services/dialogs/DialogsContext";
+import DeleteEntitiesConfirmation from "./components/DeleteEntitiesConfirmation";
+import DeleteEntitiesFailed from "./components/DeleteEntitiesFailed";
+import DeleteEntitiesSucceeded from "./components/DeleteEntitiesSucceeded";
 
-import CommentCard from "../CommentPresentationThumb";
-import ReplyCard from "../ReplyPresentationThumb";
+export type DeleteEntitiesDialogStatusType =
+  | "CONFIRMATION_PHASE"
+  | "OPERATION_SUCCEEDED"
+  | "OPERATION_FAILED";
 
 export default function DeleteEntitiesDialog() {
   const { deleteEntitiesConfirmationDialogManager } =
     useContext(DialogsContext);
 
-  const {
-    isDeleteEntitiesConfirmationDialogOpened,
-    commentsToDelete,
-    repliesToDelete,
-    openDialog,
-    closeDialog,
-    onCancel,
-    onConfirm,
-  } = deleteEntitiesConfirmationDialogManager;
+  const [deleteEntitiesDialogStatus, setDeleteEntitiesDialogStatus] =
+    useState<DeleteEntitiesDialogStatusType>("CONFIRMATION_PHASE");
 
-  const handleCancel = () => {
-    onCancel();
-    closeDialog();
-  };
-  const handleConfirm = () => {
-    onConfirm();
-    closeDialog();
-  };
+  const [deleteEntitiesResults, setDeleteEntitiesResults] =
+    useState<Awaited<DeleteEntitiesOnConfirmResultType> | null>(null);
+
+  const { isDeleteEntitiesConfirmationDialogOpened, closeDialog } =
+    deleteEntitiesConfirmationDialogManager;
 
   return (
     <Dialog
       open={isDeleteEntitiesConfirmationDialogOpened}
       onClose={() => closeDialog()}
       scroll={"paper"}
-      aria-labelledby="scroll-dialog-title"
-      aria-describedby="scroll-dialog-description"
+      aria-labelledby="delete-entities-dialog-title"
+      aria-describedby="delete-entities-dialog-description"
     >
-      <DialogTitle id="scroll-dialog-title">
-        Are you sure you want to delete these entities?
-      </DialogTitle>
-      <DialogContent dividers={true}>
-        {commentsToDelete.length > 0 && (
-          <>
-            <Typography>Comments</Typography>
-            {commentsToDelete.map((comment) => (
-              <CommentCard commentDetails={comment} />
-            ))}
-          </>
-        )}
-
-        {repliesToDelete.length > 0 && (
-          <>
-            <Divider />
-            <Typography>Replies</Typography>
-            {repliesToDelete.map((reply) => (
-              <ReplyCard replyDetails={reply} />
-            ))}
-          </>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleConfirm}>Delete</Button>
-      </DialogActions>
+      {deleteEntitiesDialogStatus === "CONFIRMATION_PHASE" && (
+        <DeleteEntitiesConfirmation
+          setDeleteEntitiesDialogStatus={setDeleteEntitiesDialogStatus}
+          setDeleteEntitiesResults={setDeleteEntitiesResults}
+        />
+      )}
+      {deleteEntitiesDialogStatus === "OPERATION_FAILED" && (
+        <DeleteEntitiesFailed deleteEntitiesResults={deleteEntitiesResults} />
+      )}
+      {deleteEntitiesDialogStatus === "OPERATION_SUCCEEDED" && (
+        <DeleteEntitiesSucceeded
+          deleteEntitiesResults={deleteEntitiesResults}
+        />
+      )}
     </Dialog>
   );
 }
