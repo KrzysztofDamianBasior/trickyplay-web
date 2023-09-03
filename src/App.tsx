@@ -72,7 +72,12 @@ function App() {
     messageInfo,
     openSnackbar,
   } = useNotifications();
-  const { deleteEntitiesConfirmationDialogManager } = useDialogs();
+  const {
+    deleteEntitiesConfirmationDialogManager,
+    changePasswordDialogManager,
+    changeUsernameDialogManager,
+    deleteAccountConfirmationDialogManager,
+  } = useDialogs();
 
   const themeOptions = createTheme({
     palette: {
@@ -158,7 +163,12 @@ function App() {
       >
         <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
           <DialogsContext.Provider
-            value={{ deleteEntitiesConfirmationDialogManager }}
+            value={{
+              deleteEntitiesConfirmationDialogManager,
+              changePasswordDialogManager,
+              changeUsernameDialogManager,
+              deleteAccountConfirmationDialogManager,
+            }}
           >
             <MUIThemeProvider theme={themeOptions}>
               <CssBaseline />
