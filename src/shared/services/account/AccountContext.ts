@@ -83,27 +83,27 @@ export const authInitialState: AuthStateType = {
 export const AccountContext = createContext<AccountContextType>({
   authState: authInitialState,
   signIn: async (userData: SignInProps) => {
-    return { message: "No Server Response", status: 500, user: null };
+    return { message: "Internal server error", status: 500, user: null };
   },
 
   signUp: async (userData: SignUpProps) => {
-    return { message: "No Server Response", status: 500, user: null };
+    return { message: "Internal server error", status: 500, user: null };
   },
 
   signOut: async () => {
-    return { message: "No Server Response", status: 500 };
+    return { message: "Internal server error", status: 500 };
   },
 
   updateMyUsername: async (updateMyNameProps: UpdateUsernameProps) => {
-    return { message: "No Server Response", status: 500, user: null };
+    return { message: "Internal server error", status: 500, user: null };
   },
 
   updateMyPassword: async (updateMyPasswordProps: UpdatePasswordProps) => {
-    return { message: "No Server Response", status: 500, user: null };
+    return { message: "Internal server error", status: 500, user: null };
   },
 
-  deleteMyAccount: async (updateMyAccountProps: DeleteAccountProps) => {
-    return { message: "No Server Response", status: 500, user: null };
+  deleteMyAccount: async (deleteMyAccountProps: DeleteAccountProps) => {
+    return { message: "Internal server error", status: 500, user: null };
   },
 
   axiosPrivate: axiosPrivate,
