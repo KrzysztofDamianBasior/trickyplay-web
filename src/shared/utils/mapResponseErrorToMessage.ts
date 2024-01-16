@@ -7,6 +7,7 @@ export const mapResponseErrorToMessage = (err: any): ErrorMessageKind => {
   if (err.response?.status === 400) {
     return "Bad request";
   } else if (err.response?.status === 401) {
+    // actually unauthorized, but unauthenticated is more correct
     return "Unauthenticated";
   } else if (err.response?.status === 404) {
     return "Not found";
