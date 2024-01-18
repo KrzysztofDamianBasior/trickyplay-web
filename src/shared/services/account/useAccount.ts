@@ -1,46 +1,51 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useRef } from "react";
 import { useLocalStorage } from "usehooks-ts";
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 import {
   type AuthStateType,
   type AccountContextType,
-  type DeleteAccountProps,
   type DeleteAccountResultType,
   type SignInProps,
   type SignInResultType,
   type SignUpProps,
   type SignUpResultType,
   type SignOutResultType,
-  type UpdatePasswordProps,
-  type UpdatePasswordResultType,
+  type UpdateAccountResultType,
+  type AccountActivitySummaryResultType,
   type UpdateUsernameProps,
-  type UpdateUsernameResultType,
+  type UpdatePasswordProps,
   authInitialState,
 } from "./AccountContext";
 import { NotificationContext } from "../snackbars/NotificationsContext";
-import {
-  getEnvironmentVariable,
-  mapResponseErrorToMessage,
-  wait,
-} from "../../utils";
-import { UserDetailsType } from "../api/useUsersAPIFacade";
+import { getEnvironmentVariable, mapResponseErrorToMessage } from "../../utils";
+import { type UserDetailsType } from "../api/useUsersAPIFacade";
 
-const BASE_URL: string = getEnvironmentVariable("REACT_APP_BASE_URL");
+// Base urls
+const BASE_URL: string = getEnvironmentVariable(
+  "REACT_APP_TRICKYPLAY_API_BASE_URL"
+);
 const AUTH_URL: string = getEnvironmentVariable("REACT_APP_AUTH_URL");
-const MYACCOUNT_URL: string = getEnvironmentVariable("REACT_APP_AUTH_URL");
+const ACCOUNT_URL: string = getEnvironmentVariable("REACT_APP_ACCOUNT_URL");
 
-const REFRESH_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_REFRESH_ENDPOINT"
+// Auth urls
+const SIGN_IN_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_SIGN_IN_ENDPOINT"
 );
-const SIGNIN_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_SIGNIN_ENDPOINT"
+const SIGN_UP_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_SIGN_UP_ENDPOINT"
 );
-const SIGNUP_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_SIGNUP_ENDPOINT"
+const ALL_SESSIONS_SIGN_OUT_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_ALL_SESSIONS_SIGN_OUT_ENDPOINT"
 );
-const SIGNOUT_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_SIGNOUT_ENDPOINT"
+const SINGLE_SESSION_SIGN_OUT_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_SINGLE_SESSION_SIGN_OUT_ENDPOINT"
+);
+const REFRESH_ACCESS_TOKEN_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_REFRESH_ACCESS_TOKEN_ENDPOINT"
+);
+const ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT"
 );
 
 export const axiosPublic = axios.create({
@@ -53,12 +58,24 @@ export const axiosPrivate = axios.create({
   withCredentials: true,
 });
 
+// Define the structure of a retry queue item
+interface RetryQueueItem {
+  resolve: (value?: any) => void;
+  reject: (error?: any) => void;
+  config: AxiosRequestConfig;
+}
+
 export default function useAccount(): AccountContextType {
   const [authState, setAuthState] = useLocalStorage<AuthStateType>(
     "AUTH_STATE",
     authInitialState
   );
   const { openSnackbar } = useContext(NotificationContext);
+  // Flag to prevent multiple token refresh requests
+  const isRefreshing = useRef<boolean>(false);
+
+  // Create a list to hold the request queue
+  const refreshAndRetryQueue = useRef<RetryQueueItem[]>([]);
 
   useEffect(() => {
     const requestIntercept = axiosPrivate.interceptors.request.use(
@@ -75,69 +92,92 @@ export default function useAccount(): AccountContextType {
     const responseIntercept = axiosPrivate.interceptors.response.use(
       (response) => response, // just return the response
       async (error) => {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
+        // The request was made and the server responded with a status code that falls out of the range of 2xx
         // console.log(error.response.data);
         // console.log(error.response.status);
         // console.log(error.response.headers);
 
-        const prevRequest = error?.config;
-        let refreshRetry = false;
-        // 403- forbiden due to token expiration
-        // 401- unauntehnticated
-        // we only want to retry once
+        const originalRequest: AxiosRequestConfig = error.config;
 
         if (
-          (error?.response?.status === 403 || error.response.status === 401) &&
-          !prevRequest?.sent &&
-          !refreshRetry
+          error?.response?.status === 403 ||
+          error?.response?.status === 401
         ) {
-          // if (error.response.status === 401 && !refreshRetry) { // 401- unauntehnticated
-          refreshRetry = true;
-          prevRequest.sent = true;
-
-          console.log(
-            "access token has expired, a request to renew the token has been sent"
-          );
-          openSnackbar({
-            title: "authentication info",
-            body: "access token has expired, a request to renew the token has been sent",
-            severity: "info",
-          });
-
-          const response = await axiosPublic.post(
-            AUTH_URL + REFRESH_ENDPOINT,
-            { refreshToken: authState.refreshToken },
-            { withCredentials: true }
-          );
-          // const newAccessToken = await refresh();
-
-          if (response.status === 200) {
-            // response is successful
-
-            console.log("the access token has been renewed");
+          // 403- forbiden due to token expiration, 401- unauntehnticated
+          if (!isRefreshing.current) {
+            // we only want to retry once
             openSnackbar({
-              title: "successfully authenticated",
-              body: "access token has been renewed",
-              severity: "success",
+              title: "authentication info",
+              body: "access token has expired, a request to renew the token has been sent",
+              severity: "info",
             });
 
-            setAuthState((prev) => {
-              return { ...prev, accessToken: response.data.accessToken };
-            });
-            prevRequest.headers[
-              "Authorization"
-            ] = `Bearer ${response.data.accessToken}`;
-            return axiosPrivate(prevRequest);
+            isRefreshing.current = true;
+            const response = await axiosPublic.post(
+              // POST {{api-url}}/auth/refresh-access-token
+              // "refreshToken": "{{refresh-token}}"
+              AUTH_URL + REFRESH_ACCESS_TOKEN_ENDPOINT,
+              { refreshToken: authState.refreshToken },
+              { withCredentials: true }
+            ); // response.data.accessToken
+            isRefreshing.current = false;
+
+            if (response.status === 200) {
+              // response is successful
+              openSnackbar({
+                title: "successfully authenticated",
+                body: "access token has been renewed",
+                severity: "success",
+              });
+
+              error.config.headers[
+                "Authorization"
+              ] = `Bearer ${response.data.accessToken}`;
+
+              // Retry all requests in the queue with the new token
+              refreshAndRetryQueue.current.forEach(
+                ({ config, resolve, reject }) => {
+                  axiosPrivate
+                    .request(config)
+                    .then((response) => resolve(response))
+                    .catch((err) => reject(err));
+                }
+              );
+
+              // Clear the queue
+              refreshAndRetryQueue.current.length = 0;
+
+              setAuthState((prev) => {
+                return { ...prev, accessToken: response.data.accessToken };
+              });
+
+              // Retry the original request
+              return axiosPrivate(originalRequest);
+            } else {
+              // You can clear all storage and redirect the user to the login page
+              openSnackbar({
+                title: "authentication actions failed",
+                body: "access token failed to renew",
+                severity: "error",
+              });
+
+              refreshAndRetryQueue.current.length = 0;
+              // localStorage.clear();
+              // window.location.href = "/";
+              singleSessionSignOut();
+              return Promise.reject(error);
+            }
           } else {
-            console.log("access token failed to renew");
-            openSnackbar({
-              title: "authentication actions failed",
-              body: "access token failed to renew",
-              severity: "error",
+            return new Promise<void>((resolve, reject) => {
+              refreshAndRetryQueue.current.push({
+                config: originalRequest,
+                resolve,
+                reject,
+              });
             });
           }
         }
+        // Return a Promise rejection if the status code is not 401
         return Promise.reject(error);
       }
     );
@@ -145,82 +185,151 @@ export default function useAccount(): AccountContextType {
       axiosPrivate.interceptors.request.eject(requestIntercept);
       axiosPrivate.interceptors.response.eject(responseIntercept);
     };
-  }, [authState, setAuthState]);
+  }, [authState.accessToken, authState.refreshToken]);
 
-  const signOut = async (): SignOutResultType => {
-    // await axiosPrivate.post('logout', {}, {withCredentials: true});
-    await wait(0, 500);
-
-    if (authState.user) {
+  const singleSessionSignOut = async (): SignOutResultType => {
+    if (authState.user !== null) {
+      try {
+        const response = await axios.post(
+          AUTH_URL + SINGLE_SESSION_SIGN_OUT_ENDPOINT,
+          // POST {{api-url}}/auth/single-session-sign-out
+          // {
+          //     "refreshToken": "{refresh-token}"
+          // }
+          {
+            refreshToken: authState.refreshToken,
+          }
+        );
+        // response.data.numberOfRefreshTokensRemoved
+        // response.data.message
+        openSnackbar({
+          title: `actions were successfully performed`,
+          body: "successfully logged out of a single account",
+          severity: "success",
+        });
+        setAuthState(authInitialState);
+        return {
+          message: "Success",
+          status: response.status,
+        };
+      } catch (err: any) {
+        openSnackbar({
+          title: `actions could not be performed`,
+          body: mapResponseErrorToMessage(err),
+          severity: "error",
+        });
+        return {
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
+        };
+      }
+    } else {
       openSnackbar({
-        title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
-        body: "successfully logged out",
-        severity: "success",
+        title: `actions could not be performed`,
+        body: "authorization failed",
+        severity: "error",
       });
-      setAuthState(authInitialState);
+      return {
+        message: "Lack of sufficient permissions",
+        status: 401,
+      };
     }
+  };
 
-    return {
-      message: "Success",
-      status: 200,
-    };
+  const allSessionsSignOut = async (): SignOutResultType => {
+    if (authState.user !== null) {
+      try {
+        const response = await axios.post(
+          AUTH_URL + ALL_SESSIONS_SIGN_OUT_ENDPOINT
+          // POST {{api-url}}/auth/all-sessions-sign-out
+
+          // {
+          //   headers: { Authorization: `Bearer ${authState?.accessToken}` },
+          // }
+        );
+        // console.log(response.data.message);
+        // console.log(response.data.numberOfRefreshTokensRemoved);
+        openSnackbar({
+          title: `actions were successfully performed`,
+          body: `successfully logged out from ${response.data.numberOfRefreshTokensRemoved} accounts`,
+          severity: "success",
+        });
+        setAuthState(authInitialState);
+        return {
+          message: "Success",
+          status: response.status,
+        };
+      } catch (err: any) {
+        openSnackbar({
+          title: `actions could not be performed`,
+          body: mapResponseErrorToMessage(err),
+          severity: "error",
+        });
+        return {
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
+        };
+      }
+    } else {
+      openSnackbar({
+        title: `actions could not be performed`,
+        body: "authorization failed",
+        severity: "error",
+      });
+      return {
+        message: "Lack of sufficient permissions",
+        status: 401,
+      };
+    }
   };
 
   const signIn = async ({
     username,
     password,
   }: SignInProps): SignInResultType => {
-    await wait(0, 500);
     try {
-      //  const LOGIN_URL = process.env.REACT_APP_LOGIN_URL;
-      //   const response = await axiosPublic.post(
-      //     LOGIN_URL,
-      //     JSON.stringify({
-      //       username: username,
-      //       password: password,
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      //   const accessToken = response?.data?.accessToken;
-      //   const roles = response?.data?.roles;
-      //   // axios.defaults.headers.common['Authorization'] = `Bearer ${response.data['accessToken']}`;
+      const response = await axiosPublic.post(
+        // {{api-url}}/auth/sign-in
+        // {
+        //   "username": "test",
+        //   "password": "test123"
+        // }
+        AUTH_URL + SIGN_IN_ENDPOINT,
+        {
+          username,
+          password,
+        }
+      );
 
-      // if (Math.random() > 0.5) throw new Error();
-      const now = new Date();
       const newUser: UserDetailsType = {
-        name: username,
-        roles: ["User"],
-        id: Math.random().toString(36).substr(2, 9),
-        createdAt: now.toISOString(),
-        lastUpdatedAt: now.toISOString(),
+        name: response.data.userPublicInfo.name,
+        role: response.data.userPublicInfo.role,
+        id: response.data.userPublicInfo.id,
+        createdAt: response.data.userPublicInfo.createdAt,
+        updatedAt: response.data.userPublicInfo.updatedAt,
       };
 
       openSnackbar({
-        title: `actions were successfully performed on the account belonging to the user with the id: ${newUser.id}`,
+        title: `actions were successfully performed`,
         body: "successfully logged in",
         severity: "success",
       });
       setAuthState({
         user: newUser,
-        accessToken: "asdf",
-        refreshToken: "asdf",
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
         iss: "TrickyPlay",
         status: "LOGGED_IN",
       });
       return {
         user: newUser,
         message: "Success",
-        status: 200,
+        status: response.status,
       };
     } catch (err: any) {
       setAuthState(authInitialState);
       openSnackbar({
-        title: `actions on the account could not be performed`,
+        title: `actions could not be performed`,
         body: mapResponseErrorToMessage(err),
         severity: "error",
       });
@@ -236,55 +345,46 @@ export default function useAccount(): AccountContextType {
     username,
     password,
   }: SignUpProps): SignUpResultType => {
-    await wait(0, 500);
     try {
-      // const REGISTER_URL = process.env.REACT_APP_REGISTER_URL;
-      // const response = await axios.post(
-      //   REGISTER_URL,
-      //   JSON.stringify({ username, password }),
-      //   {
-      //     headers: { "Content-Type": "application/json" },
-      //     withCredentials: true,
-      //   }
-      // );
-      // console.log(JSON.stringify(response?.data));
-      // console.log(JSON.stringify(response));
-      // const accessToken = response?.data?.accessToken;
-      // const roles = response?.data?.roles;
-      //   // axios.defaults.headers.common['Authorization'] = `Bearer ${response.data['accessToken']}`;
-      // setAuthState({ ....... });
+      const response = await axiosPublic.post(
+        // POST {{api-url}}/auth/sign-up
+        // {
+        //   "username": "testUser123",
+        //   "password": "testUser1234"
+        // }
+        ACCOUNT_URL + SIGN_UP_ENDPOINT,
+        { username, password }
+      );
 
-      // if (Math.random() > 0.5) throw new Error();
-      const now = new Date();
       const newUser: UserDetailsType = {
-        name: username,
-        roles: ["User"],
-        id: Math.random().toString(36).substr(2, 9),
-        createdAt: now.toISOString(),
-        lastUpdatedAt: now.toISOString(),
+        name: response.data.userPublicInfo.name,
+        role: response.data.userPublicInfo.role,
+        id: response.data.userPublicInfo.id,
+        createdAt: response.data.userPublicInfo.createdAt,
+        updatedAt: response.data.userPublicInfo.updatedAt,
       };
 
       setAuthState({
         user: newUser,
-        accessToken: "asdf",
-        refreshToken: "asdf",
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
         iss: "TrickyPlay",
         status: "LOGGED_IN",
       });
       openSnackbar({
-        title: `actions were successfully performed on the account belonging to the user with the id: ${newUser.id}`,
+        title: `actions were successfully performed`,
         body: "successfully signed up",
         severity: "success",
       });
       return {
         user: newUser,
         message: "Success",
-        status: 200,
+        status: response.status,
       };
     } catch (err: any) {
       setAuthState(authInitialState);
       openSnackbar({
-        title: `actions on the account could not be performed`,
+        title: `actions could not be performed`,
         body: mapResponseErrorToMessage(err),
         severity: "error",
       });
@@ -296,209 +396,220 @@ export default function useAccount(): AccountContextType {
     }
   };
 
-  const updateMyUsername = async ({
-    newName,
-    password,
-  }: UpdateUsernameProps): UpdateUsernameResultType => {
-    await wait(0, 500);
-    try {
-      //   const response = await axiosPrivate.patch(
-      //     COMMENTS_URL,
-      //     JSON.stringify({
-      //       newName, password
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      if (authState.user !== null) {
-        const now = new Date();
-        const user: UserDetailsType | undefined = authState.user;
-        if (user) {
-          user.name = newName;
-          user.lastUpdatedAt = now.toISOString();
-          openSnackbar({
-            title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
-            body: "username changed",
-            severity: "error",
-          });
-          setAuthState((prev) => {
-            return { ...prev, user };
-          });
-          return {
-            user,
-            message: "Success",
-            status: 200,
-          };
-        } else {
-          setAuthState(authInitialState);
-          openSnackbar({
-            title: `actions on the account could not be performed`,
-            body: "user not found",
-            severity: "error",
-          });
-          return {
-            message: "Not found",
-            status: 404,
-            user: null,
-          };
-        }
-      } else {
+  const updateUsername = async ({
+    newUsername,
+    currentPassword,
+  }: UpdateUsernameProps): UpdateAccountResultType => {
+    if (authState.user !== null) {
+      try {
+        const response = await axiosPrivate.patch(
+          // PATCH {{api-url}}/account
+          // {
+          //   "newUsername": "1234asdfasdf",
+          //   "newPassword": "12341234asdf"
+          // }
+          ACCOUNT_URL,
+          {
+            newUsername,
+            currentPassword,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+
+        const newUser: UserDetailsType = {
+          name: response.data.name,
+          role: response.data.role,
+          id: response.data.id,
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
+        };
+
         openSnackbar({
-          title: `actions on the account could not be performed`,
-          body: "authorization failed",
+          title: `actions were successfully performed, the username has changed`,
+          body: "username changed",
+          severity: "success",
+        });
+        setAuthState((prev) => {
+          return { ...prev, user: newUser };
+        });
+        return {
+          user: newUser,
+          message: "Success",
+          status: 200,
+        };
+      } catch (err: any) {
+        setAuthState(authInitialState);
+        openSnackbar({
+          title: `actions could not be performed, the username has not changed`,
+          body: mapResponseErrorToMessage(err),
           severity: "error",
         });
-        setAuthState(authInitialState);
         return {
-          message: "Lack of sufficient permissions",
-          status: 401,
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
           user: null,
         };
       }
-    } catch (err: any) {
-      setAuthState(authInitialState);
+    } else {
       openSnackbar({
-        title: `actions on the account could not be performed`,
-        body: mapResponseErrorToMessage(err),
+        title: `actions could not be performed, the username has not changed`,
+        body: "authorization failed",
         severity: "error",
       });
+      setAuthState(authInitialState);
       return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
+        message: "Lack of sufficient permissions",
+        status: 401,
         user: null,
       };
     }
   };
 
-  const updateMyPassword = async ({
+  const updatePassword = async ({
     newPassword,
-    oldPassword,
-  }: UpdatePasswordProps): UpdatePasswordResultType => {
-    await wait(0, 500);
-    try {
-      //   const response = await axiosPrivate.patch(
-      //     UPDATE_PASSWORD_URL,
-      //     JSON.stringify({
-      //       newPassword, oldPassword
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      if (authState.user !== null) {
-        const now = new Date();
-        const user: UserDetailsType = authState.user;
-        if (user) {
-          user.lastUpdatedAt = now.toISOString();
-          openSnackbar({
-            title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
-            body: "password changed successfully",
-            severity: "success",
-          });
-          setAuthState((prev) => {
-            return { ...prev, user };
-          });
-          return {
-            user,
-            message: "Success",
-            status: 200,
-          };
-        } else {
-          setAuthState(authInitialState);
-          openSnackbar({
-            title: `actions on the account could not be performed`,
-            body: "user not found",
-            severity: "error",
-          });
-          return {
-            message: "Not found",
-            status: 404,
-            user: null,
-          };
-        }
-      } else {
+    currentPassword,
+  }: UpdatePasswordProps): UpdateAccountResultType => {
+    if (authState.user !== null) {
+      try {
+        const response = await axiosPrivate.patch(
+          // PATCH {{api-url}}/account
+          // {
+          //   "newUsername": "1234asdfasdf",
+          //   "newPassword": "12341234asdf"
+          // }
+          ACCOUNT_URL,
+          {
+            currentPassword,
+            newPassword,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+
+        const newUser: UserDetailsType = {
+          name: response.data.name,
+          role: response.data.role,
+          id: response.data.id,
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
+        };
+
+        openSnackbar({
+          title: `actions were successfully performed`,
+          body: "password changed",
+          severity: "success",
+        });
+        setAuthState((prev) => {
+          return { ...prev, user: newUser };
+        });
+        return {
+          user: newUser,
+          message: "Success",
+          status: 200,
+        };
+      } catch (err: any) {
         setAuthState(authInitialState);
         openSnackbar({
-          title: `actions on the account could not be performed`,
-          body: "authorization failed",
+          title: `actions could not be performed, the password has not changed`,
+          body: mapResponseErrorToMessage(err),
           severity: "error",
         });
         return {
-          message: "Lack of sufficient permissions",
-          status: 401,
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
           user: null,
         };
       }
-    } catch (err: any) {
-      setAuthState(authInitialState);
+    } else {
       openSnackbar({
-        title: `actions on the account could not be performed`,
-        body: mapResponseErrorToMessage(err),
+        title: `the password has not changed`,
+        body: "authorization failed",
         severity: "error",
       });
+      setAuthState(authInitialState);
       return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
+        message: "Lack of sufficient permissions",
+        status: 401,
         user: null,
       };
     }
   };
 
-  const deleteMyAccount = async ({
-    password,
-  }: DeleteAccountProps): DeleteAccountResultType => {
-    await wait(0, 500);
-    try {
-      //   const response = await axiosPrivate.delete(
-      //     DELETE_ACCOUNT_URL,
-      //     JSON.stringify({
-      //       id, password
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      if (authState.user !== null) {
+  // GET {{api-url}}/account/activity-summary
+  const accountActivitySummary = async (): AccountActivitySummaryResultType => {
+    if (authState.user !== null) {
+      try {
+        const response = await axiosPrivate.get(
+          ACCOUNT_URL + ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT
+        );
+        return {
+          message: "Success",
+          status: response.status,
+        };
+      } catch (err: any) {
         openSnackbar({
-          title: `actions were successfully performed on the account belonging to the user with the id: ${authState.user.id}`,
+          title: `actions could not be performed`,
+          body: mapResponseErrorToMessage(err),
+          severity: "error",
+        });
+        return {
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
+        };
+      }
+    } else {
+      openSnackbar({
+        title: `actions could not be performed`,
+        body: "authorization failed",
+        severity: "error",
+      });
+      return {
+        message: "Lack of sufficient permissions",
+        status: 401,
+      };
+    }
+  };
+
+  const deleteAccount = async (): DeleteAccountResultType => {
+    if (authState.user !== null) {
+      try {
+        const response = await axiosPrivate.delete(ACCOUNT_URL); // DELETE {{api-url}}/account
+        // response.data.message
+        openSnackbar({
+          title: `actions were successfully performed`,
           body: "account deleted successfully",
           severity: "success",
         });
         setAuthState(authInitialState);
         return {
           message: "Success",
-          status: 200,
+          status: response.status,
         };
-      } else {
+      } catch (err: any) {
         openSnackbar({
-          title: `actions on the account could not be performed`,
-          body: "authorization failed",
+          title: `actions could not be performed`,
+          body: mapResponseErrorToMessage(err),
           severity: "error",
         });
         return {
-          message: "Lack of sufficient permissions",
-          status: 401,
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
         };
       }
-    } catch (err: any) {
+    } else {
       openSnackbar({
-        title: `actions on the account could not be performed`,
-        body: mapResponseErrorToMessage(err),
+        title: `actions could not be performed`,
+        body: "authorization failed",
         severity: "error",
       });
       return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
+        message: "Lack of sufficient permissions",
+        status: 401,
       };
     }
   };
@@ -507,11 +618,13 @@ export default function useAccount(): AccountContextType {
     authState,
     axiosPrivate,
     axiosPublic,
-    deleteMyAccount,
+    deleteAccount,
     signIn,
-    signOut,
+    singleSessionSignOut,
+    allSessionsSignOut,
     signUp,
-    updateMyPassword,
-    updateMyUsername,
+    updatePassword,
+    updateUsername,
+    accountActivitySummary,
   };
 }
