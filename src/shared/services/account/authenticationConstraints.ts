@@ -1,22 +1,20 @@
-const maxNumOfUsernameLetters: number = process.env
-  .REACT_APP_MAX_NUM_OF_USERNAME_LETTERS
-  ? parseInt(process.env.REACT_APP_MAX_NUM_OF_USERNAME_LETTERS)
-  : 16;
+import { getEnvironmentVariable } from "../../utils";
 
-const minNumOfUsernameLetters: number = process.env
-  .REACT_APP_MIN_NUM_OF_USERNAME_LETTERS
-  ? parseInt(process.env.REACT_APP_MIN_NUM_OF_USERNAME_LETTERS)
-  : 2;
+const maxNumOfUsernameLetters: number = parseInt(
+  getEnvironmentVariable("REACT_APP_MAX_NUM_OF_USERNAME_LETTERS")
+);
 
-const maxNumOfPasswordLetters: number = process.env
-  .REACT_APP_MAX_NUM_OF_PASSWORD_LETTERS
-  ? parseInt(process.env.REACT_APP_MAX_NUM_OF_PASSWORD_LETTERS)
-  : 32;
+const minNumOfUsernameLetters: number = parseInt(
+  getEnvironmentVariable("REACT_APP_MIN_NUM_OF_USERNAME_LETTERS")
+);
 
-const minNumOfPasswordLetters: number = process.env
-  .REACT_APP_MIN_NUM_OF_PASSWORD_LETTERS
-  ? parseInt(process.env.REACT_APP_MIN_NUM_OF_PASSWORD_LETTERS)
-  : 4;
+const maxNumOfPasswordLetters: number = parseInt(
+  getEnvironmentVariable("REACT_APP_MAX_NUM_OF_PASSWORD_LETTERS")
+);
+
+const minNumOfPasswordLetters: number = parseInt(
+  getEnvironmentVariable("REACT_APP_MIN_NUM_OF_PASSWORD_LETTERS")
+);
 
 const usernamePatternExpression = `^[a-zA-Z0-9_]{${minNumOfUsernameLetters}},${maxNumOfUsernameLetters}}$`;
 export const USERNAME_REGEX = new RegExp(usernamePatternExpression); // /^[a-zA-Z0-9_]{2,16}$/
