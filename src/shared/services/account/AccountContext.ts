@@ -1,8 +1,8 @@
 import { createContext } from "react";
 import { AxiosInstance } from "axios";
 
-import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
-import { UserDetailsType } from "../api/useUsersAPIFacade";
+import { type ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
+import { type UserDetailsType } from "../api/useUsersAPIFacade";
 import { axiosPrivate, axiosPublic } from "./useAccount";
 
 export type AuthStatusType = "LOGGED_IN" | "LOGGED_OUT" | "LOADING";
@@ -34,27 +34,25 @@ export type SignOutResultType = Promise<{
   message: ErrorMessageKind | "Success";
 }>;
 
-export type DeleteAccountProps = { password: string };
 export type DeleteAccountResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
 }>;
 
-export type UpdatePasswordProps = {
-  oldPassword: string;
-  newPassword: string;
-};
-export type UpdatePasswordResultType = Promise<{
+export type AccountActivitySummaryResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
-  user: UserDetailsType | null;
 }>;
 
 export type UpdateUsernameProps = {
-  password: string;
-  newName: string;
+  newUsername: string;
+  currentPassword: string;
 };
-export type UpdateUsernameResultType = Promise<{
+export type UpdatePasswordProps = {
+  newPassword: string;
+  currentPassword: string;
+};
+export type UpdateAccountResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
   user: UserDetailsType | null;
@@ -63,13 +61,15 @@ export type UpdateUsernameResultType = Promise<{
 export type AccountContextType = {
   signIn: (userData: SignInProps) => SignInResultType;
   signUp: (userData: SignUpProps) => SignUpResultType;
-  signOut: () => SignOutResultType;
+  singleSessionSignOut: () => SignOutResultType;
+  allSessionsSignOut: () => SignOutResultType;
   authState: AuthStateType;
   axiosPrivate: AxiosInstance;
   axiosPublic: AxiosInstance;
-  deleteMyAccount: (userData: DeleteAccountProps) => DeleteAccountResultType;
-  updateMyPassword: (userData: UpdatePasswordProps) => UpdatePasswordResultType;
-  updateMyUsername: (userData: UpdateUsernameProps) => UpdateUsernameResultType;
+  deleteAccount: () => DeleteAccountResultType;
+  updateUsername: (userData: UpdateUsernameProps) => UpdateAccountResultType;
+  updatePassword: (userData: UpdatePasswordProps) => UpdateAccountResultType;
+  accountActivitySummary: () => AccountActivitySummaryResultType;
 };
 
 export const authInitialState: AuthStateType = {
@@ -83,29 +83,29 @@ export const authInitialState: AuthStateType = {
 export const AccountContext = createContext<AccountContextType>({
   authState: authInitialState,
   signIn: async (userData: SignInProps) => {
-    return { message: "Internal server error", status: 500, user: null };
+    return { message: "Unauthenticated", status: 401, user: null };
   },
-
   signUp: async (userData: SignUpProps) => {
-    return { message: "Internal server error", status: 500, user: null };
+    return { message: "Unauthenticated", status: 401, user: null };
   },
-
-  signOut: async () => {
-    return { message: "Internal server error", status: 500 };
+  singleSessionSignOut: async () => {
+    return { message: "Unauthenticated", status: 401, user: null };
   },
-
-  updateMyUsername: async (updateMyNameProps: UpdateUsernameProps) => {
-    return { message: "Internal server error", status: 500, user: null };
+  allSessionsSignOut: async () => {
+    return { message: "Unauthenticated", status: 401, user: null };
   },
-
-  updateMyPassword: async (updateMyPasswordProps: UpdatePasswordProps) => {
-    return { message: "Internal server error", status: 500, user: null };
+  updateUsername: async (updateAccountProps: UpdateUsernameProps) => {
+    return { message: "Unauthenticated", status: 401, user: null };
   },
-
-  deleteMyAccount: async (deleteMyAccountProps: DeleteAccountProps) => {
-    return { message: "Internal server error", status: 500, user: null };
+  updatePassword: async (updateAccountProps: UpdatePasswordProps) => {
+    return { message: "Unauthenticated", status: 401, user: null };
   },
-
+  deleteAccount: async () => {
+    return { message: "Unauthenticated", status: 401, user: null };
+  },
+  accountActivitySummary: async () => {
+    return { message: "Unauthenticated", status: 401 };
+  },
   axiosPrivate: axiosPrivate,
   axiosPublic: axiosPublic,
 });
