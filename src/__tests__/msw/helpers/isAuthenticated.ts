@@ -1,5 +1,5 @@
 import { DefaultBodyType, HttpResponse, StrictRequest } from "msw";
-import { Unauthorized401ResponseType } from "../dtos/Errors";
+import { Unauthorized401ResponseType } from "../../../shared/resources/externalApiRepresentation/Errors";
 import generateErrorResponseBody from "./generateErrorResponseBody";
 
 export function isAuthenticated(

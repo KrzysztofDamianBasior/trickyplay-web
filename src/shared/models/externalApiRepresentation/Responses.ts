@@ -2,7 +2,7 @@ import {
   CommentRepresentation,
   ReplyRepresentation,
   TPUserRepresentation,
-} from "./ResourcesRepresentations";
+} from "./Resources";
 
 export type DeleteAccountResponse = {
   message: string;
@@ -21,7 +21,7 @@ export type GetCommentsResponse = {
   totalPages: number;
   pageSize: number;
   pageNumber: number;
-  isLast: boolean;
+  last: boolean;
   comments: CommentRepresentation[];
 };
 
@@ -30,7 +30,7 @@ export type GetRepliesResponse = {
   totalPages: number;
   pageSize: number;
   pageNumber: number;
-  isLast: boolean;
+  last: boolean;
   replies: ReplyRepresentation[];
 };
 
@@ -39,7 +39,7 @@ export type GetUsersResponse = {
   totalPages: number;
   pageSize: number;
   pageNumber: number;
-  isLast: boolean;
+  last: boolean;
   users: TPUserRepresentation[];
 };
 

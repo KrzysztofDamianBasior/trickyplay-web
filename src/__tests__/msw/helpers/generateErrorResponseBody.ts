@@ -1,10 +1,10 @@
 import {
+  Unauthorized401ResponseType,
   BadRequest400ResponseType,
   Forbidden403ResponseType,
   InternalServerError500ResponseType,
   NotFound404ResponseType,
-  Unauthorized401ResponseType,
-} from "../dtos/Errors";
+} from "../../../shared/models/externalApiRepresentation/Errors";
 
 // overload signatures
 function generateErrorResponseBody(
