@@ -1,29 +1,118 @@
 import { http, HttpResponse } from "msw";
 
-import { ReplyRepresentation } from "../dtos/ResourcesRepresentations";
-import type {
+import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
+import { isAuthenticated } from "../helpers/isAuthenticated";
+
+import {
   DeleteReplyResponse,
   GetRepliesResponse,
-} from "../dtos/Responses";
-import type {
+} from "../../../shared/models/externalApiRepresentation/Responses";
+import {
   BadRequest400ResponseType,
+  InternalServerError500ResponseType,
   NotFound404ResponseType,
-} from "../dtos/Errors";
-import type {
+} from "../../../shared/models/externalApiRepresentation/Errors";
+import {
   DeleteReplyParams,
   EditReplyParams,
   GetSingleReplyParams,
-} from "../dtos/Params";
-import { AddReplyRequest, EditReplyRequest } from "../dtos/Requests";
-
-import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
-import { isAuthenticated } from "../helpers/isAuthenticated";
+} from "../../../shared/models/externalApiRepresentation/Params";
+import { ReplyRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+import {
+  AddReplyRequest,
+  EditReplyRequest,
+} from "../../../shared/models/externalApiRepresentation/Requests";
 
 const getSingleReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/:id`;
 const getRepliesFeedPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/${process.env.REACT_APP_REPLIES_FEED_ENDPOINT}`;
 const addReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}`;
 const editReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/:id`;
 const deleteReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/:id`;
+
+export const repliesCollectionStub: ReplyRepresentation[] = [
+  {
+    author: {
+      id: 1,
+      name: "user",
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+      role: "USER",
+    },
+    body: "first reply body",
+    parentComment: {
+      author: {
+        id: 1,
+        name: "user",
+        createdAt: "2023-10-15T20:30:38",
+        updatedAt: "2023-10-15T20:30:38",
+        role: "USER",
+      },
+      body: "comment body",
+      gameName: "Snake",
+      id: 1,
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+    },
+    id: 1,
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+  },
+  {
+    author: {
+      id: 1,
+      name: "user",
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+      role: "USER",
+    },
+    body: "second reply body",
+    parentComment: {
+      author: {
+        id: 1,
+        name: "user",
+        createdAt: "2023-10-15T20:30:38",
+        updatedAt: "2023-10-15T20:30:38",
+        role: "USER",
+      },
+      body: "comment body",
+      gameName: "Snake",
+      id: 1,
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+    },
+    id: 2,
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+  },
+];
+
+export const replyStub: ReplyRepresentation = {
+  id: 1,
+  body: "response body",
+  parentComment: {
+    id: 1,
+    author: {
+      id: 1,
+      name: "user",
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+      role: "USER",
+    },
+    body: "parent comment body",
+    gameName: "Snake",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+  },
+  author: {
+    id: 1,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "USER",
+  },
+  createdAt: "2023-10-15T20:30:38",
+  updatedAt: "2023-10-15T20:30:38",
+};
 
 export const handlers = [
   // get replies feed
@@ -50,67 +139,12 @@ export const handlers = [
         );
       }
       const response: GetRepliesResponse = {
-        isLast: true,
+        last: true,
         pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
         pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
         totalElements: 2,
         totalPages: 1,
-        replies: [
-          {
-            author: {
-              id: 1,
-              name: "user",
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-              role: "USER",
-            },
-            body: "first reply body",
-            parentComment: {
-              author: {
-                id: 1,
-                name: "user",
-                createdAt: "2023-10-15T20:30:38",
-                updatedAt: "2023-10-15T20:30:38",
-                role: "USER",
-              },
-              body: "comment body",
-              gameName: "Snake",
-              id: 1,
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-            },
-            id: 1,
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-          },
-          {
-            author: {
-              id: 1,
-              name: "user",
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-              role: "USER",
-            },
-            body: "second reply body",
-            parentComment: {
-              author: {
-                id: 1,
-                name: "user",
-                createdAt: "2023-10-15T20:30:38",
-                updatedAt: "2023-10-15T20:30:38",
-                role: "USER",
-              },
-              body: "comment body",
-              gameName: "Snake",
-              id: 1,
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-            },
-            id: 2,
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-          },
-        ],
+        replies: repliesCollectionStub,
       };
       return HttpResponse.json(response);
     }
@@ -134,31 +168,8 @@ export const handlers = [
       );
     }
     const response: ReplyRepresentation = {
+      ...replyStub,
       id: parseInt(id),
-      body: "response body",
-      parentComment: {
-        id: 1,
-        author: {
-          id: 1,
-          name: "user",
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-          role: "USER",
-        },
-        body: "parent comment body",
-        gameName: "Snake",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-      },
-      author: {
-        id: 1,
-        name: "user",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-        role: "USER",
-      },
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
     };
     return HttpResponse.json(response);
   }),
@@ -201,6 +212,7 @@ export const handlers = [
       }
 
       const response: ReplyRepresentation = {
+        ...replyStub,
         body,
         parentComment: {
           id: parseInt(parentCommentId),
@@ -213,16 +225,6 @@ export const handlers = [
           },
           body: "parent comment body",
           gameName: "Snake",
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-        },
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-        id: 1,
-        author: {
-          id: 1,
-          name: "",
-          role: "USER",
           createdAt: "2023-10-15T20:30:38",
           updatedAt: "2023-10-15T20:30:38",
         },
@@ -269,31 +271,8 @@ export const handlers = [
     }
 
     const response: ReplyRepresentation = {
-      id: 1,
-      author: {
-        id: 1,
-        name: "",
-        role: "USER",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-      },
-      parentComment: {
-        id: 1,
-        author: {
-          id: 1,
-          name: "user",
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-          role: "USER",
-        },
-        body: "parent comment body",
-        gameName: "Snake",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-      },
+      ...replyStub,
       body: newReplyBody,
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
     };
 
     return HttpResponse.json(response);
@@ -357,5 +336,80 @@ export const editReply_ReplyNotFound = http.patch<
   return HttpResponse.json(
     generateErrorResponseBody("Not Found", editReplyPath, "reply not found"),
     { status: 404 }
+  );
+});
+
+export const getRepliesFeed_InternalServerError = http.get<
+  {},
+  {},
+  InternalServerError500ResponseType
+>(getRepliesFeedPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getRepliesFeedPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const getSingleReply_InternalServerError = http.get<
+  GetSingleReplyParams,
+  {},
+  InternalServerError500ResponseType
+>(getSingleReplyPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getSingleReplyPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const addReply_InternalServerError = http.post<
+  {},
+  AddReplyRequest,
+  InternalServerError500ResponseType
+>(addReplyPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      addReplyPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const editReply_InternalServerError = http.patch<
+  EditReplyParams,
+  EditReplyRequest,
+  InternalServerError500ResponseType
+>(editReplyPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      editReplyPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const deleteReply_InternalServerError = http.delete<
+  DeleteReplyParams,
+  {},
+  InternalServerError500ResponseType
+>(deleteReplyPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      deleteReplyPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
   );
 });

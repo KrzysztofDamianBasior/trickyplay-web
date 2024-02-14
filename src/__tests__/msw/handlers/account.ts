@@ -3,16 +3,17 @@ import { http, HttpResponse } from "msw";
 import fs from "node:fs";
 import path from "node:path";
 
-import type { TPUserRepresentation } from "../dtos/ResourcesRepresentations";
-import type { EditAccountRequest } from "../dtos/Requests";
-import type { DeleteAccountResponse } from "../dtos/Responses";
-import type {
-  BadRequest400ResponseType,
-  NotFound404ResponseType,
-} from "../dtos/Errors";
-
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
 import { isAuthenticated } from "../helpers/isAuthenticated";
+
+import { TPUserRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+import { DeleteAccountResponse } from "../../../shared/models/externalApiRepresentation/Responses";
+import { EditAccountRequest } from "../../../shared/models/externalApiRepresentation/Requests";
+import {
+  BadRequest400ResponseType,
+  InternalServerError500ResponseType,
+  NotFound404ResponseType,
+} from "../../../shared/models/externalApiRepresentation/Errors";
 
 const getActivitySummaryPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_ACCOUNT_URL}/${process.env.REACT_APP_ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT}`;
 const accountPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_ACCOUNT_URL}`;
@@ -37,7 +38,7 @@ export const handlers = [
   http.get<{}, {}, TPUserRepresentation>(
     accountPath,
     async ({ request, params, cookies }) => {
-      await isAuthenticated(request, getActivitySummaryPath);
+      await isAuthenticated(request, accountPath);
       const response: TPUserRepresentation = {
         id: 1,
         name: "user",
@@ -53,7 +54,7 @@ export const handlers = [
   http.delete<{}, {}, DeleteAccountResponse>(
     accountPath,
     async ({ request, params, cookies }) => {
-      await isAuthenticated(request, getActivitySummaryPath);
+      await isAuthenticated(request, accountPath);
       const response: DeleteAccountResponse = {
         message: "The account for user with id: 1 has been removed",
       };
@@ -67,7 +68,7 @@ export const handlers = [
     EditAccountRequest,
     TPUserRepresentation | BadRequest400ResponseType
   >(accountPath, async ({ request, params, cookies }) => {
-    await isAuthenticated(request, getActivitySummaryPath);
+    await isAuthenticated(request, accountPath);
 
     const data = await request.formData();
     let newUsername = data.get("newUsername");
@@ -114,6 +115,17 @@ export const handlers = [
   }),
 ];
 
+export const getActivitySummary_UserNotFound = http.get<
+  {},
+  {},
+  NotFound404ResponseType
+>(getActivitySummaryPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody("Not Found", accountPath, "user not found"),
+    { status: 404 }
+  );
+});
+
 export const getAccount_UserNotFound = http.get<
   {},
   {},
@@ -144,5 +156,65 @@ export const deleteAccount_UserNotFound = http.delete<
   return HttpResponse.json(
     generateErrorResponseBody("Not Found", accountPath, "user not found"),
     { status: 404 }
+  );
+});
+
+export const getActivitySummary_InternalServerError = http.get<
+  {},
+  {},
+  InternalServerError500ResponseType
+>(getActivitySummaryPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getActivitySummaryPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const getAccount_InternalServerError = http.get<
+  {},
+  {},
+  InternalServerError500ResponseType
+>(accountPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      accountPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const editAccount_InternalServerError = http.patch<
+  {},
+  EditAccountRequest,
+  InternalServerError500ResponseType
+>(accountPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      accountPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const deleteAccount_InternalServerError = http.delete<
+  {},
+  {},
+  InternalServerError500ResponseType
+>(accountPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      accountPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
   );
 });

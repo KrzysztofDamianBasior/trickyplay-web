@@ -1,29 +1,29 @@
 import { http, HttpResponse } from "msw";
 
-import type { TPUserRepresentation } from "../dtos/ResourcesRepresentations";
-import type {
-  GetCommentsResponse,
-  GetRepliesResponse,
-  GetUsersResponse,
-} from "../dtos/Responses";
-import type {
-  BadRequest400ResponseType,
-  NotFound404ResponseType,
-} from "../dtos/Errors";
-import type {
-  GetSingleUserParams,
-  GetUserCommentsParams,
-  GetUserRepliesParams,
-  GrantAdminPermissionsParams,
-  UnbanUserParams,
-  BanUserParams,
-} from "../dtos/Params";
-
 import fs from "node:fs";
 import path from "node:path";
 
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
 import { isAuthenticated } from "../helpers/isAuthenticated";
+import {
+  BanUserParams,
+  GetSingleUserParams,
+  GetUserCommentsParams,
+  GetUserRepliesParams,
+  GrantAdminPermissionsParams,
+  UnbanUserParams,
+} from "../../../shared/models/externalApiRepresentation/Params";
+import { TPUserRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+import {
+  BadRequest400ResponseType,
+  InternalServerError500ResponseType,
+  NotFound404ResponseType,
+} from "../../../shared/models/externalApiRepresentation/Errors";
+import {
+  GetCommentsResponse,
+  GetRepliesResponse,
+  GetUsersResponse,
+} from "../../../shared/models/externalApiRepresentation/Responses";
 
 const getSingleUserPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id`;
 const getUsersFeedPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/${process.env.REACT_APP_USERS_FEED_ENDPOINT}`;
@@ -33,6 +33,59 @@ const getUserActivitySummaryPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_
 const banUserPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_BAN_ENDPOINT}`;
 const unbanUserPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_UNBAN_ENDPOINT}`;
 const grantAdminPermissionsPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_GRANT_ADMIN_PERMISSIONS_ENDPOINT}`;
+
+export const usersCollectionStub: TPUserRepresentation[] = [
+  {
+    id: 1,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "USER",
+  },
+  {
+    id: 2,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "USER",
+  },
+  {
+    id: 3,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "USER",
+  },
+  {
+    id: 4,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "ADMIN",
+  },
+  {
+    id: 5,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "USER",
+  },
+  {
+    id: 6,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "BANNED",
+  },
+];
+
+export const userStub: TPUserRepresentation = {
+  id: 1,
+  name: "user",
+  createdAt: "2023-10-15T20:30:38",
+  updatedAt: "2023-10-15T20:30:38",
+  role: "USER",
+};
 
 export const handlers = [
   // getSingleUserPath
@@ -54,11 +107,8 @@ export const handlers = [
     }
 
     const response: TPUserRepresentation = {
+      ...userStub,
       id: parseInt(id),
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "USER",
     };
     return HttpResponse.json(response);
   }),
@@ -90,34 +140,12 @@ export const handlers = [
       }
 
       const response: GetUsersResponse = {
-        isLast: true,
+        last: true,
         pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
         pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
         totalElements: 3,
         totalPages: 1,
-        users: [
-          {
-            id: 1,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          {
-            id: 2,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          {
-            id: 3,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-        ],
+        users: usersCollectionStub,
       };
       return HttpResponse.json(response);
     }
@@ -162,7 +190,7 @@ export const handlers = [
     }
 
     const response: GetCommentsResponse = {
-      isLast: true,
+      last: true,
       pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
       pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
       totalElements: 3,
@@ -254,7 +282,7 @@ export const handlers = [
     }
 
     const response: GetRepliesResponse = {
-      isLast: true,
+      last: true,
       pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
       pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
       totalElements: 2,
@@ -321,6 +349,18 @@ export const handlers = [
 
   // get user activity summary
   http.get(getUserActivitySummaryPath, async ({ request, params, cookies }) => {
+    const { id } = params;
+
+    if (!/^[1-9]\d*$/.test(id as string)) {
+      return HttpResponse.json(
+        generateErrorResponseBody(
+          "Bad Request",
+          getSingleUserPath,
+          "invalid id"
+        )
+      );
+    }
+
     const buffer = fs.readFileSync(
       path.resolve(process.cwd(), "__tests__/msw/stubs/activitySummaryStub.pdf")
     );
@@ -457,5 +497,125 @@ export const grantAdminPermissions_UserNotFound = http.patch<
   return HttpResponse.json(
     generateErrorResponseBody("Not Found", getSingleUserPath, "user not found"),
     { status: 404 }
+  );
+});
+
+export const getSingleUser_InternalServerError = http.get<
+  GetSingleUserParams,
+  {},
+  InternalServerError500ResponseType
+>(getSingleUserPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getSingleUserPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const getUsersFeed_InternalServerError = http.get<
+  {},
+  {},
+  InternalServerError500ResponseType
+>(getUsersFeedPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getUsersFeedPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const getUserComments_InternalServerError = http.get<
+  GetUserCommentsParams,
+  {},
+  InternalServerError500ResponseType
+>(getUserCommentsPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getUserCommentsPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const getUserReplies_InternalServerError = http.get<
+  GetUserRepliesParams,
+  {},
+  InternalServerError500ResponseType
+>(getUserRepliesPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getUserRepliesPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const getUserActivitySummary_InternalServerError = http.get<
+  {},
+  {},
+  InternalServerError500ResponseType
+>(getUserActivitySummaryPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getUserActivitySummaryPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const unbanUser_InternalServerError = http.patch<
+  UnbanUserParams,
+  {},
+  InternalServerError500ResponseType
+>(unbanUserPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      unbanUserPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const banUser_InternalServerError = http.patch<
+  BanUserParams,
+  {},
+  InternalServerError500ResponseType
+>(banUserPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      banUserPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const grantAdminPermissions_InternalServerError = http.patch<
+  GrantAdminPermissionsParams,
+  {},
+  InternalServerError500ResponseType
+>(grantAdminPermissionsPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      grantAdminPermissionsPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
   );
 });

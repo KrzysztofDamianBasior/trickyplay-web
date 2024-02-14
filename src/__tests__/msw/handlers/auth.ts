@@ -1,25 +1,25 @@
 import { http, HttpResponse } from "msw";
 
-import type {
+import { isAuthenticated } from "../helpers/isAuthenticated";
+import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
+
+import {
+  RefreshAccessTokenRequest,
   SignInRequest,
   SignUpRequest,
   SingleSessionSignOutRequest,
-  RefreshAccessTokenRequest,
-} from "../dtos/Requests";
-import type {
+} from "../../../shared/models/externalApiRepresentation/Requests";
+import {
+  RefreshAccessTokenResponse,
   SignInResponse,
   SignOutResponse,
-  RefreshAccessTokenResponse,
-} from "../dtos/Responses";
-import type {
+} from "../../../shared/models/externalApiRepresentation/Responses";
+import {
   BadRequest400ResponseType,
   InternalServerError500ResponseType,
   NotFound404ResponseType,
   Unauthorized401ResponseType,
-} from "../dtos/Errors";
-
-import { isAuthenticated } from "../helpers/isAuthenticated";
-import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
+} from "../../../shared/models/externalApiRepresentation/Errors";
 
 const refreshAccessTokenPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_AUTH_URL}/${process.env.REACT_APP_REFRESH_ACCESS_TOKEN_ENDPOINT}`;
 

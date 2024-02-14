@@ -1,26 +1,78 @@
 import { http, HttpResponse } from "msw";
 
-import type { CommentRepresentation } from "../dtos/ResourcesRepresentations";
-import type {
+import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
+import { isAuthenticated } from "../helpers/isAuthenticated";
+
+import {
   DeleteCommentResponse,
   GetCommentsResponse,
-} from "../dtos/Responses";
-import type { BadRequest400ResponseType } from "../dtos/Errors";
-import type {
+} from "../../../shared/models/externalApiRepresentation/Responses";
+import {
+  BadRequest400ResponseType,
+  InternalServerError500ResponseType,
+} from "../../../shared/models/externalApiRepresentation/Errors";
+import {
   DeleteCommentParams,
   EditCommentParams,
   GetSingleCommentParams,
-} from "../dtos/Params";
-import { AddCommentRequest, EditCommentRequest } from "../dtos/Requests";
-
-import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
-import { isAuthenticated } from "../helpers/isAuthenticated";
+} from "../../../shared/models/externalApiRepresentation/Params";
+import { CommentRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+import {
+  AddCommentRequest,
+  EditCommentRequest,
+} from "../../../shared/models/externalApiRepresentation/Requests";
 
 const getSingleCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/:id`;
 const getCommentsFeedPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/${process.env.REACT_APP_COMMENTS_FEED_ENDPOINT}`;
 const addCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}`;
 const editCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/:id`;
 const deleteCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/:id`;
+
+export const snakeCommentsCollectionStub: CommentRepresentation[] = [
+  {
+    author: {
+      id: 1,
+      name: "user",
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+      role: "USER",
+    },
+    body: "first comment body",
+    gameName: "Snake",
+    id: 1,
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+  },
+  {
+    author: {
+      id: 1,
+      name: "user",
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+      role: "USER",
+    },
+    body: "second comment body",
+    gameName: "Snake",
+    id: 2,
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+  },
+];
+
+export const snakeCommentStub: CommentRepresentation = {
+  id: 1,
+  author: {
+    id: 1,
+    name: "user",
+    createdAt: "2023-10-15T20:30:38",
+    updatedAt: "2023-10-15T20:30:38",
+    role: "USER",
+  },
+  body: "parent comment body",
+  gameName: "Snake",
+  createdAt: "2023-10-15T20:30:38",
+  updatedAt: "2023-10-15T20:30:38",
+};
 
 export const handlers = [
   // get comments feed
@@ -50,41 +102,12 @@ export const handlers = [
         );
       }
       const response: GetCommentsResponse = {
-        isLast: true,
+        last: true,
         pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
         pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
         totalElements: 2,
         totalPages: 1,
-        comments: [
-          {
-            author: {
-              id: 1,
-              name: "user",
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-              role: "USER",
-            },
-            body: "first comment body",
-            gameName: "Snake",
-            id: 1,
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-          },
-          {
-            author: {
-              id: 1,
-              name: "user",
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-              role: "USER",
-            },
-            body: "second comment body",
-            gameName: "Snake",
-            id: 2,
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-          },
-        ],
+        comments: snakeCommentsCollectionStub,
       };
       return HttpResponse.json(response);
     }
@@ -108,18 +131,8 @@ export const handlers = [
       );
     }
     const response: CommentRepresentation = {
+      ...snakeCommentStub,
       id: parseInt(id),
-      author: {
-        id: 1,
-        name: "user",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-        role: "USER",
-      },
-      body: "parent comment body",
-      gameName: "Snake",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
     };
     return HttpResponse.json(response);
   }),
@@ -161,18 +174,9 @@ export const handlers = [
       }
 
       const response: CommentRepresentation = {
-        id: 1,
-        author: {
-          id: 1,
-          name: "user",
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-          role: "USER",
-        },
+        ...snakeCommentStub,
         body,
         gameName,
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
       };
 
       return HttpResponse.json(response, {
@@ -225,18 +229,8 @@ export const handlers = [
     }
 
     const response: CommentRepresentation = {
-      id: parseInt(id),
-      author: {
-        id: 1,
-        name: "user",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-        role: "USER",
-      },
+      ...snakeCommentStub,
       body: newCommentBody,
-      gameName: "Snake",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
     };
 
     return HttpResponse.json(response);
@@ -265,3 +259,78 @@ export const handlers = [
     }
   ),
 ];
+
+export const getCommentsFeed_InternalServerError = http.get<
+  {},
+  {},
+  InternalServerError500ResponseType
+>(getCommentsFeedPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getCommentsFeedPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const getSingleComment_InternalServerError = http.get<
+  GetSingleCommentParams,
+  {},
+  InternalServerError500ResponseType
+>(getSingleCommentPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      getSingleCommentPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const addComment_InternalServerError = http.post<
+  {},
+  AddCommentRequest,
+  InternalServerError500ResponseType
+>(addCommentPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      addCommentPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const editComment_InternalServerError = http.patch<
+  EditCommentParams,
+  EditCommentRequest,
+  InternalServerError500ResponseType
+>(editCommentPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      editCommentPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
+
+export const deleteComment_InternalServerError = http.delete<
+  DeleteCommentParams,
+  {},
+  InternalServerError500ResponseType
+>(deleteCommentPath, async ({ params, request, cookies }) => {
+  return HttpResponse.json(
+    generateErrorResponseBody(
+      "Internal Server Error",
+      deleteCommentPath,
+      "Internal Server Error"
+    ),
+    { status: 500 }
+  );
+});
