@@ -5,6 +5,10 @@ import path from "node:path";
 
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
 import { isAuthenticated } from "../helpers/isAuthenticated";
+import { validateId } from "../helpers/validateId";
+import { extractPaginationArguments } from "../helpers/extractPaginationArguments";
+import { sortCollection } from "../helpers/sortCollection";
+
 import {
   BanUserParams,
   GetSingleUserParams,
@@ -25,341 +29,161 @@ import {
   GetUsersResponse,
 } from "../../../shared/models/externalApiRepresentation/Responses";
 
-const getSingleUserPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id`;
-const getUsersFeedPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/${process.env.REACT_APP_USERS_FEED_ENDPOINT}`;
-const getUserCommentsPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_USER_COMMENTS_ENDPOINT}`;
-const getUserRepliesPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_USER_REPLIES_ENDPOINT}`;
-const getUserActivitySummaryPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT}`;
-const banUserPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_BAN_ENDPOINT}`;
-const unbanUserPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_UNBAN_ENDPOINT}`;
-const grantAdminPermissionsPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_USERS_URL}/:id/${process.env.REACT_APP_GRANT_ADMIN_PERMISSIONS_ENDPOINT}`;
+import {
+  banUserPath,
+  getSingleUserPath,
+  getUserActivitySummaryPath,
+  getUserCommentsPath,
+  getUserRepliesPath,
+  getUsersFeedPath,
+  grantAdminPermissionsPath,
+  unbanUserPath,
+} from "../urls";
 
-export const usersCollectionStub: TPUserRepresentation[] = [
-  {
-    id: 1,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "USER",
-  },
-  {
-    id: 2,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "USER",
-  },
-  {
-    id: 3,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "USER",
-  },
-  {
-    id: 4,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "ADMIN",
-  },
-  {
-    id: 5,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "USER",
-  },
-  {
-    id: 6,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "BANNED",
-  },
-];
+import { usersCollectionStub } from "../stubs/users";
+import { repliesCollectionStub } from "../stubs/replies";
+import { commentsCollectionStub } from "../stubs/comments";
 
-export const userStub: TPUserRepresentation = {
-  id: 1,
-  name: "user",
-  createdAt: "2023-10-15T20:30:38",
-  updatedAt: "2023-10-15T20:30:38",
-  role: "USER",
-};
+export const getSingleUser = http.get<
+  GetSingleUserParams,
+  {},
+  TPUserRepresentation | BadRequest400ResponseType
+>(getSingleUserPath, async ({ request, params, cookies }) => {
+  const { id } = params;
+  validateId({ id, path: getSingleUserPath });
 
-export const handlers = [
-  // getSingleUserPath
-  http.get<
-    GetSingleUserParams,
-    {},
-    TPUserRepresentation | BadRequest400ResponseType
-  >(getSingleUserPath, async ({ request, params, cookies }) => {
-    const { id } = params;
+  const user = usersCollectionStub.find((u) => u.id === parseInt(id));
 
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getSingleUserPath,
-          "invalid id"
-        )
-      );
-    }
+  if (user == null) {
+    // or check for reply === undefined
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Not Found",
+        getSingleUserPath,
+        "user not found"
+      ),
+      { status: 404 }
+    );
+  }
 
-    const response: TPUserRepresentation = {
-      ...userStub,
-      id: parseInt(id),
-    };
-    return HttpResponse.json(response);
-  }),
+  return HttpResponse.json(user);
+});
 
-  // getUsersFeedPath
-  http.get<{}, {}, GetUsersResponse | BadRequest400ResponseType>(
-    getUsersFeedPath,
-    async ({ request, params, cookies }) => {
-      // Construct a URL instance out of the intercepted request.
-      const url = new URL(request.url);
-      const pageNumber = url.searchParams.get("pageNumber") || 0;
-      const pageSize = url.searchParams.get("pageSize") || 10;
-      const sortBy = url.searchParams.get("sortBy") || "id";
-      const orderDirection = url.searchParams.get("orderDirection") || "Asc";
+export const getUsersFeed = http.get<
+  {},
+  {},
+  GetUsersResponse | BadRequest400ResponseType
+>(getUsersFeedPath, async ({ request, params, cookies }) => {
+  // Construct a URL instance out of the intercepted request.
+  const url = new URL(request.url);
+  const { orderDirection, pageNumber, pageSize, sortBy } =
+    extractPaginationArguments(url);
 
-      if (
-        !/^[0-9]\d*$/.test(pageNumber.toString()) ||
-        !/^[0-9]\d*$/.test(pageSize.toString()) ||
-        !/^(id|createdAt|updatedAt)$/.test(orderDirection.toString()) ||
-        !/^(Asc|Dsc)$/.test(sortBy.toString())
-      ) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            getUsersFeedPath,
-            "invalid param"
+  const sortedCollection = sortCollection({
+    entitiesCollection: usersCollectionStub,
+    orderDirection,
+    sortBy,
+  });
+
+  const response: GetUsersResponse = {
+    last: pageSize * pageNumber > sortedCollection.length - pageSize,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    totalElements: sortedCollection.length,
+    totalPages: Math.ceil(sortedCollection.length / pageSize),
+    users:
+      pageSize * pageNumber < sortedCollection.length
+        ? sortedCollection.slice(
+            pageSize * pageNumber,
+            pageSize * pageNumber + pageSize
           )
-        );
-      }
+        : [],
+  };
+  return HttpResponse.json(response);
+});
 
-      const response: GetUsersResponse = {
-        last: true,
-        pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
-        pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
-        totalElements: 3,
-        totalPages: 1,
-        users: usersCollectionStub,
-      };
-      return HttpResponse.json(response);
-    }
-  ),
+// get user comments
+export const getUserComments = http.get<
+  GetUserCommentsParams,
+  {},
+  GetCommentsResponse | BadRequest400ResponseType
+>(getUserCommentsPath, async ({ request, params, cookies }) => {
+  const { id } = params;
+  validateId({ id, path: getUserCommentsPath });
 
-  // get user comments
-  http.get<
-    GetUserCommentsParams,
-    {},
-    GetCommentsResponse | BadRequest400ResponseType
-  >(getUserCommentsPath, async ({ request, params, cookies }) => {
+  // Construct a URL instance out of the intercepted request.
+  const url = new URL(request.url);
+  const { orderDirection, pageNumber, pageSize, sortBy } =
+    extractPaginationArguments(url);
+
+  const sortedCollection = sortCollection({
+    entitiesCollection: commentsCollectionStub.filter(
+      (c) => c.author.id === parseInt(id)
+    ),
+    orderDirection,
+    sortBy,
+  });
+
+  const response: GetCommentsResponse = {
+    last: pageSize * pageNumber > sortedCollection.length - pageSize,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    totalElements: sortedCollection.length,
+    totalPages: Math.ceil(sortedCollection.length / pageSize),
+    comments:
+      pageSize * pageNumber < sortedCollection.length
+        ? sortedCollection.slice(
+            pageSize * pageNumber,
+            pageSize * pageNumber + pageSize
+          )
+        : [],
+  };
+  return HttpResponse.json(response);
+});
+
+export const getUserReplies = http.get<
+  GetUserRepliesParams,
+  {},
+  GetRepliesResponse | BadRequest400ResponseType
+>(getUserRepliesPath, async ({ request, params, cookies }) => {
+  const { id } = params;
+  validateId({ id, path: getUserRepliesPath });
+
+  // Construct a URL instance out of the intercepted request.
+  const url = new URL(request.url);
+  const { orderDirection, pageNumber, pageSize, sortBy } =
+    extractPaginationArguments(url);
+
+  const sortedCollection = sortCollection({
+    entitiesCollection: repliesCollectionStub.filter(
+      (r) => r.author.id === parseInt(id)
+    ),
+    orderDirection,
+    sortBy,
+  });
+
+  const response: GetRepliesResponse = {
+    last: pageSize * pageNumber > sortedCollection.length - pageSize,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    totalElements: sortedCollection.length,
+    totalPages: Math.ceil(sortedCollection.length / pageSize),
+    replies:
+      pageSize * pageNumber < sortedCollection.length
+        ? sortedCollection.slice(
+            pageSize * pageNumber,
+            pageSize * pageNumber + pageSize
+          )
+        : [],
+  };
+  return HttpResponse.json(response);
+});
+
+export const getUserActivitySummary = http.get(
+  getUserActivitySummaryPath,
+  async ({ request, params, cookies }) => {
     const { id } = params;
-
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getUserCommentsPath,
-          "invalid id"
-        )
-      );
-    }
-    const url = new URL(request.url);
-    const pageNumber = url.searchParams.get("pageNumber") || 0;
-    const pageSize = url.searchParams.get("pageSize") || 10;
-    const sortBy = url.searchParams.get("sortBy") || "id";
-    const orderDirection = url.searchParams.get("orderDirection") || "Asc";
-
-    if (
-      !/^[0-9]\d*$/.test(pageNumber.toString()) ||
-      !/^[0-9]\d*$/.test(pageSize.toString()) ||
-      !/^(id|createdAt|updatedAt)$/.test(orderDirection.toString()) ||
-      !/^(Asc|Dsc)$/.test(sortBy.toString())
-    ) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getSingleUserPath,
-          "invalid param"
-        )
-      );
-    }
-
-    const response: GetCommentsResponse = {
-      last: true,
-      pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
-      pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
-      totalElements: 3,
-      totalPages: 1,
-      comments: [
-        {
-          author: {
-            id: 1,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          body: "first comment body",
-          gameName: "Snake",
-          id: 1,
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-        },
-        {
-          author: {
-            id: 1,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          body: "second comment body",
-          gameName: "Snake",
-          id: 2,
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-        },
-        {
-          author: {
-            id: 1,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          body: "third comment body",
-          gameName: "Snake",
-          id: 3,
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-        },
-      ],
-    };
-    return HttpResponse.json(response);
-  }),
-
-  // get user replies
-  http.get<
-    GetUserRepliesParams,
-    {},
-    GetRepliesResponse | BadRequest400ResponseType
-  >(getUserRepliesPath, async ({ request, params, cookies }) => {
-    const { id } = params;
-
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getUserRepliesPath,
-          "invalid id"
-        )
-      );
-    }
-    const url = new URL(request.url);
-    const pageNumber = url.searchParams.get("pageNumber") || 0;
-    const pageSize = url.searchParams.get("pageSize") || 10;
-    const sortBy = url.searchParams.get("sortBy") || "id";
-    const orderDirection = url.searchParams.get("orderDirection") || "Asc";
-
-    if (
-      !/^[0-9]\d*$/.test(pageNumber.toString()) ||
-      !/^[0-9]\d*$/.test(pageSize.toString()) ||
-      !/^(id|createdAt|updatedAt)$/.test(orderDirection.toString()) ||
-      !/^(Asc|Dsc)$/.test(sortBy.toString())
-    ) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getUserRepliesPath,
-          "invalid param"
-        )
-      );
-    }
-
-    const response: GetRepliesResponse = {
-      last: true,
-      pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
-      pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
-      totalElements: 2,
-      totalPages: 1,
-      replies: [
-        {
-          author: {
-            id: 1,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          body: "first reply body",
-          parentComment: {
-            author: {
-              id: 1,
-              name: "user",
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-              role: "USER",
-            },
-            body: "comment body",
-            gameName: "Snake",
-            id: 1,
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-          },
-          id: 1,
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-        },
-        {
-          author: {
-            id: 1,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          body: "second reply body",
-          parentComment: {
-            author: {
-              id: 1,
-              name: "user",
-              createdAt: "2023-10-15T20:30:38",
-              updatedAt: "2023-10-15T20:30:38",
-              role: "USER",
-            },
-            body: "comment body",
-            gameName: "Snake",
-            id: 1,
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-          },
-          id: 2,
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-        },
-      ],
-    };
-    return HttpResponse.json(response);
-  }),
-
-  // get user activity summary
-  http.get(getUserActivitySummaryPath, async ({ request, params, cookies }) => {
-    const { id } = params;
-
-    if (!/^[1-9]\d*$/.test(id as string)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getSingleUserPath,
-          "invalid id"
-        )
-      );
-    }
+    validateId({ id: id as string, path: getUserActivitySummaryPath });
 
     const buffer = fs.readFileSync(
       path.resolve(process.cwd(), "__tests__/msw/stubs/activitySummaryStub.pdf")
@@ -371,90 +195,121 @@ export const handlers = [
         "Content-Disposition": "attachment; filename=activitySummaryStub.pdf",
       },
     });
-  }),
+  }
+);
 
-  // unban user
-  http.patch<
-    UnbanUserParams,
-    {},
-    TPUserRepresentation | BadRequest400ResponseType
-  >(unbanUserPath, async ({ request, params, cookies }) => {
-    // Role.ADMIN
-    await isAuthenticated(request, unbanUserPath);
-    const { id } = params;
+export const unbanUser = http.patch<
+  UnbanUserParams,
+  {},
+  TPUserRepresentation | BadRequest400ResponseType
+>(unbanUserPath, async ({ request, params, cookies }) => {
+  const username = isAuthenticated(request, unbanUserPath);
+  const { id } = params;
+  validateId({ id, path: unbanUserPath });
 
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody("Bad Request", unbanUserPath, "invalid id")
-      );
-    }
+  const signedUser = usersCollectionStub.find((u) => u.name === username);
+  const userToUnban = usersCollectionStub.find((u) => u.id === parseInt(id));
+  if (signedUser == null || userToUnban == null) {
+    const responseBody = generateErrorResponseBody(
+      "Not Found",
+      unbanUserPath,
+      "user not found"
+    );
+    throw HttpResponse.json(responseBody, { status: 404 });
+  }
 
-    const response: TPUserRepresentation = {
-      id: parseInt(id),
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "USER",
-    };
-    return HttpResponse.json(response);
-  }),
+  if (userToUnban.role === "BANNED" && signedUser.role === "ADMIN") {
+    const now = new Date();
+    userToUnban.updatedAt = now.toISOString().split(".")[0];
+    userToUnban.role = "USER";
+    return HttpResponse.json(userToUnban);
+  } else {
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Forbidden",
+        unbanUserPath,
+        "you do not have permission to perform actions on this entity"
+      )
+    );
+  }
+});
 
-  // ban user
-  http.patch<
-    BanUserParams,
-    {},
-    TPUserRepresentation | BadRequest400ResponseType
-  >(banUserPath, async ({ request, params, cookies }) => {
-    // Role.ADMIN
-    await isAuthenticated(request, banUserPath);
-    const { id } = params;
+export const banUser = http.patch<
+  BanUserParams,
+  {},
+  TPUserRepresentation | BadRequest400ResponseType
+>(banUserPath, async ({ request, params, cookies }) => {
+  const username = isAuthenticated(request, banUserPath);
+  const { id } = params;
+  validateId({ id, path: banUserPath });
 
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody("Bad Request", banUserPath, "invalid id")
-      );
-    }
+  const signedUser = usersCollectionStub.find((u) => u.name === username);
+  const userToBan = usersCollectionStub.find((u) => u.id === parseInt(id));
+  if (signedUser == null || userToBan == null) {
+    const responseBody = generateErrorResponseBody(
+      "Not Found",
+      banUserPath,
+      "user not found"
+    );
+    throw HttpResponse.json(responseBody, { status: 404 });
+  }
 
-    const response: TPUserRepresentation = {
-      id: parseInt(id),
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "BANNED",
-    };
-    return HttpResponse.json(response);
-  }),
+  if (userToBan.role === "USER" && signedUser.role === "ADMIN") {
+    userToBan.role = "BANNED";
+    const now = new Date();
+    userToBan.updatedAt = now.toISOString().split(".")[0];
+    return HttpResponse.json(userToBan);
+  } else {
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Forbidden",
+        unbanUserPath,
+        "you do not have permission to perform actions on this entity"
+      )
+    );
+  }
+});
 
-  // grant admin permissions
-  http.patch<
-    GrantAdminPermissionsParams,
-    {},
-    TPUserRepresentation | BadRequest400ResponseType
-  >(grantAdminPermissionsPath, async ({ request, params, cookies }) => {
-    // Role.ADMIN
-    await isAuthenticated(request, grantAdminPermissionsPath);
-    const { id } = params;
+export const grantAdminPermissions = http.patch<
+  GrantAdminPermissionsParams,
+  {},
+  TPUserRepresentation
+>(grantAdminPermissionsPath, async ({ request, params, cookies }) => {
+  const username = isAuthenticated(request, grantAdminPermissionsPath);
+  const { id } = params;
+  validateId({ id, path: grantAdminPermissionsPath });
 
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          grantAdminPermissionsPath,
-          "invalid id"
-        )
-      );
-    }
+  const signedUser = usersCollectionStub.find((u) => u.name === username);
+  const userToGrantAdminPermissions = usersCollectionStub.find(
+    (u) => u.id === parseInt(id)
+  );
+  if (signedUser == null || userToGrantAdminPermissions == null) {
+    const responseBody = generateErrorResponseBody(
+      "Not Found",
+      grantAdminPermissionsPath,
+      "user not found"
+    );
+    throw HttpResponse.json(responseBody, { status: 404 });
+  }
 
-    const response: TPUserRepresentation = {
-      id: parseInt(id),
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "ADMIN",
-    };
-    return HttpResponse.json(response);
-  }),
-];
+  if (
+    userToGrantAdminPermissions.role === "USER" &&
+    signedUser.role === "ADMIN"
+  ) {
+    const now = new Date();
+    userToGrantAdminPermissions.updatedAt = now.toISOString().split(".")[0];
+    userToGrantAdminPermissions.role = "ADMIN";
+    return HttpResponse.json(userToGrantAdminPermissions);
+  } else {
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Forbidden",
+        grantAdminPermissionsPath,
+        "you do not have permission to perform actions on this entity"
+      )
+    );
+  }
+});
 
 export const getSingleUser_UserNotFound = http.patch<
   GetSingleUserParams,
@@ -619,3 +474,32 @@ export const grantAdminPermissions_InternalServerError = http.patch<
     { status: 500 }
   );
 });
+
+export const handlers = [
+  getSingleUser,
+  getUsersFeed,
+  getUserComments,
+  getUserReplies,
+  grantAdminPermissions,
+  banUser,
+  unbanUser,
+  getUserActivitySummary,
+];
+
+export const internalServerErrorHandlers = [
+  getSingleUser_InternalServerError,
+  getUsersFeed_InternalServerError,
+  getUserComments_InternalServerError,
+  getUserReplies_InternalServerError,
+  grantAdminPermissions_InternalServerError,
+  banUser_InternalServerError,
+  unbanUser_InternalServerError,
+  getUserActivitySummary_InternalServerError,
+];
+
+export const userNotFoundHandlers = [
+  getSingleUser_UserNotFound,
+  grantAdminPermissions_UserNotFound,
+  banUser_UserNotFound,
+  unbanUser_UserNotFound,
+];
