@@ -2,263 +2,318 @@ import { http, HttpResponse } from "msw";
 
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
 import { isAuthenticated } from "../helpers/isAuthenticated";
+import { sortCollection } from "../helpers/sortCollection";
+import { extractPaginationArguments } from "../helpers/extractPaginationArguments";
+import { extractGameName } from "../helpers/extractGameNameOrThrow";
+import { validateId } from "../helpers/validateId";
 
 import {
   DeleteCommentResponse,
   GetCommentsResponse,
 } from "../../../shared/models/externalApiRepresentation/Responses";
-import {
-  BadRequest400ResponseType,
-  InternalServerError500ResponseType,
-} from "../../../shared/models/externalApiRepresentation/Errors";
+import { InternalServerError500ResponseType } from "../../../shared/models/externalApiRepresentation/Errors";
 import {
   DeleteCommentParams,
-  EditCommentParams,
+  PatchCommentParams,
   GetSingleCommentParams,
 } from "../../../shared/models/externalApiRepresentation/Params";
 import { CommentRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
 import {
   AddCommentRequest,
-  EditCommentRequest,
+  PatchCommentRequest,
 } from "../../../shared/models/externalApiRepresentation/Requests";
 
-const getSingleCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/:id`;
-const getCommentsFeedPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/${process.env.REACT_APP_COMMENTS_FEED_ENDPOINT}`;
-const addCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}`;
-const editCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/:id`;
-const deleteCommentPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_COMMENTS_URL}/:id`;
+import {
+  addCommentPath,
+  deleteCommentPath,
+  getCommentsFeedPath,
+  getSingleCommentPath,
+  patchCommentPath,
+} from "../urls";
+import { commentsCollectionStub } from "../stubs/comments";
+import { usersCollectionStub } from "../stubs/users";
 
-export const snakeCommentsCollectionStub: CommentRepresentation[] = [
-  {
-    author: {
-      id: 1,
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "USER",
-    },
-    body: "first comment body",
-    gameName: "Snake",
-    id: 1,
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-  },
-  {
-    author: {
-      id: 1,
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "USER",
-    },
-    body: "second comment body",
-    gameName: "Snake",
-    id: 2,
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-  },
-];
+export const getCommentsFeed = http.get<{}, {}, GetCommentsResponse>(
+  getCommentsFeedPath,
+  async ({ request, params, cookies }) => {
+    const url = new URL(request.url);
+    const { orderDirection, pageNumber, pageSize, sortBy } =
+      extractPaginationArguments(url);
+    const gameName = extractGameName(url);
 
-export const snakeCommentStub: CommentRepresentation = {
-  id: 1,
-  author: {
-    id: 1,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "USER",
-  },
-  body: "parent comment body",
-  gameName: "Snake",
-  createdAt: "2023-10-15T20:30:38",
-  updatedAt: "2023-10-15T20:30:38",
-};
+    const sortedCollection = sortCollection({
+      entitiesCollection:
+        gameName === "Snake"
+          ? commentsCollectionStub.filter((comm) => comm.gameName === "Snake")
+          : gameName === "Minesweeper"
+          ? commentsCollectionStub.filter(
+              (comm) => comm.gameName === "Minesweeper"
+            )
+          : commentsCollectionStub.filter(
+              (comm) => comm.gameName === "TicTacToe"
+            ),
+      orderDirection,
+      sortBy,
+    });
 
-export const handlers = [
-  // get comments feed
-  http.get<{}, {}, GetCommentsResponse | BadRequest400ResponseType>(
-    getCommentsFeedPath,
-    async ({ request, params, cookies }) => {
-      // Construct a URL instance out of the intercepted request.
-      const url = new URL(request.url);
-      // Read the "id" URL query parameter using the "URLSearchParams" API.
-      // Given "/product?id=1", "productId" will equal "1".
-      const pageNumber = url.searchParams.get("pageNumber") || 0;
-      const pageSize = url.searchParams.get("pageSize") || 10;
-      const sortBy = url.searchParams.get("sortBy") || "id";
-      const orderDirection = url.searchParams.get("orderDirection") || "Asc";
-      if (
-        !/^[0-9]\d*$/.test(pageNumber.toString()) ||
-        !/^[0-9]\d*$/.test(pageSize.toString()) ||
-        !/^(id|createdAt|updatedAt)$/.test(orderDirection.toString()) ||
-        !/^(Asc|Dsc)$/.test(sortBy.toString())
-      ) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            getCommentsFeedPath,
-            "invalid param"
-          )
-        );
-      }
-      const response: GetCommentsResponse = {
-        last: true,
-        pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
-        pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
-        totalElements: 2,
-        totalPages: 1,
-        comments: snakeCommentsCollectionStub,
-      };
-      return HttpResponse.json(response);
-    }
-  ),
-
-  // getSingleComment
-  http.get<
-    GetSingleCommentParams,
-    {},
-    CommentRepresentation | BadRequest400ResponseType
-  >(getSingleCommentPath, async ({ request, params, cookies }) => {
-    const { id } = params;
-
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getSingleCommentPath,
-          "invalid id"
-        )
-      );
-    }
-    const response: CommentRepresentation = {
-      ...snakeCommentStub,
-      id: parseInt(id),
+    const response = {
+      last: pageSize * pageNumber > sortedCollection.length - pageSize,
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      totalElements: sortedCollection.length,
+      totalPages: Math.ceil(sortedCollection.length / pageSize),
+      comments:
+        pageSize * pageNumber < sortedCollection.length
+          ? sortedCollection.slice(
+              pageSize * pageNumber,
+              pageSize * pageNumber + pageSize
+            )
+          : [],
     };
+
     return HttpResponse.json(response);
-  }),
+  }
+);
 
-  // addComment
-  http.post<
-    {},
-    AddCommentRequest,
-    CommentRepresentation | BadRequest400ResponseType
-  >(addCommentPath, async ({ params, request, cookies }) => {
-    // Permission.USER_CREATE
-    await isAuthenticated(request, editCommentPath);
-    const data = await request.formData();
-    let body = data.get("body");
-    let gameName = data.get("gameName");
+export const getSingleComment = http.get<
+  GetSingleCommentParams,
+  {},
+  CommentRepresentation
+>(getSingleCommentPath, async ({ request, params, cookies }) => {
+  const { id } = params;
+  validateId({ id, path: getSingleCommentPath });
 
-    if (body && gameName) {
-      body = body as string; // FormData.get() returns a value of type string | File | null.
-      gameName = gameName as string; // FormData.get() returns a value of type string | File | null.
+  const comment = commentsCollectionStub.find(
+    (comment) => comment.id === parseInt(id)
+  );
 
-      if (body.length < 1 || body.length > 300) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            addCommentPath,
-            "Invalid body length"
-          )
-        );
-      }
+  if (comment == null) {
+    // or check for comment === undefined
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Not Found",
+        getSingleCommentPath,
+        "comment not found"
+      ),
+      { status: 404 }
+    );
+  }
 
-      if (!/^(Snake|TicTacToe|Minesweeper)$/.test(gameName)) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            addCommentPath,
-            "Invalid game name"
-          )
-        );
-      }
+  return HttpResponse.json(comment);
+});
 
-      const response: CommentRepresentation = {
-        ...snakeCommentStub,
-        body,
-        gameName,
-      };
+export const addComment = http.post<
+  {},
+  AddCommentRequest,
+  CommentRepresentation
+>(addCommentPath, async ({ params, request, cookies }) => {
+  const username = isAuthenticated(request, addCommentPath);
 
-      return HttpResponse.json(response, {
-        status: 201,
-        statusText: "created /comments/1",
-      });
-    } else {
-      return HttpResponse.json(
+  const data = await request.formData();
+  let body = data.get("body");
+  let gameName = data.get("gameName");
+
+  if (body && gameName) {
+    body = body as string; // FormData.get() returns a value of type string | File | null.
+    gameName = gameName as string; // FormData.get() returns a value of type string | File | null.
+
+    if (body.length < 1 || body.length > 300) {
+      throw HttpResponse.json(
         generateErrorResponseBody(
           "Bad Request",
           addCommentPath,
-          "missing request body field"
-        )
-      );
-    }
-  }),
-
-  // editComment
-  http.patch<
-    EditCommentParams,
-    EditCommentRequest,
-    CommentRepresentation | BadRequest400ResponseType
-  >(editCommentPath, async ({ request, params, cookies }) => {
-    // Permission.USER_UPDATE
-    await isAuthenticated(request, editCommentPath);
-    const { id } = params;
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          deleteCommentPath,
-          "invalid id"
-        )
+          "Invalid body length"
+        ),
+        { status: 400 }
       );
     }
 
-    const data = await request.formData();
-    let newCommentBody = data.get("newCommentBody");
+    const signedUser = usersCollectionStub.find(
+      (user) => user.name === username
+    );
+    if (signedUser == null) {
+      const responseBody = generateErrorResponseBody(
+        "Not Found",
+        addCommentPath,
+        "user not found"
+      );
+      throw HttpResponse.json(responseBody, { status: 404 });
+    }
 
+    const now = new Date();
+
+    // three oneliners which handle search for next id:
+    const nextId =
+      commentsCollectionStub.reduce((a, b) => (a.id > b.id ? a : b)).id + 1; // time complexity:  O(n)
+    // const nextId = commentsCollectionStub.sort((a, b) => b.id - a.id)[0].id +1; // time complexity:  O(nlogn)
+    // const nextId:number = Math.max(...commentsCollectionStub.map(comm=>comm.id)) +1;     // time complexity: >O(2n)
+
+    const response: CommentRepresentation = {
+      author: signedUser,
+      gameName:
+        gameName === "Minesweeper"
+          ? "Minesweeper"
+          : gameName === "Snake"
+          ? "Snake"
+          : "TicTacToe",
+      createdAt: now.toISOString().split(".")[0],
+      updatedAt: now.toISOString().split(".")[0],
+      body,
+      id: nextId,
+    };
+    return HttpResponse.json(response, {
+      status: 201,
+      statusText: "created /comments/" + nextId,
+    });
+  } else {
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Bad Request",
+        addCommentPath,
+        "field is missing in the request body"
+      ),
+      { status: 400 }
+    );
+  }
+});
+
+export const patchComment = http.patch<
+  PatchCommentParams,
+  PatchCommentRequest,
+  CommentRepresentation
+>(patchCommentPath, async ({ request, params, cookies }) => {
+  const username = isAuthenticated(request, patchCommentPath);
+  const { id } = params;
+  validateId({ id, path: patchCommentPath });
+
+  const data = await request.formData();
+  let newCommentBody = data.get("newCommentBody");
+
+  if (newCommentBody !== null) {
     newCommentBody = newCommentBody as string; // FormData.get() returns a value of type string | File | null.
 
     if (newCommentBody.length < 1 && newCommentBody.length > 300) {
-      return HttpResponse.json(
+      throw HttpResponse.json(
         generateErrorResponseBody(
           "Bad Request",
-          editCommentPath,
+          patchCommentPath,
           "Comment body must contain between 1 and 300 characters."
-        )
+        ),
+        { status: 400 }
       );
     }
 
-    const response: CommentRepresentation = {
-      ...snakeCommentStub,
-      body: newCommentBody,
-    };
+    const comment = commentsCollectionStub.find(
+      (comment) => comment.id === parseInt(id)
+    );
+    if (comment == null) {
+      // or check for comment === undefined
+      throw HttpResponse.json(
+        generateErrorResponseBody(
+          "Not Found",
+          patchCommentPath,
+          "comment not found"
+        ),
+        { status: 404 }
+      );
+    }
 
-    return HttpResponse.json(response);
-  }),
+    const signedUser = usersCollectionStub.find(
+      (user) => user.name === username
+    );
+    if (signedUser == null) {
+      const responseBody = generateErrorResponseBody(
+        "Not Found",
+        addCommentPath,
+        "user not found"
+      );
+      throw HttpResponse.json(responseBody, { status: 404 });
+    }
 
-  // deleteComment
-  http.delete<DeleteCommentParams, {}, DeleteCommentResponse>(
-    deleteCommentPath,
-    async ({ request, params, cookies }) => {
-      // user:delete or ROLE_ADMIN
-      await isAuthenticated(request, deleteCommentPath);
-      const { id } = params;
-      if (!/^[1-9]\d*$/.test(id)) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            deleteCommentPath,
-            "invalid id"
-          )
-        );
-      }
-      const response: DeleteCommentResponse = {
-        message: "Comment successfully removed",
+    if (comment.author.name === username || signedUser.role === "ADMIN") {
+      const now = new Date();
+      const response: CommentRepresentation = {
+        ...comment,
+        updatedAt: now.toISOString().split(".")[0],
+        body: newCommentBody,
       };
       return HttpResponse.json(response);
+    } else {
+      throw HttpResponse.json(
+        generateErrorResponseBody(
+          "Forbidden",
+          patchCommentPath,
+          "you do not have permission to perform actions on this entity"
+        )
+      );
     }
-  ),
-];
+  } else {
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Bad Request",
+        addCommentPath,
+        "field is missing in the request body"
+      )
+    );
+  }
+});
+
+export const deleteComment = http.delete<
+  DeleteCommentParams,
+  {},
+  DeleteCommentResponse
+>(deleteCommentPath, async ({ request, params, cookies }) => {
+  const username = await isAuthenticated(request, deleteCommentPath);
+
+  const { id } = params;
+  validateId({ id, path: deleteCommentPath });
+
+  const comment = commentsCollectionStub.find(
+    (comment) => comment.id === parseInt(id)
+  );
+  if (comment == null) {
+    // or check for comment === undefined
+    return HttpResponse.json(
+      generateErrorResponseBody(
+        "Not Found",
+        deleteCommentPath,
+        "comment not found"
+      ),
+      { status: 404 }
+    );
+  }
+
+  const signedUser = usersCollectionStub.find((user) => user.name === username);
+  if (signedUser == null) {
+    const responseBody = generateErrorResponseBody(
+      "Not Found",
+      deleteCommentPath,
+      "user not found"
+    );
+    throw HttpResponse.json(responseBody, { status: 404 });
+  }
+
+  if (comment.author.name === username || signedUser.role === "ADMIN") {
+    commentsCollectionStub.splice(
+      commentsCollectionStub.findIndex((c) => c.id === comment.id),
+      1
+    );
+
+    const response: DeleteCommentResponse = {
+      message: "Comment successfully removed",
+    };
+    return HttpResponse.json(response);
+  } else {
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Forbidden",
+        patchCommentPath,
+        "you do not have permission to perform actions on this entity"
+      ),
+      { status: 403 }
+    );
+  }
+});
 
 export const getCommentsFeed_InternalServerError = http.get<
   {},
@@ -305,15 +360,15 @@ export const addComment_InternalServerError = http.post<
   );
 });
 
-export const editComment_InternalServerError = http.patch<
-  EditCommentParams,
-  EditCommentRequest,
+export const patchComment_InternalServerError = http.patch<
+  PatchCommentParams,
+  PatchCommentRequest,
   InternalServerError500ResponseType
->(editCommentPath, async ({ params, request, cookies }) => {
+>(patchCommentPath, async ({ params, request, cookies }) => {
   return HttpResponse.json(
     generateErrorResponseBody(
       "Internal Server Error",
-      editCommentPath,
+      patchCommentPath,
       "Internal Server Error"
     ),
     { status: 500 }
@@ -334,3 +389,19 @@ export const deleteComment_InternalServerError = http.delete<
     { status: 500 }
   );
 });
+
+export const handlers = [
+  getCommentsFeed,
+  getSingleComment,
+  addComment,
+  patchComment,
+  deleteComment,
+];
+
+export const internalServerErrorHandlers = [
+  getCommentsFeed_InternalServerError,
+  getSingleComment_InternalServerError,
+  addComment_InternalServerError,
+  patchComment_InternalServerError,
+  deleteComment_InternalServerError,
+];
