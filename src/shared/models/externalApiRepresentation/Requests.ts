@@ -30,7 +30,7 @@ export type AddReplyRequest = {
   parentCommentId: number;
 };
 
-export type EditCommentRequest = {
+export type PatchCommentRequest = {
   /**
    * New comment content
    *
@@ -39,7 +39,7 @@ export type EditCommentRequest = {
   newCommentBody: string;
 };
 
-export type EditReplyRequest = {
+export type PatchReplyRequest = {
   /**
    * New body of reply
    *
@@ -110,7 +110,7 @@ export type SignUpRequest = {
   password: string;
 };
 
-export type EditAccountRequest = {
+export type PatchAccountRequest = {
   /**
    * New username under which the user will be visible when commenting and replying to comments
    *

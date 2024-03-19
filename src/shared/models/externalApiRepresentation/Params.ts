@@ -30,7 +30,7 @@ export type GetSingleReplyParams = {
   id: string;
 };
 
-export type EditReplyParams = {
+export type PatchReplyParams = {
   id: string;
 };
 
@@ -42,7 +42,7 @@ export type GetSingleCommentParams = {
   id: string;
 };
 
-export type EditCommentParams = {
+export type PatchCommentParams = {
   id: string;
 };
 
