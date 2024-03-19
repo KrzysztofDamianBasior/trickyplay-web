@@ -2,6 +2,10 @@ import { http, HttpResponse } from "msw";
 
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
 import { isAuthenticated } from "../helpers/isAuthenticated";
+import { extractParentCommentId } from "../helpers/extractParentCommentIdOrThrow";
+import { extractPaginationArguments } from "../helpers/extractPaginationArguments";
+import { sortCollection } from "../helpers/sortCollection";
+import { validateId } from "../helpers/validateId";
 
 import {
   DeleteReplyResponse,
@@ -14,293 +18,311 @@ import {
 } from "../../../shared/models/externalApiRepresentation/Errors";
 import {
   DeleteReplyParams,
-  EditReplyParams,
+  PatchReplyParams,
   GetSingleReplyParams,
 } from "../../../shared/models/externalApiRepresentation/Params";
 import { ReplyRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
 import {
   AddReplyRequest,
-  EditReplyRequest,
+  PatchReplyRequest,
 } from "../../../shared/models/externalApiRepresentation/Requests";
 
-const getSingleReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/:id`;
-const getRepliesFeedPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/${process.env.REACT_APP_REPLIES_FEED_ENDPOINT}`;
-const addReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}`;
-const editReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/:id`;
-const deleteReplyPath = `${process.env.REACT_APP_TRICKYPLAY_API_BASE_URL}/${process.env.REACT_APP_REPLIES_URL}/:id`;
+import {
+  addReplyPath,
+  deleteReplyPath,
+  getRepliesFeedPath,
+  getSingleReplyPath,
+  patchReplyPath,
+} from "../urls";
 
-export const repliesCollectionStub: ReplyRepresentation[] = [
-  {
-    author: {
-      id: 1,
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "USER",
-    },
-    body: "first reply body",
-    parentComment: {
-      author: {
-        id: 1,
-        name: "user",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-        role: "USER",
-      },
-      body: "comment body",
-      gameName: "Snake",
-      id: 1,
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-    },
-    id: 1,
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-  },
-  {
-    author: {
-      id: 1,
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "USER",
-    },
-    body: "second reply body",
-    parentComment: {
-      author: {
-        id: 1,
-        name: "user",
-        createdAt: "2023-10-15T20:30:38",
-        updatedAt: "2023-10-15T20:30:38",
-        role: "USER",
-      },
-      body: "comment body",
-      gameName: "Snake",
-      id: 1,
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-    },
-    id: 2,
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-  },
-];
+import { repliesCollectionStub } from "../stubs/replies";
+import { usersCollectionStub } from "../stubs/users";
+import { commentsCollectionStub } from "../stubs/comments";
 
-export const replyStub: ReplyRepresentation = {
-  id: 1,
-  body: "response body",
-  parentComment: {
-    id: 1,
-    author: {
-      id: 1,
-      name: "user",
-      createdAt: "2023-10-15T20:30:38",
-      updatedAt: "2023-10-15T20:30:38",
-      role: "USER",
-    },
-    body: "parent comment body",
-    gameName: "Snake",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-  },
-  author: {
-    id: 1,
-    name: "user",
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-    role: "USER",
-  },
-  createdAt: "2023-10-15T20:30:38",
-  updatedAt: "2023-10-15T20:30:38",
-};
+export const getRepliesFeed = http.get<
+  {},
+  {},
+  GetRepliesResponse | BadRequest400ResponseType
+>(getRepliesFeedPath, async ({ request, params, cookies }) => {
+  // Construct a URL instance out of the intercepted request.
+  const url = new URL(request.url);
+  const { orderDirection, pageNumber, pageSize, sortBy } =
+    extractPaginationArguments(url);
+  const parentCommentId = extractParentCommentId(url);
 
-export const handlers = [
-  // get replies feed
-  http.get<{}, {}, GetRepliesResponse | BadRequest400ResponseType>(
-    getRepliesFeedPath,
-    async ({ request, params, cookies }) => {
-      const url = new URL(request.url);
-      const pageNumber = url.searchParams.get("pageNumber") || 0;
-      const pageSize = url.searchParams.get("pageSize") || 10;
-      const sortBy = url.searchParams.get("sortBy") || "id";
-      const orderDirection = url.searchParams.get("orderDirection") || "Asc";
-      if (
-        !/^[0-9]\d*$/.test(pageNumber.toString()) ||
-        !/^[0-9]\d*$/.test(pageSize.toString()) ||
-        !/^(id|createdAt|updatedAt)$/.test(orderDirection.toString()) ||
-        !/^(Asc|Dsc)$/.test(sortBy.toString())
-      ) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            getRepliesFeedPath,
-            "invalid param"
+  const sortedCollection = sortCollection({
+    entitiesCollection: repliesCollectionStub.filter(
+      (reply) => reply.parentComment.id === parentCommentId
+    ),
+    orderDirection,
+    sortBy,
+  });
+
+  const response: GetRepliesResponse = {
+    last: pageSize * pageNumber > sortedCollection.length - pageSize,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    totalElements: sortedCollection.length,
+    totalPages: Math.ceil(sortedCollection.length / pageSize),
+    replies:
+      pageSize * pageNumber < sortedCollection.length
+        ? sortedCollection.slice(
+            pageSize * pageNumber,
+            pageSize * pageNumber + pageSize
           )
-        );
-      }
-      const response: GetRepliesResponse = {
-        last: true,
-        pageNumber: pageNumber === 0 ? pageNumber : parseInt(pageNumber),
-        pageSize: pageSize === 10 ? pageSize : parseInt(pageSize),
-        totalElements: 2,
-        totalPages: 1,
-        replies: repliesCollectionStub,
-      };
-      return HttpResponse.json(response);
-    }
-  ),
+        : [],
+  };
+  return HttpResponse.json(response);
+});
 
-  // get single reply
-  http.get<
-    GetSingleReplyParams,
-    {},
-    ReplyRepresentation | BadRequest400ResponseType
-  >(getSingleReplyPath, async ({ request, params, cookies }) => {
-    const { id } = params;
+export const getSingleReply = http.get<
+  GetSingleReplyParams,
+  {},
+  ReplyRepresentation | BadRequest400ResponseType
+>(getSingleReplyPath, async ({ request, params, cookies }) => {
+  const { id } = params;
+  validateId({ id, path: getSingleReplyPath });
 
-    if (!/^[1-9]\d*$/.test(id)) {
-      return HttpResponse.json(
-        generateErrorResponseBody(
-          "Bad Request",
-          getSingleReplyPath,
-          "invalid id"
-        )
-      );
-    }
-    const response: ReplyRepresentation = {
-      ...replyStub,
-      id: parseInt(id),
-    };
-    return HttpResponse.json(response);
-  }),
+  const reply = repliesCollectionStub.find((r) => r.id === parseInt(id));
 
-  // addReply
-  http.post<
-    {},
-    AddReplyRequest,
-    ReplyRepresentation | BadRequest400ResponseType
-  >(addReplyPath, async ({ params, request, cookies }) => {
-    // Permission.USER_CREATE
+  if (reply == null) {
+    // or check for reply === undefined
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Not Found",
+        getSingleReplyPath,
+        "reply not found"
+      ),
+      { status: 404 }
+    );
+  }
 
-    const data = await request.formData();
-    let body = data.get("body");
-    let parentCommentId = data.get("parentCommentId");
+  return HttpResponse.json(reply);
+});
 
-    if (body && parentCommentId) {
-      body = body as string; // FormData.get() returns a value of type string | File | null.
-      parentCommentId = parentCommentId as string; // FormData.get() returns a value of type string | File | null.
+export const addReply = http.post<
+  {},
+  AddReplyRequest,
+  ReplyRepresentation | BadRequest400ResponseType
+>(addReplyPath, async ({ params, request, cookies }) => {
+  const username = isAuthenticated(request, addReplyPath);
 
-      parentCommentId = parentCommentId as string;
-      if (body.length < 1 || body.length > 300) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            addReplyPath,
-            "Invalid body length"
-          )
-        );
-      }
+  const data = await request.formData();
+  let body = data.get("body");
+  let parentCommentId = data.get("parentCommentId");
 
-      if (!/^[1-9]\d*$/.test(parentCommentId)) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            addReplyPath,
-            "Invalid parent commend id"
-          )
-        );
-      }
+  if (body !== null && parentCommentId !== null) {
+    body = body as string; // FormData.get() returns a value of type string | File | null.
+    parentCommentId = parentCommentId as string; // FormData.get() returns a value of type string | File | null.
 
-      const response: ReplyRepresentation = {
-        ...replyStub,
-        body,
-        parentComment: {
-          id: parseInt(parentCommentId),
-          author: {
-            id: 1,
-            name: "user",
-            createdAt: "2023-10-15T20:30:38",
-            updatedAt: "2023-10-15T20:30:38",
-            role: "USER",
-          },
-          body: "parent comment body",
-          gameName: "Snake",
-          createdAt: "2023-10-15T20:30:38",
-          updatedAt: "2023-10-15T20:30:38",
-        },
-      };
-
-      return HttpResponse.json(response, {
-        status: 201,
-        statusText: "created /replies/1",
-      });
-    } else {
+    if (body.length < 1 || body.length > 300) {
       return HttpResponse.json(
         generateErrorResponseBody(
           "Bad Request",
           addReplyPath,
-          "missing request body field"
+          "Invalid body length"
         )
       );
     }
-  }),
 
-  // editReply
-  http.patch<
-    EditReplyParams,
-    EditReplyRequest,
-    ReplyRepresentation | BadRequest400ResponseType
-  >(editReplyPath, async ({ request, params, cookies }) => {
-    // Permission.USER_UPDATE
+    if (!/^[1-9]\d*$/.test(parentCommentId)) {
+      return HttpResponse.json(
+        generateErrorResponseBody(
+          "Bad Request",
+          addReplyPath,
+          "Invalid parentCommendId"
+        )
+      );
+    }
+    const parentComment = commentsCollectionStub.find(
+      (comment) => comment.id === parseInt(parentCommentId as string)
+    );
+    if (parentComment == null) {
+      const responseBody = generateErrorResponseBody(
+        "Not Found",
+        addReplyPath,
+        "comment not found"
+      );
+      throw HttpResponse.json(responseBody, { status: 404 });
+    }
 
-    await isAuthenticated(request, editReplyPath);
+    const signedUser = usersCollectionStub.find(
+      (user) => user.name === username
+    );
+    if (signedUser == null) {
+      const responseBody = generateErrorResponseBody(
+        "Not Found",
+        addReplyPath,
+        "user not found"
+      );
+      throw HttpResponse.json(responseBody, { status: 404 });
+    }
 
-    const data = await request.formData();
-    let newReplyBody = data.get("newReplyBody");
+    const now = new Date();
 
+    // three oneliners which handle search for next id:
+    const nextId =
+      repliesCollectionStub.reduce((a, b) => (a.id > b.id ? a : b)).id + 1; // time complexity:  O(n)
+    // const nextId = commentsCollectionStub.sort((a, b) => b.id - a.id)[0].id +1; // time complexity:  O(nlogn)
+    // const nextId:number = Math.max(...commentsCollectionStub.map(comm=>comm.id)) +1;     // time complexity: >O(2n)
+
+    const response: ReplyRepresentation = {
+      body,
+      createdAt: now.toISOString().split(".")[0],
+      updatedAt: now.toISOString().split(".")[0],
+      author: signedUser,
+      id: nextId,
+      parentComment: parentComment,
+    };
+
+    return HttpResponse.json(response, {
+      status: 201,
+      statusText: "created /replies/" + nextId,
+    });
+  } else {
+    return HttpResponse.json(
+      generateErrorResponseBody(
+        "Bad Request",
+        addReplyPath,
+        "field is missing in the request body"
+      )
+    );
+  }
+});
+
+export const patchReply = http.patch<
+  PatchReplyParams,
+  PatchReplyRequest,
+  ReplyRepresentation | BadRequest400ResponseType
+>(patchReplyPath, async ({ request, params, cookies }) => {
+  const username = isAuthenticated(request, patchReplyPath);
+  const { id } = params;
+  validateId({ id, path: patchReplyPath });
+
+  const data = await request.formData();
+  let newReplyBody = data.get("newReplyBody");
+
+  if (newReplyBody !== null) {
     newReplyBody = newReplyBody as string; // FormData.get() returns a value of type string | File | null.
 
     if (newReplyBody.length < 1 && newReplyBody.length > 300) {
       return HttpResponse.json(
         generateErrorResponseBody(
           "Bad Request",
-          editReplyPath,
+          patchReplyPath,
           "Reply body must contain between 1 and 300 characters."
         )
       );
     }
 
-    const response: ReplyRepresentation = {
-      ...replyStub,
-      body: newReplyBody,
-    };
+    const reply = repliesCollectionStub.find((r) => r.id === parseInt(id));
+    if (reply == null) {
+      // or check for comment === undefined
+      throw HttpResponse.json(
+        generateErrorResponseBody(
+          "Not Found",
+          patchReplyPath,
+          "reply not found"
+        ),
+        { status: 404 }
+      );
+    }
 
-    return HttpResponse.json(response);
-  }),
+    const signedUser = usersCollectionStub.find(
+      (user) => user.name === username
+    );
+    if (signedUser == null) {
+      const responseBody = generateErrorResponseBody(
+        "Not Found",
+        patchReplyPath,
+        "user not found"
+      );
+      throw HttpResponse.json(responseBody, { status: 404 });
+    }
 
-  // deleteReply
-  http.delete<DeleteReplyParams, {}, DeleteReplyResponse>(
-    deleteReplyPath,
-    async ({ request, params, cookies }) => {
-      // user:delete or ROLE_ADMIN
-      const { id } = params;
-      if (!/^[1-9]\d*$/.test(id)) {
-        return HttpResponse.json(
-          generateErrorResponseBody(
-            "Bad Request",
-            getSingleReplyPath,
-            "invalid id"
-          )
-        );
-      }
-      await isAuthenticated(request, deleteReplyPath);
-      const response: DeleteReplyResponse = {
-        message: "Reply successfully removed",
+    if (reply.author.name === username || signedUser.role === "ADMIN") {
+      const now = new Date();
+      const response: ReplyRepresentation = {
+        ...reply,
+        updatedAt: now.toISOString().split(".")[0],
+        body: newReplyBody,
       };
       return HttpResponse.json(response);
+    } else {
+      throw HttpResponse.json(
+        generateErrorResponseBody(
+          "Forbidden",
+          patchReplyPath,
+          "you do not have permission to perform actions on this entity"
+        )
+      );
     }
-  ),
-];
+  } else {
+    return HttpResponse.json(
+      generateErrorResponseBody(
+        "Bad Request",
+        addReplyPath,
+        "field is missing in the request body"
+      )
+    );
+  }
+});
+
+export const deleteReply = http.delete<
+  DeleteReplyParams,
+  {},
+  DeleteReplyResponse
+>(deleteReplyPath, async ({ request, params, cookies }) => {
+  // user:delete or ROLE_ADMIN
+  const username = await isAuthenticated(request, deleteReplyPath);
+
+  const { id } = params;
+  validateId({ id, path: deleteReplyPath });
+
+  const reply = repliesCollectionStub.find((r) => r.id === parseInt(id));
+  if (reply == null) {
+    // or check for comment === undefined
+    return HttpResponse.json(
+      generateErrorResponseBody(
+        "Not Found",
+        deleteReplyPath,
+        "comment not found"
+      ),
+      { status: 404 }
+    );
+  }
+
+  const signedUser = usersCollectionStub.find((user) => user.name === username);
+  if (signedUser == null) {
+    const responseBody = generateErrorResponseBody(
+      "Not Found",
+      deleteReplyPath,
+      "user not found"
+    );
+    throw HttpResponse.json(responseBody, { status: 404 });
+  }
+
+  if (reply.author.name === username || signedUser.role === "ADMIN") {
+    repliesCollectionStub.splice(
+      repliesCollectionStub.findIndex((r) => r.id === reply.id),
+      1
+    );
+
+    const response: DeleteReplyResponse = {
+      message: "Reply successfully removed",
+    };
+    return HttpResponse.json(response);
+  } else {
+    throw HttpResponse.json(
+      generateErrorResponseBody(
+        "Forbidden",
+        deleteReplyPath,
+        "you do not have permission to perform actions on this entity"
+      ),
+      { status: 403 }
+    );
+  }
+});
 
 export const getSingleReply_ReplyNotFound = http.patch<
   GetSingleReplyParams,
@@ -328,13 +350,13 @@ export const deleteReply_ReplyNotFound = http.patch<
   );
 });
 
-export const editReply_ReplyNotFound = http.patch<
-  EditReplyParams,
+export const patchReply_ReplyNotFound = http.patch<
+  PatchReplyParams,
   {},
   NotFound404ResponseType
->(editReplyPath, async ({ params, request, cookies }) => {
+>(patchReplyPath, async ({ params, request, cookies }) => {
   return HttpResponse.json(
-    generateErrorResponseBody("Not Found", editReplyPath, "reply not found"),
+    generateErrorResponseBody("Not Found", patchReplyPath, "reply not found"),
     { status: 404 }
   );
 });
@@ -384,15 +406,15 @@ export const addReply_InternalServerError = http.post<
   );
 });
 
-export const editReply_InternalServerError = http.patch<
-  EditReplyParams,
-  EditReplyRequest,
+export const patchReply_InternalServerError = http.patch<
+  PatchReplyParams,
+  PatchReplyRequest,
   InternalServerError500ResponseType
->(editReplyPath, async ({ params, request, cookies }) => {
+>(patchReplyPath, async ({ params, request, cookies }) => {
   return HttpResponse.json(
     generateErrorResponseBody(
       "Internal Server Error",
-      editReplyPath,
+      patchReplyPath,
       "Internal Server Error"
     ),
     { status: 500 }
@@ -413,3 +435,25 @@ export const deleteReply_InternalServerError = http.delete<
     { status: 500 }
   );
 });
+
+export const handlers = [
+  getRepliesFeed,
+  getSingleReply,
+  addReply,
+  patchReply,
+  deleteReply,
+];
+
+export const internalServerErrorHandlers = [
+  getRepliesFeed_InternalServerError,
+  getSingleReply_InternalServerError,
+  addReply_InternalServerError,
+  patchReply_InternalServerError,
+  deleteReply_InternalServerError,
+];
+
+export const userNotFoundHandlers = [
+  getSingleReply_ReplyNotFound,
+  patchReply_ReplyNotFound,
+  deleteReply_ReplyNotFound,
+];
