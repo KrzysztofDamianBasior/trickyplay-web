@@ -1,12 +1,14 @@
 import { DefaultBodyType, HttpResponse, StrictRequest } from "msw";
-import { Unauthorized401ResponseType } from "../../../shared/resources/externalApiRepresentation/Errors";
 import generateErrorResponseBody from "./generateErrorResponseBody";
+import { Unauthorized401ResponseType } from "../../../shared/models/externalApiRepresentation/Errors";
 
 export function isAuthenticated(
   request: StrictRequest<DefaultBodyType>,
   path: string
-) {
-  if (!request.headers.get("Authorization")?.startsWith("Bearer")) {
+): string {
+  if (request.headers.get("Authorization")?.startsWith("Bearer ")) {
+    return request.headers.get("Authorization")?.split(" ")[1] as string;
+  } else {
     const responseBody: Unauthorized401ResponseType = generateErrorResponseBody(
       "Unauthorized",
       path,
