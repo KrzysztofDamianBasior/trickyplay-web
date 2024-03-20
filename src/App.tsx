@@ -30,21 +30,21 @@ import useDialogs from "./shared/services/dialogs/useDialogs";
 import { DialogsContext } from "./shared/services/dialogs/DialogsContext";
 
 //lazy loading
-const TicTacToe = lazy(() => {
+const TicTacToe = lazy(async () => {
   return Promise.all([
     import("./pages/TicTacToe"),
     new Promise((resolve) => setTimeout(resolve, 6000)),
   ]).then(([moduleExports]) => moduleExports);
 });
 
-const Snake = lazy(() => {
+const Snake = lazy(async () => {
   return Promise.all([
     import("./pages/Snake"),
     new Promise((resolve) => setTimeout(resolve, 6000)),
   ]).then(([moduleExports]) => moduleExports);
 });
 
-const Minesweeper = lazy(() => {
+const Minesweeper = lazy(async () => {
   return Promise.all([
     import("./pages/Minesweeper"),
     new Promise((resolve) => setTimeout(resolve, 6000)),
@@ -59,11 +59,13 @@ function App() {
     axiosPrivate,
     axiosPublic,
     signIn,
-    signOut,
     signUp,
-    deleteMyAccount,
-    updateMyPassword,
-    updateMyUsername,
+    updateUsername,
+    updatePassword,
+    singleSessionSignOut,
+    allSessionsSignOut,
+    deleteAccount,
+    accountActivitySummary,
   } = useAccount();
   const {
     closeSnackbar,
@@ -148,26 +150,28 @@ function App() {
 
   return (
     <div className="app">
-      <AccountContext.Provider
-        value={{
-          authState,
-          axiosPrivate,
-          axiosPublic,
-          signIn,
-          signOut,
-          signUp,
-          deleteMyAccount,
-          updateMyPassword,
-          updateMyUsername,
-        }}
-      >
-        <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
-          <DialogsContext.Provider
+      <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
+        <DialogsContext.Provider
+          value={{
+            deleteEntitiesConfirmationDialogManager,
+            changePasswordDialogManager,
+            changeUsernameDialogManager,
+            deleteAccountConfirmationDialogManager,
+          }}
+        >
+          <AccountContext.Provider
             value={{
-              deleteEntitiesConfirmationDialogManager,
-              changePasswordDialogManager,
-              changeUsernameDialogManager,
-              deleteAccountConfirmationDialogManager,
+              authState,
+              axiosPrivate,
+              axiosPublic,
+              signIn,
+              signUp,
+              allSessionsSignOut,
+              singleSessionSignOut,
+              accountActivitySummary,
+              deleteAccount,
+              updatePassword,
+              updateUsername,
             }}
           >
             <MUIThemeProvider theme={themeOptions}>
@@ -215,9 +219,9 @@ function App() {
                 />
               </AnimatePresence>
             </MUIThemeProvider>
-          </DialogsContext.Provider>
-        </NotificationContext.Provider>
-      </AccountContext.Provider>
+          </AccountContext.Provider>
+        </DialogsContext.Provider>
+      </NotificationContext.Provider>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useContext, useRef } from "react";
 import { useLocalStorage } from "usehooks-ts";
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 
 import {
   type AuthStateType,
@@ -19,7 +19,7 @@ import {
 } from "./AccountContext";
 import { NotificationContext } from "../snackbars/NotificationsContext";
 import { getEnvironmentVariable, mapResponseErrorToMessage } from "../../utils";
-import { type UserDetailsType } from "../api/useUsersAPIFacade";
+import { type UserDetailsType } from "../../models/internalAppRepresentation/resources";
 
 // Base urls
 const BASE_URL: string = getEnvironmentVariable(
@@ -50,6 +50,8 @@ const ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT: string = getEnvironmentVariable(
 
 export const axiosPublic = axios.create({
   baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
 export const axiosPrivate = axios.create({
@@ -70,7 +72,9 @@ export default function useAccount(): AccountContextType {
     "AUTH_STATE",
     authInitialState
   );
+
   const { openSnackbar } = useContext(NotificationContext);
+
   // Flag to prevent multiple token refresh requests
   const isRefreshing = useRef<boolean>(false);
 
@@ -80,10 +84,7 @@ export default function useAccount(): AccountContextType {
   useEffect(() => {
     const requestIntercept = axiosPrivate.interceptors.request.use(
       (config) => {
-        if (!config.headers["Authorization"]) {
-          config.headers["Authorization"] = `Bearer ${authState?.accessToken}`;
-        }
-        console.log("auth token has been set");
+        config.headers["Authorization"] = `Bearer ${authState.accessToken}`;
         return config;
       },
       (error) => Promise.reject(error)
@@ -115,7 +116,6 @@ export default function useAccount(): AccountContextType {
             isRefreshing.current = true;
             const response = await axiosPublic.post(
               // POST {{api-url}}/auth/refresh-access-token
-              // "refreshToken": "{{refresh-token}}"
               AUTH_URL + REFRESH_ACCESS_TOKEN_ENDPOINT,
               { refreshToken: authState.refreshToken },
               { withCredentials: true }
@@ -157,7 +157,7 @@ export default function useAccount(): AccountContextType {
               // You can clear all storage and redirect the user to the login page
               openSnackbar({
                 title: "authentication actions failed",
-                body: "access token failed to renew",
+                body: "access token failed to renew, you will be logged out in a moment",
                 severity: "error",
               });
 
@@ -169,6 +169,11 @@ export default function useAccount(): AccountContextType {
             }
           } else {
             return new Promise<void>((resolve, reject) => {
+              openSnackbar({
+                title: "the access token renewal process is in progress",
+                body: "the task has been moved to the action queue- waiting for access token renewal",
+                severity: "error",
+              });
               refreshAndRetryQueue.current.push({
                 config: originalRequest,
                 resolve,
@@ -185,12 +190,13 @@ export default function useAccount(): AccountContextType {
       axiosPrivate.interceptors.request.eject(requestIntercept);
       axiosPrivate.interceptors.response.eject(responseIntercept);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authState.accessToken, authState.refreshToken]);
 
   const singleSessionSignOut = async (): SignOutResultType => {
     if (authState.user !== null) {
       try {
-        const response = await axios.post(
+        const response = await axiosPublic.post(
           AUTH_URL + SINGLE_SESSION_SIGN_OUT_ENDPOINT,
           // POST {{api-url}}/auth/single-session-sign-out
           // {
@@ -214,7 +220,7 @@ export default function useAccount(): AccountContextType {
         };
       } catch (err: any) {
         openSnackbar({
-          title: `actions could not be performed`,
+          title: `all actions could not be performed`,
           body: mapResponseErrorToMessage(err),
           severity: "error",
         });
@@ -226,7 +232,7 @@ export default function useAccount(): AccountContextType {
     } else {
       openSnackbar({
         title: `actions could not be performed`,
-        body: "authorization failed",
+        body: "you are not logged in",
         severity: "error",
       });
       return {
@@ -239,7 +245,7 @@ export default function useAccount(): AccountContextType {
   const allSessionsSignOut = async (): SignOutResultType => {
     if (authState.user !== null) {
       try {
-        const response = await axios.post(
+        const response = await axiosPublic.post(
           AUTH_URL + ALL_SESSIONS_SIGN_OUT_ENDPOINT
           // POST {{api-url}}/auth/all-sessions-sign-out
 
@@ -273,7 +279,7 @@ export default function useAccount(): AccountContextType {
     } else {
       openSnackbar({
         title: `actions could not be performed`,
-        body: "authorization failed",
+        body: "you are not logged in",
         severity: "error",
       });
       return {
