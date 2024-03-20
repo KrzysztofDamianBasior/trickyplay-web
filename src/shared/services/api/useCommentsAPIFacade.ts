@@ -1,51 +1,20 @@
 import { useContext } from "react";
 
-import { AccountContext } from "../account/AccountContext";
-import { mapResponseErrorToMessage, wait } from "../../utils";
-import { ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
-import { UserDetailsType } from "./useUsersAPIFacade";
-import { GameNameType } from "../games/gamesDetails";
+import { AccountContext, type AuthStateType } from "../account/AccountContext";
 import { NotificationContext } from "../snackbars/NotificationsContext";
+import { type CommentDetailsType } from "../../models/internalAppRepresentation/resources";
+import { type ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
+import { getEnvironmentVariable, mapResponseErrorToMessage } from "../../utils";
 
-export type CommentDetailsType = {
-  id: string;
-  body: string;
-  author: UserDetailsType;
-  createdAt: string;
-  lastUpdatedAt: string;
-  gameName: GameNameType;
-};
+const COMMENTS_URL: string = getEnvironmentVariable("REACT_APP_COMMENTS_URL");
+const COMMENTS_FEED_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_COMMENTS_FEED_ENDPOINT"
+);
 
-export const comments: CommentDetailsType[] = [
-  {
-    id: "1",
-    body: "First comment",
-    author: {
-      id: "1",
-      name: "Dinotrex",
-      roles: ["User"],
-      createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
-      lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
-    },
-    createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
-    lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
-    gameName: "Minesweeper",
-  },
-  {
-    id: "2",
-    body: "Second comment",
-    author: {
-      id: "2",
-      name: "Margary",
-      roles: ["User"],
-      createdAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
-      lastUpdatedAt: "2023-08-06T11:23:36.172Z", // ISO-8601 stored in UTC
-    },
-    createdAt: "2023-08-06T11:24:14.887Z", // ISO-8601 stored in UTC
-    lastUpdatedAt: "2023-08-06T11:24:14.887Z", // ISO-8601 stored in UTC
-    gameName: "Minesweeper",
-  },
-];
+const USERS_URL: string = getEnvironmentVariable("REACT_APP_USERS_URL");
+const USER_COMMENTS_ENDPOINT: string = getEnvironmentVariable(
+  "REACT_APP_USER_COMMENTS_ENDPOINT"
+);
 
 export type DeleteCommentProps = {
   id: string;
@@ -62,16 +31,29 @@ export type GetCommentResultType = Promise<{
   comment: CommentDetailsType | null;
 }>;
 
-export type GetCommentsProps = {
+export type GetCommentsByAuthorProps = {
+  authorId: string;
+  pageNumber: number;
+  pageSize: number;
+  sortBy: string;
+  orderDirection: string;
+};
+export type GetCommentsByGameNameProps = {
   gameName: string;
-  page: number;
-  perPage: number;
+  pageNumber: number;
+  pageSize: number;
+  sortBy: string;
+  orderDirection: string;
 };
 export type GetCommentsResultType = Promise<{
   status: number;
   message: ErrorMessageKind | "Success";
   comments: CommentDetailsType[] | null;
-  totalNumberOfComments: number | null;
+  totalElements: number;
+  totalPages: number;
+  pageSize: number;
+  pageNumber: number;
+  isLast: boolean;
 }>;
 
 export type CreateCommentProps = {
@@ -86,7 +68,7 @@ export type CreateCommentResultType = Promise<{
 
 export type UpdateCommentProps = {
   id: string;
-  body: string;
+  newCommentBody: string;
 };
 export type UpdateCommentResultType = Promise<{
   status: number;
@@ -95,7 +77,12 @@ export type UpdateCommentResultType = Promise<{
 }>;
 
 export type CommentsActionsType = {
-  getComments: (getCommentsProps: GetCommentsProps) => GetCommentsResultType;
+  getCommentsByAuthor: (
+    getCommentsProps: GetCommentsByAuthorProps
+  ) => GetCommentsResultType;
+  getCommentsByGameName: (
+    getCommentsProps: GetCommentsByGameNameProps
+  ) => GetCommentsResultType;
   getComment: (getCommentProps: GetCommentProps) => GetCommentResultType;
   createComment: (
     createCommentProps: CreateCommentProps
@@ -106,161 +93,119 @@ export type CommentsActionsType = {
   deleteComment: (
     deleteCommentProps: DeleteCommentProps
   ) => DeleteCommentResultType;
-  // getCommentsWithReplies: (
-  //   getCommentsProps: GetCommentsProps
-  // ) => GetCommentsWithRepliesResultType;
-  // getCommentWithReplies: (
-  //   getCommentProps: GetCommentProps
-  // ) => GetCommentWithRepliesResultType;
+  authState: AuthStateType;
 };
 
-type Props = {
-  userId: string | null;
-};
-
-export default function useCommentsAPIFacade({
-  userId = null,
-}: Props): CommentsActionsType {
+export default function useCommentsAPIFacade(): CommentsActionsType {
   const { axiosPrivate, axiosPublic, authState } = useContext(AccountContext);
   const { openSnackbar } = useContext(NotificationContext);
-  const COMMENTS_URL = process.env.REACT_APP_COMMENTS_URL;
 
   const deleteComment = async ({
     id,
   }: DeleteCommentProps): DeleteCommentResultType => {
-    try {
-      if (authState.user !== null) {
-        //   const response = await axiosPrivate.delete(
-        //     COMMENTS_URL,
-        //     JSON.stringify({
-        //       id
-        //     }),
-        //     {
-        //       headers: { "Content-Type": "application/json" },
-        //       withCredentials: true,
-        //     }
-        //   );
-        //   console.log(JSON.stringify(response?.data));
-        //   console.log(JSON.stringify(response));
-        await wait(0, 500);
-        const commentIndex: number = comments.findIndex(
-          (comment) => comment.id === id
-        );
-        if (commentIndex !== -1) {
-          comments.splice(commentIndex);
-          openSnackbar({
-            title: `successfully performed actions on the comment with id: ${id}`,
-            body: "comment removed successfully",
-            severity: "success",
-          });
-          return {
-            message: "Success",
-            status: 200,
-          };
-        } else {
-          openSnackbar({
-            title: `failed to perform actions on the comment with id: ${id}`,
-            body: "comment not found",
-            severity: "error",
-          });
-          return {
-            message: "Not found",
-            status: 404,
-          };
-        }
-      } else {
+    if (authState.user !== null) {
+      try {
+        const response = await axiosPrivate.delete(COMMENTS_URL + "/" + id); // {{api-url}}/comments/:id
+        // response.data.message
         openSnackbar({
-          title: `failed to perform actions on the comment with id: ${id}`,
-          body: "you do not have sufficient permissions",
+          title: `Successfully performed actions on the comment with id: ${id}`,
+          body: "Comment removed successfully",
+          severity: "success",
+        });
+        return {
+          message: "Success",
+          status: response.status,
+        };
+      } catch (err: any) {
+        openSnackbar({
+          title: `Failed to perform actions on the comment with id: ${id}`,
+          body: mapResponseErrorToMessage(err),
           severity: "error",
         });
         return {
-          message: "Lack of sufficient permissions",
-          status: 401,
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
         };
       }
-    } catch (err: any) {
+    } else {
       openSnackbar({
-        title: `failed to perform actions on the comment with id: ${id}`,
-        body: mapResponseErrorToMessage(err),
+        title: `Failed to perform actions on the comment with id: ${id}`,
+        body: "You are not logged in",
         severity: "error",
       });
       return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
+        message: "Lack of sufficient permissions",
+        status: 401,
       };
     }
   };
 
   const updateComment = async ({
     id,
-    body,
+    newCommentBody,
   }: UpdateCommentProps): UpdateCommentResultType => {
-    try {
-      if (authState.user !== null) {
-        //   const response = await axiosPrivate.patch(
-        //     COMMENTS_URL,
-        //     JSON.stringify({
-        //       id, body
-        //     }),
-        //     {
-        //       headers: { "Content-Type": "application/json" },
-        //       withCredentials: true,
-        //     }
-        //   );
-        //   console.log(JSON.stringify(response?.data));
-        //   console.log(JSON.stringify(response));
-        await wait(0, 500);
-        const now = new Date();
-        const comment: CommentDetailsType | undefined = comments.find(
-          (comment) => comment.id === id
+    if (authState.user !== null) {
+      try {
+        const response = await axiosPrivate.patch(
+          //  {{api-url}}/comments/:id
+          // {
+          //   "newCommentBody": "asdf"
+          // }
+          COMMENTS_URL + "/" + id,
+          {
+            newCommentBody,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
         );
-        if (comment) {
-          comment.body = body;
-          comment.lastUpdatedAt = now.toISOString();
-          openSnackbar({
-            title: `successfully performed actions on the comment with id: ${id}`,
-            body: "comment updated successfully",
-            severity: "error",
-          });
-          return {
-            comment,
-            message: "Success",
-            status: 200,
-          };
-        } else {
-          openSnackbar({
-            title: `failed to perform actions on the comment with id: ${id}`,
-            body: "comment not found",
-            severity: "error",
-          });
-          return {
-            message: "Not found",
-            status: 404,
-            comment: null,
-          };
-        }
-      } else {
+        const newCommentDetails: CommentDetailsType = {
+          author: {
+            id: response.data.author.id,
+            name: response.data.author.name,
+            role: response.data.author.role,
+            createdAt: response.data.author.createdAt,
+            updatedAt: response.data.author.updatedAt,
+          },
+          id: response.data.id,
+          body: response.data.body,
+          gameName: response.data.gameName,
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
+        };
+
         openSnackbar({
-          title: `failed to perform actions on the comment with id: ${id}`,
-          body: "you do not have sufficient permissions",
+          title: `Successfully performed actions on the comment with id: ${id}`,
+          body: "Comment updated successfully",
           severity: "error",
         });
         return {
-          message: "Lack of sufficient permissions",
-          status: 401,
+          comment: newCommentDetails,
+          message: "Success",
+          status: response.status,
+        };
+      } catch (err: any) {
+        openSnackbar({
+          title: `Failed to perform actions on the comment with id: ${id}`,
+          body: mapResponseErrorToMessage(err),
+          severity: "error",
+        });
+        return {
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
           comment: null,
         };
       }
-    } catch (err: any) {
+    } else {
       openSnackbar({
-        title: `failed to perform actions on the comment with id: ${id}`,
-        body: mapResponseErrorToMessage(err),
+        title: `Failed to perform actions on the comment with id: ${id}`,
+        body: "You are not logged in",
         severity: "error",
       });
       return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
+        message: "Lack of sufficient permissions",
+        status: 401,
         comment: null,
       };
     }
@@ -270,63 +215,71 @@ export default function useCommentsAPIFacade({
     body,
     gameName,
   }: CreateCommentProps): CreateCommentResultType => {
-    try {
-      //   const response = await axiosPrivate.post(
-      //     COMMENTS_URL,
-      //     JSON.stringify({
-      //       body,
-      //       parentId
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      if (authState.user !== null) {
-        const now = new Date();
-        const comment: CommentDetailsType = {
-          author: authState.user,
-          body,
-          gameName: "Minesweeper",
-          id: Math.random().toString(36).substr(2, 9),
-          createdAt: now.toISOString(),
-          lastUpdatedAt: now.toISOString(),
+    if (authState.user !== null) {
+      try {
+        const response = await axiosPrivate.post(
+          // POST {{api-url}}/comments
+          //   {
+          //     "body": "asdf",
+          //     "gameName": "Snake"
+          //   }
+          COMMENTS_URL,
+          {
+            body,
+            gameName,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+
+        const newCommentDetails: CommentDetailsType = {
+          author: {
+            id: response.data.author.id,
+            name: response.data.author.name,
+            role: response.data.author.role,
+            createdAt: response.data.author.createdAt,
+            updatedAt: response.data.author.updatedAt,
+          },
+          body: response.data.body,
+          id: response.data.id,
+          gameName: response.data.gameName,
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
         };
-        comments.push(comment);
-        await wait(0, 500);
+
         openSnackbar({
-          title: `successfully performed actions on the comment with id: ${comment.id}`,
-          body: "comment created successfully",
+          title: `Successfully performed actions on the comment with id: ${newCommentDetails.id}`,
+          body: "Comment created successfully",
           severity: "error",
         });
         return {
-          comment,
+          comment: newCommentDetails,
           message: "Success",
-          status: 200,
+          status: response.status,
         };
-      } else {
+      } catch (err: any) {
         openSnackbar({
-          title: `failed to create new comment`,
-          body: "you do not have sufficient permissions",
+          title: `Failed to create new comment`,
+          body: mapResponseErrorToMessage(err),
           severity: "error",
         });
         return {
-          message: "Lack of sufficient permissions",
-          status: 401,
+          message: mapResponseErrorToMessage(err),
+          status: err.response?.status,
           comment: null,
         };
       }
-    } catch (err: any) {
+    } else {
       openSnackbar({
-        title: `failed to create new comment`,
-        body: mapResponseErrorToMessage(err),
+        title: `Failed to create new comment`,
+        body: "You are not logged in",
         severity: "error",
       });
       return {
-        message: mapResponseErrorToMessage(err),
-        status: err.response?.status,
+        message: "Lack of sufficient permissions",
+        status: 401,
         comment: null,
       };
     }
@@ -334,44 +287,36 @@ export default function useCommentsAPIFacade({
 
   const getComment = async ({ id }: GetCommentProps): GetCommentResultType => {
     try {
-      //   const response = await axiosPublic.get(
-      //     COMMENTS_URL,
-      //     JSON.stringify({id}),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      const comment = comments.find((comment) => comment.id === id);
-      await wait(0, 500);
-      if (comment) {
-        openSnackbar({
-          title: "success",
-          body: `successfully performed actions on the comment with id: ${comment.id}`,
-          severity: "success",
-        });
-        return {
-          comment,
-          message: "Success",
-          status: 200,
-        };
-      } else {
-        openSnackbar({
-          title: `failed to perform actions on the comment with id: ${id}`,
-          body: "comment not found",
-          severity: "error",
-        });
-        return {
-          message: "Not found",
-          status: 404,
-          comment: null,
-        };
-      }
+      const response = await axiosPublic.get(COMMENTS_URL + "/" + id); // GET {{api-url}}/comments/:id
+
+      const newCommentDetails: CommentDetailsType = {
+        author: {
+          id: response.data.author.id,
+          name: response.data.author.name,
+          role: response.data.author.role,
+          createdAt: response.data.author.createdAt,
+          updatedAt: response.data.author.updatedAt,
+        },
+        body: response.data.body,
+        id: response.data.id,
+        gameName: response.data.gameName,
+        createdAt: response.data.createdAt,
+        updatedAt: response.data.updatedAt,
+      };
+
+      openSnackbar({
+        title: "Success",
+        body: `Successfully performed actions on the comment with id: ${newCommentDetails.id}`,
+        severity: "success",
+      });
+      return {
+        comment: newCommentDetails,
+        message: "Success",
+        status: response.status,
+      };
     } catch (err: any) {
       openSnackbar({
-        title: `failed to perform actions on the comment with id: ${id}`,
+        title: `Failed to perform actions on the comment with id: ${id}`,
         body: mapResponseErrorToMessage(err),
         severity: "error",
       });
@@ -383,56 +328,68 @@ export default function useCommentsAPIFacade({
     }
   };
 
-  const getComments = async ({
+  const getCommentsByGameName = async ({
     gameName,
-    page,
-    perPage,
-  }: GetCommentsProps): GetCommentsResultType => {
+    orderDirection,
+    pageNumber,
+    pageSize,
+    sortBy,
+  }: GetCommentsByGameNameProps): GetCommentsResultType => {
+    // const offset = page * perPage - perPage;
     try {
-      //   const response = await axiosPublic.get(
-      //     COMMENTS_URL,
-      //     JSON.stringify({
-      //       gameName
-      //       page,
-      //       perPage,
-      //     }),
-      //     {
-      //       headers: { "Content-Type": "application/json" },
-      //       withCredentials: true,
-      //     }
-      //   );
-      //   console.log(JSON.stringify(response?.data));
-      //   console.log(JSON.stringify(response));
-      await wait(0, 500);
-      const offset = page * perPage - perPage;
-
-      let commentsSet: CommentDetailsType[] = [];
-      if (offset > comments.length) {
-        if (offset + perPage < comments.length) {
-          commentsSet = comments
-            .filter((comm) => comm.gameName === gameName)
-            .slice(offset, offset + perPage);
-        } else {
-          commentsSet = comments
-            .filter((comm) => comm.gameName === gameName)
-            .slice(offset);
+      const response = await axiosPublic.get(
+        // GET {{api-url}}/comments/feed?gameName=Snake&pageNumber=0&pageSize=3&sortBy=id&orderDirection=Asc
+        COMMENTS_URL + COMMENTS_FEED_ENDPOINT,
+        {
+          params: {
+            gameName,
+            orderDirection,
+            pageNumber,
+            pageSize,
+            sortBy,
+          },
         }
-      }
-      // commentsSet.forEach((comment) => (comment.replies = null));
+      );
+      const comments: CommentDetailsType[] = response.data.comments.map(
+        function (
+          comment: CommentDetailsType & { _links: any },
+          index: number
+        ) {
+          return {
+            id: comment.id,
+            body: comment.body,
+            gameName: comment.gameName,
+            author: {
+              id: comment.author.id,
+              name: comment.author.name,
+              role: comment.author.role,
+              createdAt: comment.author.createdAt,
+              updatedAt: comment.author.updatedAt,
+            },
+            createdAt: comment.createdAt,
+            updatedAt: comment.updatedAt,
+          };
+        }
+      );
       openSnackbar({
-        title: "successfully performed actions on comments",
-        body: "comments fetched successfully",
+        title: "Successfully performed actions on comments",
+        body: "Comments fetched successfully",
         severity: "success",
       });
+
       return {
-        comments: commentsSet,
+        comments: comments,
         message: "Success",
-        status: 200,
-        totalNumberOfComments: comments.length,
+        status: response.status,
+        isLast: response.data.last,
+        pageNumber: response.data.pageNumber,
+        pageSize: response.data.pageSize,
+        totalElements: response.data.totalElements,
+        totalPages: response.data.totalPages,
       };
     } catch (err: any) {
       openSnackbar({
-        title: `failed to fetch comments`,
+        title: `Failed to fetch comments`,
         body: mapResponseErrorToMessage(err),
         severity: "error",
       });
@@ -440,7 +397,89 @@ export default function useCommentsAPIFacade({
         message: mapResponseErrorToMessage(err),
         status: err.response?.status,
         comments: null,
-        totalNumberOfComments: null,
+        isLast: false,
+        pageNumber: 0,
+        pageSize: 0,
+        totalElements: 0,
+        totalPages: 0,
+      };
+    }
+  };
+
+  const getCommentsByAuthor = async ({
+    authorId,
+    orderDirection,
+    pageNumber,
+    pageSize,
+    sortBy,
+  }: GetCommentsByAuthorProps): GetCommentsResultType => {
+    try {
+      // const offset = page * perPage - perPage;
+      const response = await axiosPublic.get(
+        // {{api-url}}/users/:id/comments?pageNumber=0&pageSize=3&sortBy=id&orderDirection=Asc
+        USERS_URL + "/" + authorId + USER_COMMENTS_ENDPOINT,
+        {
+          params: {
+            orderDirection,
+            pageNumber,
+            pageSize,
+            sortBy,
+          },
+        }
+      );
+
+      const comments: CommentDetailsType[] = response.data.comments.map(
+        function (
+          comment: CommentDetailsType & { _links: any },
+          index: number
+        ) {
+          return {
+            id: comment.id,
+            body: comment.body,
+            gameName: comment.gameName,
+            author: {
+              id: comment.author.id,
+              name: comment.author.name,
+              role: comment.author.role,
+              createdAt: comment.author.createdAt,
+              updatedAt: comment.author.updatedAt,
+            },
+            createdAt: comment.createdAt,
+            updatedAt: comment.updatedAt,
+          };
+        }
+      );
+
+      openSnackbar({
+        title: `Successfully fetched comments created by user with id ${authorId}`,
+        body: `${response.data.comments.length} out of ${response.data.totalElements} comments fetched`,
+        severity: "success",
+      });
+      return {
+        comments: comments,
+        message: "Success",
+        status: response.status,
+        isLast: response.data.last,
+        pageNumber: response.data.pageNumber,
+        pageSize: response.data.pageSize,
+        totalElements: response.data.totalElements,
+        totalPages: response.data.totalPages,
+      };
+    } catch (err: any) {
+      openSnackbar({
+        title: "Failed to fetch comments",
+        body: mapResponseErrorToMessage(err),
+        severity: "error",
+      });
+      return {
+        message: mapResponseErrorToMessage(err),
+        status: err.response?.status,
+        comments: null,
+        isLast: false,
+        pageNumber: 0,
+        pageSize: 0,
+        totalElements: 0,
+        totalPages: 0,
       };
     }
   };
@@ -450,6 +489,8 @@ export default function useCommentsAPIFacade({
     deleteComment,
     updateComment,
     getComment,
-    getComments,
+    getCommentsByAuthor,
+    getCommentsByGameName,
+    authState,
   };
 }
