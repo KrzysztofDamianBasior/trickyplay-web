@@ -1,5 +1,5 @@
-import { CommentDetailsType } from "../api/useCommentsAPIFacade";
-import { regroupEntities } from "../../utils";
+import { type CommentDetailsType } from "../../models/internalAppRepresentation/resources";
+import { calculateNumberOfPages, regroupEntities } from "../../utils";
 
 export const commentsPaginatedCollectionInitialState: CommentsPaginatedCollectionStateType =
   {
@@ -8,8 +8,8 @@ export const commentsPaginatedCollectionInitialState: CommentsPaginatedCollectio
     status: "LOADING",
     totalNumberOfAllComments: 50,
     activeComment: null,
-    // commentsPerPage: 10,
-    // commentsActivePage: 0,
+    commentsActivePage: 0,
+    commentsPerPage: 10,
   };
 
 export type CommentsPaginatedCollectionStateType = {
@@ -18,8 +18,8 @@ export type CommentsPaginatedCollectionStateType = {
   status: CommentsPaginatedCollectionStatusType;
   totalNumberOfAllComments: number;
   activeComment: ActiveCommentDetailsType;
-  // commentsActivePage: number;
-  // commentsPerPage: number;
+  commentsActivePage: number;
+  commentsPerPage: number;
 };
 
 export type CommentsPaginatedCollectionStatusType =
@@ -43,13 +43,15 @@ export type CommentsPaginatedCollectionActionType =
   | UpdateCommentActionType
   | SetTextAlignmentActionType
   | SetActiveCommentActionType
-  | SetCommentsLoadingActionType
-  // | SetActiveCommentsPageActionType
+  | SetCommentsStatusActionType
+  | SetActiveCommentsPageActionType
   | SetCommentsRowsPerPageActionType;
 
 export type AddCommentActionType = {
   type: "ADD_COMMENT";
-  payload: { comment: CommentDetailsType; commentsPerPage: number };
+  payload: {
+    comment: CommentDetailsType;
+  };
 };
 
 export type AddCommentsActionType = {
@@ -58,8 +60,6 @@ export type AddCommentsActionType = {
     comments: CommentDetailsType[];
     commentsPage: number;
     totalNumberOfAllComments: number;
-    commentsPerPage: number;
-    commentsActivePage: number;
   };
 };
 
@@ -82,15 +82,15 @@ export type SetActiveCommentActionType = {
   type: "SET_ACTIVE_COMMENT";
   payload: { commentId: string; type: "Editing" | "Replying" } | null;
 };
-export type SetCommentsLoadingActionType = {
+export type SetCommentsStatusActionType = {
   type: "SET_COMMENTS_STATUS";
   payload: { newStatus: CommentsPaginatedCollectionStatusType };
 };
 
-// export type SetActiveCommentsPageActionType = {
-//   type: "SET_ACTIVE_COMMENTS_PAGE";
-//   payload: { newActiveCommentsPage: number };
-// };
+export type SetActiveCommentsPageActionType = {
+  type: "SET_ACTIVE_COMMENTS_PAGE";
+  payload: { newActiveCommentsPage: number };
+};
 
 export type SetCommentsRowsPerPageActionType = {
   type: "SET_COMMENTS_PER_PAGE";
@@ -105,26 +105,28 @@ export function commentsPaginatedCollectionReducer(
     JSON.parse(JSON.stringify(state));
   let comment: CommentDetailsType | undefined | null = null;
 
+  const currentPaginatedCollectionLength =
+    state.commentsPaginatedCollection.length;
+  const indexOfLastPaginatedCollectionPage =
+    currentPaginatedCollectionLength - 1;
+
   switch (action.type) {
     case "ADD_COMMENT":
       // modifies: commentsPaginatedCollection, totalNumberOfAllComments
 
-      const newComment: CommentDetailsType = action.payload.comment;
-
-      const indexOfLastCommentsPage =
-        commentsSectionNewState.commentsPaginatedCollection.length - 1;
-
       if (
-        indexOfLastCommentsPage >= 0 &&
+        indexOfLastPaginatedCollectionPage >= 0 &&
         commentsSectionNewState.commentsPaginatedCollection[
-          indexOfLastCommentsPage
-        ].length < action.payload.commentsPerPage
+          indexOfLastPaginatedCollectionPage
+        ].length < commentsSectionNewState.commentsPerPage
       ) {
         commentsSectionNewState.commentsPaginatedCollection[
-          indexOfLastCommentsPage
-        ].push(newComment);
+          indexOfLastPaginatedCollectionPage
+        ].push(action.payload.comment);
       } else {
-        commentsSectionNewState.commentsPaginatedCollection.push([newComment]);
+        commentsSectionNewState.commentsPaginatedCollection.push([
+          action.payload.comment,
+        ]);
       }
 
       commentsSectionNewState.totalNumberOfAllComments += 1;
@@ -161,28 +163,34 @@ export function commentsPaginatedCollectionReducer(
         oldTotalNumberOfComments !==
         commentsSectionNewState.totalNumberOfAllComments
       ) {
-        // const newNumberOfPages = Math.ceil(
-        //   commentsSectionNewState.totalNumberOfAllComments /
-        //     commentsSectionNewState.commentsPerPage
-        // );
-        // if (commentsSectionNewState.commentsCurrentPage < newNumberOfPages)
-        // if state.commentsCurrentPage < state.commentsPaginatedCollection.length -1 => state.commentsCurrentPage=0
-
-        commentsSectionNewState.commentsPaginatedCollection =
-          regroupEntities<CommentDetailsType>({
-            currentEntitiesPaginatedCollection:
-              commentsSectionNewState.commentsPaginatedCollection,
-            currentPerPage: action.payload.commentsPerPage,
-            newPerPage: action.payload.commentsPerPage,
-            newTotalNumberOfAllEntities:
-              commentsSectionNewState.totalNumberOfAllComments,
-          });
-        // if (
-        //   commentsSectionNewState.commentsPaginatedCollection.length - 1 <
-        //   commentsActivePage
-        // ) {
-        //   commentsActivePage = 0;
-        // }
+        if (
+          state.commentsActivePage <
+          calculateNumberOfPages({
+            perPage: state.commentsActivePage,
+            totalNumberOfEntities: action.payload.totalNumberOfAllComments,
+          })
+        ) {
+          commentsSectionNewState.commentsPaginatedCollection =
+            regroupEntities<CommentDetailsType>({
+              currentEntitiesPaginatedCollection:
+                commentsSectionNewState.commentsPaginatedCollection,
+              currentPerPage: commentsSectionNewState.commentsPerPage,
+              newPerPage: commentsSectionNewState.commentsPerPage,
+              newTotalNumberOfAllEntities:
+                commentsSectionNewState.totalNumberOfAllComments,
+            });
+        } else {
+          commentsSectionNewState.commentsActivePage = 0;
+          commentsSectionNewState.commentsPaginatedCollection =
+            regroupEntities<CommentDetailsType>({
+              currentEntitiesPaginatedCollection:
+                commentsSectionNewState.commentsPaginatedCollection,
+              currentPerPage: commentsSectionNewState.commentsPerPage,
+              newPerPage: commentsSectionNewState.commentsPerPage,
+              newTotalNumberOfAllEntities:
+                commentsSectionNewState.totalNumberOfAllComments,
+            });
+        }
       }
 
       return { ...commentsSectionNewState };
@@ -217,16 +225,16 @@ export function commentsPaginatedCollectionReducer(
 
       return { ...commentsSectionNewState };
 
-    // case "SET_ACTIVE_COMMENTS_PAGE":
-    //   if (
-    //     action.payload.newActiveCommentsPage <
-    //     commentsSectionNewState.commentsPaginatedCollection.length
-    //   ) {
-    //     commentsSectionNewState.commentsActivePage =
-    //       action.payload.newActiveCommentsPage;
-    //   }
+    case "SET_ACTIVE_COMMENTS_PAGE":
+      if (
+        action.payload.newActiveCommentsPage <
+        commentsSectionNewState.commentsPaginatedCollection.length
+      ) {
+        commentsSectionNewState.commentsActivePage =
+          action.payload.newActiveCommentsPage;
+      }
 
-    //   return { ...commentsSectionNewState };
+      return { ...commentsSectionNewState };
 
     case "SET_TEXT_ALIGNMENT":
       commentsSectionNewState.textAlignment = action.payload.textAlignment;
@@ -247,12 +255,13 @@ export function commentsPaginatedCollectionReducer(
           newTotalNumberOfAllEntities:
             commentsSectionNewState.totalNumberOfAllComments,
         });
-      // if (
-      //   commentsSectionNewState.commentsPaginatedCollection.length - 1 <
-      //   commentsSectionNewState.commentsActivePage
-      // ) {
-      //   commentsSectionNewState.commentsActivePage = 0;
-      // }
+
+      if (
+        commentsSectionNewState.commentsPaginatedCollection.length - 1 <
+        commentsSectionNewState.commentsActivePage
+      ) {
+        commentsSectionNewState.commentsActivePage = 0;
+      }
 
       return { ...commentsSectionNewState };
 
