@@ -1,24 +1,29 @@
 import { useState } from "react";
 
 import {
-  ChangePasswordDialogManagerType,
-  ChangeUsernameDialogManagerType,
-  DeleteAccountConfirmationDialogManagerType,
-  DeleteEntitiesDialogManagerType,
-  DeleteEntitiesOnConfirmResultType,
-  DialogsContextType,
+  type ChangePasswordDialogManagerType,
+  type ChangeUsernameDialogManagerType,
+  type DeleteAccountConfirmationDialogManagerType,
+  type DeleteEntitiesConfirmationDialogManagerType,
+  type DeleteEntitiesOnConfirmResultType,
+  type DialogsContextType,
 } from "./DialogsContext";
 
-import { CommentDetailsType } from "../api/useCommentsAPIFacade";
-import { ReplyDetailsType } from "../api/useRepliesAPIFacade";
+import {
+  type CommentDetailsType,
+  type ReplyDetailsType,
+} from "../../models/internalAppRepresentation/resources";
 
 const deleteEntitiesConfirmationDialogInitialState = {
   commentsToDelete: [],
   repliesToDelete: [],
-  isDeleteEntitiesConfirmationDialogOpened: false,
-  onConfirm: async () => {
-    return { deleteCommentsResults: [], deleteRepliesResults: [] };
+  onConfirm: async (): DeleteEntitiesOnConfirmResultType => {
+    return {
+      deleteCommentsResults: [],
+      deleteRepliesResults: [],
+    };
   },
+  isDeleteEntitiesConfirmationDialogOpened: false,
 };
 
 const changePasswordDialogInitialState = {
@@ -60,6 +65,7 @@ const useDialogs = (): DialogsContextType => {
   }>(deleteAccountConfirmationDialogInitialState);
 
   ///////////////////////////////////////////////////////
+
   const openDeleteEntitiesConfirmationDialog = ({
     commentsToDelete,
     repliesToDelete,
@@ -78,17 +84,16 @@ const useDialogs = (): DialogsContextType => {
       };
     });
   };
+
   const closeDeleteEntitiesConfirmationDialog = () => {
-    setDeleteEntitiesConfirmationDialogState(
-      {
-        ...deleteEntitiesConfirmationDialogState,
-        isDeleteEntitiesConfirmationDialogOpened: false,
-      }
-      // deleteEntitiesConfirmationDialogInitialState
-    );
+    setDeleteEntitiesConfirmationDialogState({
+      ...deleteEntitiesConfirmationDialogState,
+      isDeleteEntitiesConfirmationDialogOpened: false,
+    });
   };
 
   ///////////////////////////////////////////////////////
+
   const openChangeUsernameDialog = () => {
     setChangeUsernameDialogState((prev) => {
       return {
@@ -96,6 +101,7 @@ const useDialogs = (): DialogsContextType => {
       };
     });
   };
+
   const closeChangeUsernameDialog = () => {
     setChangeUsernameDialogState({
       ...changeUsernameDialogState,
@@ -104,6 +110,7 @@ const useDialogs = (): DialogsContextType => {
   };
 
   ///////////////////////////////////////////////////////
+
   const openChangePasswordDialog = () => {
     setChangePasswordDialogState((prev) => {
       return {
@@ -111,6 +118,7 @@ const useDialogs = (): DialogsContextType => {
       };
     });
   };
+
   const closeChangePasswordDialog = () => {
     setChangePasswordDialogState({
       ...changePasswordDialogState,
@@ -119,6 +127,7 @@ const useDialogs = (): DialogsContextType => {
   };
 
   ///////////////////////////////////////////////////////
+
   const openDeleteAccountConfirmationDialog = () => {
     setDeleteAccountConfirmationDialogState((prev) => {
       return {
@@ -126,6 +135,7 @@ const useDialogs = (): DialogsContextType => {
       };
     });
   };
+
   const closeDeleteAccountConfirmationDialog = () => {
     setDeleteAccountConfirmationDialogState({
       ...deleteAccountConfirmationDialogState,
@@ -135,23 +145,13 @@ const useDialogs = (): DialogsContextType => {
 
   ///////////////////////////////////////////////////////
 
-  const deleteEntitiesConfirmationDialogManager: DeleteEntitiesDialogManagerType =
+  const deleteEntitiesConfirmationDialogManager: DeleteEntitiesConfirmationDialogManagerType =
     {
       ...deleteEntitiesConfirmationDialogState,
       closeDialog: closeDeleteEntitiesConfirmationDialog,
       openDialog: openDeleteEntitiesConfirmationDialog,
     };
 
-  const changePasswordDialogManager: ChangePasswordDialogManagerType = {
-    ...changePasswordDialogState,
-    closeDialog: closeChangePasswordDialog,
-    openDialog: openChangePasswordDialog,
-  };
-  const changeUsernameDialogManager: ChangeUsernameDialogManagerType = {
-    ...changeUsernameDialogState,
-    closeDialog: closeChangeUsernameDialog,
-    openDialog: openChangeUsernameDialog,
-  };
   const deleteAccountConfirmationDialogManager: DeleteAccountConfirmationDialogManagerType =
     {
       ...deleteAccountConfirmationDialogState,
@@ -159,11 +159,23 @@ const useDialogs = (): DialogsContextType => {
       openDialog: openDeleteAccountConfirmationDialog,
     };
 
+  const changePasswordDialogManager: ChangePasswordDialogManagerType = {
+    ...changePasswordDialogState,
+    closeDialog: closeChangePasswordDialog,
+    openDialog: openChangePasswordDialog,
+  };
+
+  const changeUsernameDialogManager: ChangeUsernameDialogManagerType = {
+    ...changeUsernameDialogState,
+    closeDialog: closeChangeUsernameDialog,
+    openDialog: openChangeUsernameDialog,
+  };
+
   return {
     deleteEntitiesConfirmationDialogManager,
+    deleteAccountConfirmationDialogManager,
     changePasswordDialogManager,
     changeUsernameDialogManager,
-    deleteAccountConfirmationDialogManager,
   };
 };
 

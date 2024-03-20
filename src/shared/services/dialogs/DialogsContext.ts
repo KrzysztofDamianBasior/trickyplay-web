@@ -1,16 +1,14 @@
 import { createContext } from "react";
 
 import {
-  DeleteReplyResultType,
-  ReplyDetailsType,
-} from "../api/useRepliesAPIFacade";
-import {
   CommentDetailsType,
-  DeleteCommentResultType,
-} from "../api/useCommentsAPIFacade";
+  ReplyDetailsType,
+} from "../../models/internalAppRepresentation/resources";
+import { DeleteReplyResultType } from "../api/useRepliesAPIFacade";
+import { DeleteCommentResultType } from "../api/useCommentsAPIFacade";
 
 export type DialogsContextType = {
-  deleteEntitiesConfirmationDialogManager: DeleteEntitiesDialogManagerType;
+  deleteEntitiesConfirmationDialogManager: DeleteEntitiesConfirmationDialogManagerType;
   deleteAccountConfirmationDialogManager: DeleteAccountConfirmationDialogManagerType;
   changeUsernameDialogManager: ChangeUsernameDialogManagerType;
   changePasswordDialogManager: ChangePasswordDialogManagerType;
@@ -21,16 +19,12 @@ export type DeleteEntitiesOnConfirmResultType = Promise<{
   deleteRepliesResults: Awaited<DeleteReplyResultType>[];
 }>;
 
-export type DeleteEntitiesDialogManagerType = {
-  isDeleteEntitiesConfirmationDialogOpened: boolean;
+export type DeleteEntitiesConfirmationDialogManagerType = {
   commentsToDelete: CommentDetailsType[];
   repliesToDelete: ReplyDetailsType[];
   onConfirm: () => DeleteEntitiesOnConfirmResultType;
-  openDialog: ({
-    commentsToDelete,
-    repliesToDelete,
-    onConfirm,
-  }: {
+  isDeleteEntitiesConfirmationDialogOpened: boolean;
+  openDialog: (openDialogProps: {
     commentsToDelete: CommentDetailsType[];
     repliesToDelete: ReplyDetailsType[];
     onConfirm: () => DeleteEntitiesOnConfirmResultType;
@@ -60,10 +54,10 @@ export const dialogsInitialManager: DialogsContextType = {
   deleteEntitiesConfirmationDialogManager: {
     commentsToDelete: [],
     repliesToDelete: [],
-    isDeleteEntitiesConfirmationDialogOpened: false,
     onConfirm: async () => {
       return { deleteCommentsResults: [], deleteRepliesResults: [] };
     },
+    isDeleteEntitiesConfirmationDialogOpened: false,
     openDialog: async () => {},
     closeDialog: async () => {},
   },

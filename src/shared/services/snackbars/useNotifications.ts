@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 import { wait } from "../../utils";
 
 export type NotificationDetailsType = {
