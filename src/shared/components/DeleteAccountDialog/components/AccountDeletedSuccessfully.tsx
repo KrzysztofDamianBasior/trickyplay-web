@@ -8,7 +8,6 @@ import DialogActions from "@mui/material/DialogActions";
 
 import DoneIcon from "@mui/icons-material/Done";
 
-import { AccountContext } from "../../../services/account/AccountContext";
 import { DialogsContext } from "../../../services/dialogs/DialogsContext";
 
 const UsernameUpdatedSuccessfully = () => {

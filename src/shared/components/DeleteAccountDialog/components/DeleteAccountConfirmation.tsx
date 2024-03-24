@@ -63,7 +63,7 @@ const DeleteEntitiesConfirmation = ({
   setDeleteAccountResult,
 }: Props) => {
   const { deleteAccountConfirmationDialogManager } = useContext(DialogsContext);
-  const { deleteMyAccount } = useContext(AccountContext);
+  const { deleteAccount } = useContext(AccountContext);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -93,9 +93,7 @@ const DeleteEntitiesConfirmation = ({
   ) => {
     props.setSubmitting(true);
 
-    const deleteAccountResult = await deleteMyAccount({
-      password: values.password,
-    });
+    const deleteAccountResult = await deleteAccount();
     setDeleteAccountResult(deleteAccountResult);
 
     console.log(deleteAccountResult);
