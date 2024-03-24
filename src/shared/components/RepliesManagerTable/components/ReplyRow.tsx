@@ -1,51 +1,44 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
-
 import Button from "@mui/material/Button";
-import { ReplyDetailsType } from "../../../services/api/useRepliesAPIFacade";
-import { handleReplyDeleteType } from "../../../services/repliesPaginatedCollection/useRepliesPaginatedCollection";
-import useAccount from "../../../services/account/useAccount";
+
+import { type handleReplyDeleteType } from "../../../services/repliesPaginatedCollection/useRepliesPaginatedCollection";
 import { DialogsContext } from "../../../services/dialogs/DialogsContext";
-import { NotificationContext } from "../../../services/snackbars/NotificationsContext";
+import { AccountContext } from "../../../services/account/AccountContext";
+
+import { ReplyDetailsType } from "../../../models/internalAppRepresentation/resources";
 
 type Props = {
   replyDetails: ReplyDetailsType;
   replyPage: number;
-  gameName: string;
   handleReplyDelete: handleReplyDeleteType;
 };
 
-const ReplyRow = ({
-  gameName,
-  handleReplyDelete,
-  replyDetails,
-  replyPage,
-}: Props) => {
-  const { authState } = useAccount();
+const ReplyRow = ({ handleReplyDelete, replyDetails, replyPage }: Props) => {
+  const { authState } = useContext(AccountContext);
   const { deleteEntitiesConfirmationDialogManager } =
     useContext(DialogsContext);
-  const { openSnackbar } = useContext(NotificationContext);
 
-  const canDelete =
+  const canReplyGetDeleted =
     authState.user &&
     (authState.user.id === replyDetails.author.id ||
-      authState.user.roles.includes("Admin"));
+      authState.user.role === "ADMIN");
 
   const deleteReply = () => {
     deleteEntitiesConfirmationDialogManager.openDialog({
       commentsToDelete: [],
       repliesToDelete: [replyDetails],
-      onCancel: () => {
-        openSnackbar({
-          severity: "info",
-          title: `reply with id ${replyDetails.id} has not been deleted`,
-          body: "reply deletion aborted",
+      onConfirm: async () => {
+        const result = await handleReplyDelete({
+          reply: replyDetails,
+          replyPage,
         });
-      },
-      onConfirm: () => {
-        handleReplyDelete({ reply: replyDetails, replyPage });
+        return {
+          deleteCommentsResults: [],
+          deleteRepliesResults: [result],
+        };
       },
     });
   };
@@ -56,17 +49,15 @@ const ReplyRow = ({
       hover
       key={replyDetails.id}
     >
-      <TableCell align={"left"}>{replyDetails.id}id</TableCell>
-      <TableCell align={"left"}>{replyDetails.body}content</TableCell>
-      <TableCell align={"left"}>{replyDetails.createdAt}created at</TableCell>
-      <TableCell align={"left"}>
-        {replyDetails.lastUpdatedAt}last updated at
+      <TableCell align="left">{replyDetails.id}id</TableCell>
+      <TableCell align="left">{replyDetails.body}content</TableCell>
+      <TableCell align="left">{replyDetails.createdAt}created at</TableCell>
+      <TableCell align="left">
+        {replyDetails.updatedAt}last updated at
       </TableCell>
-      <TableCell align={"left"}>
-        {replyDetails.author.name}author name
-      </TableCell>
-      <TableCell align={"left"}>
-        {canDelete && <Button onClick={deleteReply}>Delete</Button>}
+      <TableCell align="left">{replyDetails.author.name}author name</TableCell>
+      <TableCell align="left">
+        {canReplyGetDeleted && <Button onClick={deleteReply}>Delete</Button>}
       </TableCell>
     </TableRow>
   );

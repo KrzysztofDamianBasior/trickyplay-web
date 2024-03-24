@@ -1,5 +1,3 @@
-import React from "react";
-
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -18,29 +16,34 @@ import { alpha } from "@mui/material/styles";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ErrorIcon from "@mui/icons-material/Error";
 
-import { CommentDetailsType } from "../../services/api/useCommentsAPIFacade";
 import useRepliesPaginatedCollection from "../../services/repliesPaginatedCollection/useRepliesPaginatedCollection";
 import ReplyRow from "./components/ReplyRow";
 
-type Props = {
-  parentCommentDetails: CommentDetailsType;
-  gameName: string;
-};
+type Props =
+  | {
+      tableType: "USER_REPLIES";
+      authorId: string;
+    }
+  | {
+      tableType: "COMMENT_REPLIES";
+      parentCommentId: string;
+    };
 
-const RepliesTable = ({ gameName, parentCommentDetails }: Props) => {
+const RepliesTable = (props: Props) => {
   const {
-    refreshActivePage,
-    repliesActivePage,
-    repliesPerPage,
     repliesPaginatedCollectionState,
+    refreshActivePage,
     handleRepliesPageChange,
     handleRepliesRowsPerPageChange,
     handleReplyDelete,
-  } = useRepliesPaginatedCollection({
-    parentCommentId: parentCommentDetails.id,
-    gameName,
-    userId: null,
-  });
+  } = useRepliesPaginatedCollection(
+    props.tableType === "COMMENT_REPLIES"
+      ? {
+          collectionType: "COMMENT_REPLIES",
+          parentCommentId: props.parentCommentId,
+        }
+      : { collectionType: "USER_REPLIES", authorId: props.authorId }
+  );
 
   //maybe try TableContainer instead of Paper
   return (
@@ -85,8 +88,8 @@ const RepliesTable = ({ gameName, parentCommentDetails }: Props) => {
           <TablePagination
             component="div"
             count={repliesPaginatedCollectionState.totalNumberOfAllReplies}
-            page={repliesActivePage} // 0 - ...
-            rowsPerPage={repliesPerPage}
+            page={repliesPaginatedCollectionState.repliesActivePage} // 0 - ...
+            rowsPerPage={repliesPaginatedCollectionState.repliesPerPage}
             // rowsPerPageOptions={[10, 25, 100]}
             onPageChange={(_, page) => {
               console.log("next replies page" + page);
@@ -133,13 +136,12 @@ const RepliesTable = ({ gameName, parentCommentDetails }: Props) => {
             <CircularProgress color="secondary" />
           ) : (
             repliesPaginatedCollectionState.repliesPaginatedCollection[
-              repliesActivePage
+              repliesPaginatedCollectionState.repliesActivePage
             ].map((reply) => (
               <ReplyRow
                 handleReplyDelete={handleReplyDelete}
-                gameName={gameName}
                 replyDetails={reply}
-                replyPage={repliesActivePage}
+                replyPage={repliesPaginatedCollectionState.repliesActivePage}
               />
             ))
           )}
