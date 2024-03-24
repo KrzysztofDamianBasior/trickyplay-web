@@ -8,11 +8,6 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import {
-  DeleteEntitiesOnConfirmResultType,
-  DialogsContext,
-} from "../../../services/dialogs/DialogsContext";
-
 import CancelIcon from "@mui/icons-material/Cancel";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 
@@ -20,12 +15,17 @@ import CommentCard from "../../CommentPresentationThumb";
 import ReplyCard from "../../ReplyPresentationThumb";
 import { DeleteEntitiesDialogStatusType } from "../DeleteEntitiesDialog";
 
+import {
+  DeleteEntitiesOnConfirmResultType,
+  DialogsContext,
+} from "../../../services/dialogs/DialogsContext";
+
 type Props = {
   setDeleteEntitiesDialogStatus: (
     newStatus: DeleteEntitiesDialogStatusType
   ) => void;
   setDeleteEntitiesResults: (
-    results: Awaited<DeleteEntitiesOnConfirmResultType>
+    deleteEntitiesOnConfirmResultType: Awaited<DeleteEntitiesOnConfirmResultType>
   ) => void;
 };
 
