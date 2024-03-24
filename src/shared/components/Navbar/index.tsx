@@ -15,9 +15,9 @@ import {
 import pages from "./tabPagesList.json";
 import DrawerComp from "./Drawer";
 import ThemeSwitch from "../ThemeSwitch";
-import { AuthContext } from "../../services/account/AccountContext";
 
 import { useNavigate, useLocation } from "react-router-dom";
+import { AccountContext } from "../../services/account/AccountContext";
 
 const pagesInfo: { to: string; name: string; id: number }[] = pages;
 
@@ -26,7 +26,7 @@ const Navbar = () => {
   const isMatch = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const location = useLocation();
-  const { authState, signOut } = useContext(AuthContext);
+  const { authState, singleSessionSignOut } = useContext(AccountContext);
 
   const currentPage = pagesInfo
     .map((e) => e.to)
@@ -103,7 +103,7 @@ const Navbar = () => {
                 <Button
                   sx={{ marginLeft: "10px" }}
                   variant="contained"
-                  onClick={() => signOut()}
+                  onClick={() => singleSessionSignOut()}
                 >
                   Logout
                 </Button>
