@@ -1,5 +1,7 @@
 import { AnimatePresence } from "framer-motion";
+
 import ActionButton from "../ActionButton";
+
 import Backdrop from "./components/Backdrop";
 import SnakeBorderContainer from "./components/SnakeBorderContainer";
 
@@ -59,7 +61,7 @@ const Modal = ({
                   onClick={() => {
                     onClose();
                   }}
-                  id="cancelBtn"
+                  // id="cancelBtn"
                 >
                   Cancel
                 </ActionButton>

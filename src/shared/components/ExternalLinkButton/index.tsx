@@ -1,4 +1,13 @@
 import { styled } from "@mui/system";
+// from mui docs:
+// All the MUI components are styled with this styled() utility. This utility is built on top of the styled() module of @mui/styled-engine and provides additional features.
+// You can use the utility coming from the @mui/system package, or if you are using @mui/material, you can import it from @mui/material/styles. The difference is in the default theme that is used (if no theme is available in the React context).
+// The utility can be used as a replacement for emotion's or styled-components' styled() utility. It aims to solve the same problem, but also provides the following benefits:
+// It uses MUI's default theme if no theme is available in React context.
+// It supports the theme's styleOverrides and variants to be applied, based on the name applied in the options (can be skipped).
+// It adds support for the the sx prop (can be skipped).
+// It adds by default shouldForwardProp option that is taking into account all props used internally in the MUI components (can be overridden).
+
 type Props = { url: string; children: React.ReactNode };
 
 const ExternalLinkButton = ({ url, children }: Props) => {
