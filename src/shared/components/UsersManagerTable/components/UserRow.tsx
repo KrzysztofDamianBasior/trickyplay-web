@@ -4,11 +4,11 @@ import Button from "@mui/material/Button";
 
 import useAccount from "../../../services/account/useAccount";
 import {
-  HandleGrantAdminPermissionsType,
-  HandleUserBanType,
-  HandleUserUnbanType,
+  type HandleGrantAdminPermissionsType,
+  type HandleUserBanType,
+  type HandleUserUnbanType,
 } from "../../../services/usersPaginatedCollection/useUsersPaginatedCollection";
-import { UserDetailsType } from "../../../services/api/useUsersAPIFacade";
+import { type UserDetailsType } from "../../../models/internalAppRepresentation/resources";
 
 type Props = {
   userDetails: UserDetailsType;
@@ -27,21 +27,12 @@ const UserRow = ({
 }: Props) => {
   const { authState } = useAccount();
 
-  const canBan =
-    authState.user &&
-    !authState.user.roles.includes("Admin") &&
-    ["Banned", "Admin"].some((condition) =>
-      userDetails.roles.includes(condition as "Admin" | "Banned")
-    );
+  const canUserGetBanned = authState.user && authState.user.role === "USER";
 
-  const canUnban = authState.user && authState.user.roles.includes("Banned");
+  const canUserGetUnbanned = authState.user && authState.user.role === "BANNED";
 
-  const canGrantAdminPermissions =
-    authState.user &&
-    !authState.user.roles.includes("Admin") &&
-    ["Banned", "Admin"].some((condition) =>
-      userDetails.roles.includes(condition as "Admin" | "Banned")
-    );
+  const canUserGetAdminPermissions =
+    authState.user && authState.user.role === "USER";
 
   return (
     <TableRow
@@ -51,15 +42,15 @@ const UserRow = ({
     >
       <TableCell align={"left"}>{userDetails.id}</TableCell>
       <TableCell align={"left"}>{userDetails.name}</TableCell>
-      <TableCell align={"left"}>{userDetails.roles}</TableCell>
+      <TableCell align={"left"}>{userDetails.role}</TableCell>
       <TableCell align={"left"}>
         {new Date(userDetails.createdAt).toLocaleString()}
       </TableCell>
       <TableCell align={"left"}>
-        {new Date(userDetails.lastUpdatedAt).toLocaleString()}
+        {new Date(userDetails.updatedAt).toLocaleString()}
       </TableCell>
       <TableCell align={"left"}>
-        {canGrantAdminPermissions && (
+        {canUserGetAdminPermissions && (
           <Button
             onClick={() =>
               handleGrantAdminPermissions({
@@ -71,7 +62,7 @@ const UserRow = ({
             Grant admin permissions
           </Button>
         )}
-        {canBan && (
+        {canUserGetBanned && (
           <Button
             onClick={() => {
               handleUserBan({ user: userDetails, page: userPage });
@@ -80,7 +71,7 @@ const UserRow = ({
             Ban
           </Button>
         )}
-        {canUnban && (
+        {canUserGetUnbanned && (
           <Button
             onClick={() =>
               handleUserUnban({ user: userDetails, page: userPage })

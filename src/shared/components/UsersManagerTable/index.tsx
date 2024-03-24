@@ -1,5 +1,3 @@
-import React from "react";
-
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -24,10 +22,8 @@ import UserRow from "./components/UserRow";
 
 const UsersTable = () => {
   const {
-    usersPerPage,
-    usersActivePage,
-    refreshActivePage,
     usersPaginatedCollectionState,
+    refreshActivePage,
     handleGrantAdminPermissions,
     handleUserBan,
     handleUserUnban,
@@ -51,7 +47,7 @@ const UsersTable = () => {
             }),
           }}
         >
-          <Tooltip title="refresh the active users page" arrow>
+          <Tooltip title="refresh the active page" arrow>
             <IconButton
               aria-label="refresh button"
               color="secondary"
@@ -77,8 +73,8 @@ const UsersTable = () => {
           <TablePagination
             component="div"
             count={usersPaginatedCollectionState.totalNumberOfAllUsers}
-            page={usersActivePage} // 0 - ...
-            rowsPerPage={usersPerPage}
+            page={usersPaginatedCollectionState.usersActivePage} // 0 - ...
+            rowsPerPage={usersPaginatedCollectionState.usersPerPage}
             // rowsPerPageOptions={[10, 25, 100]}
             onPageChange={(_, page) => {
               console.log("next users page" + page);
@@ -121,11 +117,11 @@ const UsersTable = () => {
               <CircularProgress color="secondary" />
             ) : (
               usersPaginatedCollectionState.usersPaginatedCollection[
-                usersActivePage
+                usersPaginatedCollectionState.usersActivePage
               ].map((user) => (
                 <UserRow
                   userDetails={user}
-                  userPage={usersActivePage}
+                  userPage={usersPaginatedCollectionState.usersActivePage}
                   handleGrantAdminPermissions={handleGrantAdminPermissions}
                   handleUserBan={handleUserBan}
                   handleUserUnban={handleUserUnban}
