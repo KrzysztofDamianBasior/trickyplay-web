@@ -1,49 +1,68 @@
-import styled from "@emotion/styled";
+import { styled } from "@mui/material";
 
 type OptionButtonProps = {
   isActive: boolean;
   isDarkMode: boolean;
 };
 
-const StatefulButton = styled.button<OptionButtonProps>`
-  position: relative;
-  overflow: hidden;
+const StatefulButton = styled("button", {
+  name: "StatefulButton",
+  slot: "root",
+  shouldForwardProp: (prop) => prop !== "isActive" && prop !== "isDarkMode",
+})<OptionButtonProps>(({ theme, isActive, isDarkMode }) => ({
+  position: "relative",
+  overflow: "hidden",
 
-  background: transparent;
-  border: ${(p) => (p.isActive ? "1px solid rgb(146, 148, 248);" : "none")};
+  fontFamily: "open-sans",
+  background: "transparent",
+  border: isActive ? "1px solid rgb(146, 148, 248);" : "none",
 
-  width: 7rem;
-  height: 3.5rem;
+  fontSize: "25px",
+  width: "150px",
+  height: "60px",
+  [theme.breakpoints.down("lg")]: {
+    width: "120px",
+    height: "60px",
+    fontSize: "20px",
+  },
+  [theme.breakpoints.down("md")]: {
+    width: "100px",
+    height: "50px",
+    fontSize: "20px",
+  },
+  [theme.breakpoints.down("sm")]: {
+    width: "65px",
+    height: "50px",
+    fontSize: "12px",
+  },
 
-  color: ${(p) => (p.isDarkMode ? "#fff" : "000")};
-  text-decoration: none;
+  color: isDarkMode ? "#fff" : "000",
+  textDecoration: "none",
 
-  &:hover {
-    box-shadow: 1px 1px 25px 10px rgba(146, 148, 248, 0.4);
-  }
+  cursor: "pointer",
 
-  &:before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
+  "&:hover": {
+    boxShadow: "1px 1px 25px 10px rgba(146, 148, 248, 0.4)",
+  },
 
-    top: 0;
-    left: -100%;
+  "&:before": {
+    content: '""',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
 
-    background: linear-gradient(
-      120deg,
-      transparent,
-      rgba(146, 148, 248, 0.4),
-      transparent
-    );
+    top: "0",
+    left: "-100%",
 
-    transition: all 650ms;
-  }
+    background:
+      "linear-gradient(120deg,transparent,rgba(146, 148, 248, 0.4),transparent)",
 
-  &:hover:before {
-    left: 100%;
-  }
-`;
+    transition: "all 650ms",
+  },
+
+  "&:hover:before": {
+    left: "100%",
+  },
+}));
 
 export default StatefulButton;
