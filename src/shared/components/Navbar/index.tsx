@@ -1,5 +1,5 @@
 import { useContext } from "react";
-
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -15,8 +15,6 @@ import {
 import pages from "./tabPagesList.json";
 import DrawerComp from "./Drawer";
 import ThemeSwitch from "../ThemeSwitch";
-
-import { useNavigate, useLocation } from "react-router-dom";
 import { AccountContext } from "../../services/account/AccountContext";
 
 const pagesInfo: { to: string; name: string; id: number }[] = pages;
@@ -34,18 +32,19 @@ const Navbar = () => {
 
   return (
     <AppBar
+      position="static"
       sx={{
         boxShadow: "0px 0px 55px 0px rgba(134, 102, 12, 1)",
         background: (theme) => theme.palette.background.paper,
       }}
     >
       <Toolbar>
-        <Box sx={{ m: 2 }}>
+        <Box sx={{ m: 1 }}>
           <ThemeSwitch />
         </Box>
         {isMatch ? (
           <>
-            <Typography sx={{ fontSize: "1.5rem", paddingLeft: "10%" }}>
+            <Typography sx={{ fontSize: "1.5rem", m: 1 }}>
               TrickyPlay
             </Typography>
             <DrawerComp />
@@ -67,8 +66,12 @@ const Navbar = () => {
                   key={pagesInfo[pageIndex].name}
                   label={pagesInfo[pageIndex].name}
                   sx={{
+                    transition: "0.3s",
                     color: (theme) =>
                       theme.palette.mode === "light" ? "#000000" : "#ffffff",
+                    "&:hover": {
+                      backgroundColor: theme.palette.secondary.main,
+                    },
                   }}
                   {...a11yProps(pageIndex)}
                 />
@@ -79,14 +82,14 @@ const Navbar = () => {
                 <Button
                   sx={{ marginLeft: "auto" }}
                   variant="contained"
-                  onClick={() => navigate("./auth")}
+                  onClick={() => navigate("/auth")}
                 >
                   Login
                 </Button>
                 <Button
                   sx={{ marginLeft: "10px" }}
                   variant="contained"
-                  onClick={() => navigate("./auth")}
+                  onClick={() => navigate("/auth")}
                 >
                   SignUp
                 </Button>
@@ -96,7 +99,7 @@ const Navbar = () => {
                 <Button
                   sx={{ marginLeft: "auto" }}
                   variant="contained"
-                  onClick={() => navigate("./account")}
+                  onClick={() => navigate("/account")}
                 >
                   Account
                 </Button>
