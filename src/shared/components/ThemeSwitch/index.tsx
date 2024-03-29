@@ -9,6 +9,7 @@ const ToggleThemeSwitch = () => {
     <Box
       onClick={toggle}
       sx={{
+        scale: { md: "1", sm: "0.9", xs: "0.8" },
         cursor: "pointer",
         position: "relative",
         display: "block",
