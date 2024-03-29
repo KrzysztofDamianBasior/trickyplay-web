@@ -97,9 +97,9 @@ function App() {
     },
     typography: {
       fontFamily: ["open-sans"].join(","),
-      button: {
-        fontWeight: 500,
-      },
+      // button: {
+      //   fontWeight: 500,
+      // },
     },
     components: {
       MuiCssBaseline: {
