@@ -2,7 +2,12 @@ import styled from "@emotion/styled";
 
 const GameWrapper = styled.div`
   position: relative;
+
   background: linear-gradient(0deg, black, grey);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   width: fit-content;
   /* width: auto;
@@ -15,19 +20,20 @@ const GameWrapper = styled.div`
 
   &::before,
   &::after {
-    content: "";
+    content: '""';
     position: absolute;
-    left: -2px;
-    top: -2px;
-    width: calc(100% + 4px);
-    height: calc(100% + 4px);
+    left: -1px;
+    top: -1px;
 
-    background: linear-gradient(45deg, red, blue, green, orange, red);
-    background-size: 400%;
+    width: calc(100% + 2px);
+    height: calc(100% + 2px);
 
     z-index: -1;
-    animation: glowing-container__animation 40s linear infinite;
+
+    background: linear-gradient(45deg, red, blue, green, orange, red);
     filter: blur(40px);
+    background-size: 400%;
+    animation: glowing-container__animation 40s linear infinite;
     /* opacity: 0.9; */
   }
 
@@ -43,4 +49,5 @@ const GameWrapper = styled.div`
     }
   }
 `;
+
 export default GameWrapper;
