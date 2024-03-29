@@ -4,22 +4,27 @@ import ActionButton from "../ActionButton";
 
 import Backdrop from "./components/Backdrop";
 import SnakeBorderContainer from "./components/SnakeBorderContainer";
+import { Typography, useMediaQuery, useTheme } from "@mui/material";
 
 type Props = {
-  isModalOpened: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  children: React.ReactNode;
   title: string;
+  isModalOpened: boolean;
+  children: React.ReactNode;
 };
 
 const Modal = ({
-  isModalOpened,
   onClose,
   onConfirm,
-  children,
   title,
+  isModalOpened,
+  children,
 }: Props) => {
+  const theme = useTheme();
+  const isMatchSM = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMatchMD = useMediaQuery(theme.breakpoints.down("md"));
+
   const dropIn = {
     hidden: {
       y: "-100vh",
@@ -42,11 +47,12 @@ const Modal = ({
   };
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isModalOpened && (
         <Backdrop onClick={() => onClose()}>
           <SnakeBorderContainer
-            key="modal"
+            size={isMatchSM ? "sm" : isMatchMD ? "md" : "lg"}
+            theme={theme.palette.mode}
             onClick={(e) => e.stopPropagation()}
             variants={dropIn}
             initial="hidden"
@@ -54,14 +60,20 @@ const Modal = ({
             exit="exit"
           >
             <div className="modal__content">
-              <div className="modal__title">{title}</div>
+              <div className="modal__title">
+                <Typography
+                  variant="h1"
+                  sx={{ fontSize: `${isMatchSM ? "1.5rem" : "3rem"}` }}
+                >
+                  {title}
+                </Typography>
+              </div>
               <div className="modal__body">{children}</div>
               <div className="modal__footer">
                 <ActionButton
                   onClick={() => {
                     onClose();
                   }}
-                  // id="cancelBtn"
                 >
                   Cancel
                 </ActionButton>
@@ -81,4 +93,5 @@ const Modal = ({
     </AnimatePresence>
   );
 };
+
 export default Modal;
