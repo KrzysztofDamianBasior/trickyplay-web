@@ -1,5 +1,6 @@
-import { arraysIntersection } from "../../../shared/utils/arraysIntersection";
 import { combos } from "./combos";
+
+import { arraysIntersection } from "../../../shared/utils/arraysIntersection";
 import { getRandomInt } from "../../../shared/utils/getRandomInt";
 
 /**

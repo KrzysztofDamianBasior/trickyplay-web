@@ -1,5 +1,6 @@
-import React, { useState, useReducer } from "react";
-import styled from "styled-components";
+import { useState, useReducer } from "react";
+
+import { styled } from "@mui/material/styles";
 
 import AnimatedPage from "../../shared/components/AnimatedPage";
 import Navbar from "../../shared/components/Navbar";
@@ -90,6 +91,17 @@ const TicTacToe = () => {
               },
             });
           }}
+          onPlayAgain={() => {
+            dispatchTicTacToeGameState({
+              type: TicTacToeActionKind.RESET_BOARD,
+              payload: {
+                columnsNumber: 3,
+                rowsNumber: 3,
+                side: modalState.side,
+                soloOrDuoMode: modalState.soloOrDuoMode,
+              },
+            });
+          }}
         />
       </TicTacToeContainer>
     </AnimatedPage>
@@ -98,12 +110,22 @@ const TicTacToe = () => {
 
 export default TicTacToe;
 
-const TicTacToeContainer = styled.div`
-  width: 80vw;
-  height: 70vh;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  flex-direction: row;
-  margin-top: 18vh;
+const TicTacToeContainer = styled("div", {
+  name: "TicTacToeContainer",
+  slot: "root",
+})`
+  ${({ theme }) => `
+    margin-top: 10vh;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-direction: row;
+    @media (max-width: ${theme.breakpoints.values.md}px) {
+      flex-direction: column;
+    }
+  `}
 `;
