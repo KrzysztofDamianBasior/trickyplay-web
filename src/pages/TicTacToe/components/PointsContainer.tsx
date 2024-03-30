@@ -1,5 +1,4 @@
-import React from "react";
-import styled from "styled-components";
+import { styled } from "@mui/material/styles";
 
 type Props = {
   title: string;
@@ -46,20 +45,22 @@ const PointsContainer = (props: Props) => {
 
 export default PointsContainer;
 
-const PointsTable = styled.table`
+const PointsTable = styled("table")(
+  ({ theme }) => `
   border-spacing: 1px;
   border-collapse: collapse;
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
+
   width: 100%;
+
   margin: 0 auto;
   padding: 0;
+  
   position: relative;
 
   thead,
   tbody {
-    background: ${(p) => p.theme.secondaryColor};
-    color: ${(p) => p.theme.backgroundColor};
     th,
     td {
       padding: 12px 15px;
@@ -68,29 +69,37 @@ const PointsTable = styled.table`
   }
 
   thead tr {
-    background-color: #009879;
-    color: #ffffff;
+    background-color: ${
+      theme.palette.mode === "light"
+        ? theme.palette.primary.light
+        : theme.palette.primary.dark
+    };
+    color: ${theme.palette.text.primary};
   }
 
   tbody tr {
     border-bottom: 1px solid #dddddd;
   }
 
-  tbody tr:nth-of-type(even) {
-    background-color: #868484;
+  thead th, tbody th {
+    background-color:  ${
+      theme.palette.mode === "light"
+        ? theme.palette.secondary.light
+        : theme.palette.secondary.dark
+    }
   }
-
-  tbody tr:last-of-type {
-    border-bottom: 2px solid #009879;
+  td {
+    background-color:  ${theme.palette.secondary.main}
   }
 
   tfoot {
     background: transparent;
-    transition: all 1s ease;
+    transition: all 0.5s ease;
 
     .points-container__reset-button {
       width: 100%;
       height: 100%;
+      margin-top: 5px;
 
       cursor: pointer;
       display: flex;
@@ -101,7 +110,9 @@ const PointsTable = styled.table`
       font-family: "Cookie", cursive;
       background-color: white;
       border-radius: 6px;
-      transition: all 1s ease;
+      transition: all 0.4s ease;
+
+      border: thick double ${theme.palette.secondary.main};
 
       &:hover {
         text-shadow: 0 0 10px #fff, 0 0 10px #fff, 0 0 20px #82bedc,
@@ -110,4 +121,5 @@ const PointsTable = styled.table`
       }
     }
   }
-`;
+`
+);
