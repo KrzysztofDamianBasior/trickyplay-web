@@ -16,7 +16,7 @@ const minNumOfPasswordLetters: number = parseInt(
   getEnvironmentVariable("REACT_APP_MIN_NUM_OF_PASSWORD_LETTERS")
 );
 
-const usernamePatternExpression = `^[a-zA-Z0-9_]{${minNumOfUsernameLetters}},${maxNumOfUsernameLetters}}$`;
+const usernamePatternExpression = `^[a-zA-Z0-9_]{${minNumOfUsernameLetters},${maxNumOfUsernameLetters}}$`;
 export const USERNAME_REGEX = new RegExp(usernamePatternExpression); // /^[a-zA-Z0-9_]{2,16}$/
 
 const passwordPatternExpression = `^(?=.*[0-9])[a-zA-Z0-9_]{${minNumOfPasswordLetters},${maxNumOfPasswordLetters}}$`;
