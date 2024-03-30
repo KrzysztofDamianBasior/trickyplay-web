@@ -1,9 +1,15 @@
 import CloudIcon from "@mui/icons-material/Cloud";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
+import HandshakeIcon from "@mui/icons-material/Handshake";
+
 import Box from "@mui/material/Box";
 
+import { useNavigate } from "react-router-dom";
+
 const Footer = () => {
+  const navigate = useNavigate();
+
   const linksList: {
     url: string;
     icon: JSX.Element;
@@ -56,8 +62,7 @@ const Footer = () => {
             fontSize: "1rem",
           }}
         >
-          Application that provides you with simple 2d games like snake or
-          minesweeper
+          Application that provides you with simple 2d games
         </p>
         <Box
           component="ul"
@@ -79,7 +84,7 @@ const Footer = () => {
                 margin: "0 10px",
                 textDecoration: "none",
                 color: "#fff",
-                transition: "color 1s ease",
+                transition: "color 0.3s ease",
                 "&:hover": {
                   color: "primary.main",
                 },
@@ -91,6 +96,23 @@ const Footer = () => {
               </a>
             </Box>
           ))}
+          <Box
+            component="li"
+            role="link"
+            sx={{
+              margin: "0 10px",
+              textDecoration: "none",
+              color: "#fff",
+              transition: "color 0.3s ease",
+              "&:hover": {
+                color: "primary.main",
+              },
+              cursor: "pointer",
+            }}
+            onClick={() => navigate("/attribution")}
+          >
+            <HandshakeIcon fontSize="large" />
+          </Box>
         </Box>
       </Box>
       <Box
@@ -102,7 +124,7 @@ const Footer = () => {
           color: "text.primary",
         }}
       >
-        copyright &copy;2023 TrickyPlay
+        copyright &copy;2024 TrickyPlay
       </Box>
     </Box>
   );
