@@ -1,5 +1,4 @@
-import { getRandomInt } from "../../../shared/utils";
-import { checkObjectsEquality } from "../../../shared/utils";
+import { getRandomInt, checkObjectsEquality } from "../../../shared/utils";
 
 const drawMinesPositions = (
   boardSize: number,

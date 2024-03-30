@@ -23,7 +23,7 @@ export interface MinesweeperState {
   board: Cell[][];
   difficultyLevel: "beginner" | "intermediate" | "expert";
   disabled: boolean;
-  info: "initialize" | "game over" | "in progress" | "you won";
+  info: "initialize" | "game over!" | "in progress" | "you won!";
 }
 
 export const minesweeperInitialState: MinesweeperState = {
@@ -33,17 +33,35 @@ export const minesweeperInitialState: MinesweeperState = {
   info: "initialize",
 };
 
-export interface MinesweeperAction {
-  type: MinesweeperActionKind;
-  payload?: {
-    cellPosition?: [number, number];
-    difficultyLevel?: "beginner" | "intermediate" | "expert";
+export type MinesweeperActionType =
+  | MinesweeperStartGameActionType
+  | MinesweeperRevealCellActionType
+  | MinesweeeperToogleFlagActionType;
+
+export type MinesweeperStartGameActionType = {
+  type: MinesweeperActionKind.START_GAME;
+  payload: {
+    difficultyLevel: "beginner" | "intermediate" | "expert";
   };
-}
+};
+
+export type MinesweeperRevealCellActionType = {
+  type: MinesweeperActionKind.REVEAL_CELL;
+  payload: {
+    cellPosition: [number, number];
+  };
+};
+
+export type MinesweeeperToogleFlagActionType = {
+  type: MinesweeperActionKind.TOGGLE_FLAG;
+  payload: {
+    cellPosition: [number, number];
+  };
+};
 
 export function minesweeperReducer(
   state: MinesweeperState,
-  action: MinesweeperAction
+  action: MinesweeperActionType
 ): MinesweeperState {
   let newState: MinesweeperState = JSON.parse(JSON.stringify(state));
 
@@ -51,7 +69,7 @@ export function minesweeperReducer(
     case MinesweeperActionKind.START_GAME:
       newState.disabled = false;
       newState.info = "initialize";
-      newState.difficultyLevel = action.payload!.difficultyLevel!;
+      newState.difficultyLevel = action.payload.difficultyLevel!;
       const boardSize = findBoardSize(newState.difficultyLevel);
       newState.board = createBoard(
         boardSize.boardSize,
@@ -63,19 +81,20 @@ export function minesweeperReducer(
       return { ...newState };
 
     case MinesweeperActionKind.TOGGLE_FLAG:
-      newState.board[action.payload!.cellPosition![0]][
-        action.payload!.cellPosition![1]
+      newState.board[action.payload.cellPosition![0]][
+        action.payload.cellPosition![1]
       ].hasFlag =
-        newState.board[action.payload!.cellPosition![0]][
-          action.payload!.cellPosition![1]
+        newState.board[action.payload.cellPosition![0]][
+          action.payload.cellPosition![1]
         ].hasFlag === true
           ? false
           : true;
 
       return { ...newState };
+
     case MinesweeperActionKind.REVEAL_CELL:
-      const row = action.payload!.cellPosition![0];
-      const column = action.payload!.cellPosition![1];
+      const row = action.payload.cellPosition![0];
+      const column = action.payload.cellPosition![1];
       let winStatus = false;
 
       if (newState.info === "initialize") {
@@ -94,10 +113,10 @@ export function minesweeperReducer(
       winStatus = checkForWin(newState.board);
 
       if (newState.board[row][column].hasMine) {
-        newState.info = "game over";
+        newState.info = "game over!";
         newState.disabled = true;
       } else if (winStatus) {
-        newState.info = "you won";
+        newState.info = "you won!";
         newState.disabled = true;
       }
 

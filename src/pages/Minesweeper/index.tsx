@@ -1,9 +1,10 @@
-import React, { useState, useReducer, useEffect } from "react";
-import styled, { css } from "styled-components";
+import { useState, useReducer, useEffect } from "react";
+import { styled } from "@mui/material";
 
 import AnimatedPage from "../../shared/components/AnimatedPage";
 import Navbar from "../../shared/components/Navbar";
 import Modal from "../../shared/components/Modal";
+
 import { useStopwatch } from "./hooks/useStopwatch";
 
 import GameBoard from "./components/GameBoard";
@@ -15,7 +16,6 @@ import {
   minesweeperReducer,
   minesweeperInitialState,
 } from "./reducer";
-import { AnimatePresence } from "framer-motion";
 
 const Minesweeper = () => {
   const [minesweeperGameState, dispatchMinesweeperGameState] = useReducer(
@@ -36,8 +36,8 @@ const Minesweeper = () => {
 
   useEffect(() => {
     if (
-      minesweeperGameState.info === "game over" ||
-      minesweeperGameState.info === "you won"
+      minesweeperGameState.info === "game over!" ||
+      minesweeperGameState.info === "you won!"
     ) {
       stopStopwatch();
     }
@@ -100,12 +100,22 @@ const Minesweeper = () => {
 
 export default Minesweeper;
 
-const MinesweeperContainer = styled.div`
-  width: 80vw;
-  height: 70vh;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  flex-direction: row;
-  margin-top: 18vh;
+const MinesweeperContainer = styled("div", {
+  name: "MinesweeperContainer",
+  slot: "root",
+})`
+  ${({ theme }) => `
+    margin-top: 10vh;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    @media (max-width: ${theme.breakpoints.values.md}px) {
+      flex-direction: column;
+    }
+  `}
 `;
