@@ -19,6 +19,7 @@ const AnimatedPage = ({ children }: Props) => {
       animate="animate"
       exit="exit"
       transition={{ duration: 1 }}
+      style={{ width: "100%", height: "100%" }}
     >
       {children}
     </motion.div>

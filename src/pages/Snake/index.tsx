@@ -1,7 +1,7 @@
-import React, { useRef, useReducer, useEffect, useState } from "react";
-import styled from "styled-components";
-
+import { useRef, useReducer, useEffect, useState } from "react";
 import { useInterval } from "usehooks-ts";
+import { styled } from "@mui/material/styles";
+
 import { useResponsiveCanvasSize } from "./hooks/useResponsiveCanvasSize";
 
 import AnimatedPage from "../../shared/components/AnimatedPage";
@@ -13,13 +13,14 @@ import OptionsPanel from "./components/OptionsPanel";
 import GameBoard from "./components/GameBoard";
 
 import { SnakeActionKind, snakeReducer } from "./reducer";
+import { disableArrowKeyScrolling } from "./utils";
 
 const SCALE = 30;
 
 const Snake = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const gameWrapperRef = useRef<HTMLDivElement | null>(null);
-  const canvasSize = useResponsiveCanvasSize(70);
+  const canvasSize = useResponsiveCanvasSize(70, SCALE);
   const [snakeGameState, dispatchSnakeGameState] = useReducer(snakeReducer, {
     direction: { x: 0, y: -1 },
     snake: [],
@@ -39,7 +40,6 @@ const Snake = () => {
     opened: false,
     difficultyLevel: "easy",
   });
-
   useInterval(
     () =>
       dispatchSnakeGameState({
@@ -85,6 +85,15 @@ const Snake = () => {
     snakeGameState.disabled,
     canvasSize,
   ]);
+
+  useEffect(() => {
+    if (snakeGameState.disabled === false) {
+      window.addEventListener("keydown", disableArrowKeyScrolling, false);
+      return () => {
+        window.removeEventListener("keydown", disableArrowKeyScrolling);
+      };
+    }
+  }, [snakeGameState.disabled]);
 
   return (
     <AnimatedPage>
@@ -145,9 +154,27 @@ const Snake = () => {
           disabled={snakeGameState.disabled}
           info={snakeGameState.info}
           changeDirection={(e) => {
+            if (!snakeGameState.disabled) {
+              dispatchSnakeGameState({
+                type: SnakeActionKind.CHANGE_DIRECTION,
+                payload: { keyboardEvent: e },
+              });
+            }
+          }}
+          onPlayAgain={() => {
             dispatchSnakeGameState({
-              type: SnakeActionKind.CHANGE_DIRECTION,
-              payload: { keyboardEvent: e },
+              type: SnakeActionKind.START_GAME,
+              payload: {
+                numberOfInversionApples: 2,
+                numberOfPointApples: 4,
+                snakeInitialPosition: [
+                  [3, 8],
+                  [3, 9],
+                ],
+                direction: { x: 0, y: -1 },
+                canvasSize: [canvasSize.x, canvasSize.y],
+                difficultyLevel: modalState.difficultyLevel,
+              },
             });
           }}
         />
@@ -155,14 +182,25 @@ const Snake = () => {
     </AnimatedPage>
   );
 };
+
 export default Snake;
 
-const SnakeContainer = styled.div`
-  width: 80vw;
-  height: 70vh;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  flex-direction: row;
-  margin-top: 18vh;
+const SnakeContainer = styled("div", {
+  name: "SnakeContainer",
+  slot: "root",
+})`
+  ${({ theme }) => `
+    margin-top: 10vh;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-direction: row;
+    @media (max-width: ${theme.breakpoints.values.md}px) {
+      flex-direction: column;
+    }
+  `}
 `;

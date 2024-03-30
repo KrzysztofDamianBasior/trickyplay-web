@@ -2,7 +2,7 @@ import { checkIfAppleEaten } from "./checkIfAppleEaten";
 import { drawApplePosition } from "./drawApplePosition";
 
 export const checkInversionApples = (
-  snake: number[][],
+  snake: [number, number][],
   inversionApples: [number, number][],
   pointApples: [number, number][],
   canvasSize: [number, number],

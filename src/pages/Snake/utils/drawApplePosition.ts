@@ -2,7 +2,7 @@ import { getRandomInt } from "../../../shared/utils/getRandomInt";
 import { checkIfAppleEaten } from "./checkIfAppleEaten";
 
 export const drawApplePosition = (
-  snake: number[][],
+  snake: [number, number][],
   apples: [number, number][],
   canvasSize: [number, number],
   scale: number

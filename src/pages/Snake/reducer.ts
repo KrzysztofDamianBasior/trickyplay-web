@@ -13,23 +13,10 @@ export enum SnakeActionKind {
   PAUSE = "pause",
 }
 
-export interface SnakeAction {
-  type: SnakeActionKind;
-  payload?: {
-    snakeInitialPosition?: number[][];
-    numberOfInversionApples?: number;
-    numberOfPointApples?: number;
-    direction?: { x: number; y: number };
-    keyboardEvent?: React.KeyboardEvent<HTMLDivElement>;
-    canvasSize?: [number, number];
-    difficultyLevel?: "easy" | "medium" | "hard";
-  };
-}
-
 export interface SnakeState {
   pointApples: [number, number][];
   inversionApples: [number, number][];
-  snake: number[][];
+  snake: [number, number][];
   difficultyLevel: "easy" | "medium" | "hard";
   speed: number | null;
   direction: { x: number; y: number };
@@ -39,9 +26,45 @@ export interface SnakeState {
   info: string;
 }
 
+export type SnakeActionType =
+  | SnakeStartGameActionType
+  | SnakeChangeDirectionActionType
+  | SnakeMoveActionType
+  | SnakePauseActionType;
+
+export type SnakeStartGameActionType = {
+  type: SnakeActionKind.START_GAME;
+  payload: {
+    snakeInitialPosition: [number, number][];
+    numberOfInversionApples: number;
+    numberOfPointApples: number;
+    direction: { x: number; y: number };
+    canvasSize: [number, number];
+    difficultyLevel: "easy" | "medium" | "hard";
+  };
+};
+
+export type SnakeChangeDirectionActionType = {
+  type: SnakeActionKind.CHANGE_DIRECTION;
+  payload: {
+    keyboardEvent: React.KeyboardEvent<HTMLDivElement>;
+  };
+};
+
+export type SnakeMoveActionType = {
+  type: SnakeActionKind.MOVE;
+  payload: {
+    canvasSize: [number, number];
+  };
+};
+
+export type SnakePauseActionType = {
+  type: SnakeActionKind.PAUSE;
+};
+
 export function snakeReducer(
   state: SnakeState,
-  action: SnakeAction
+  action: SnakeActionType
 ): SnakeState {
   let newState: SnakeState = JSON.parse(JSON.stringify(state));
 
@@ -50,22 +73,23 @@ export function snakeReducer(
       newState.pointApples = [];
       newState.inversionApples = [];
 
-      for (let i = 0; i < action.payload!.numberOfPointApples!; i++) {
+      for (let i = 0; i < action.payload.numberOfPointApples; i++) {
         newState.pointApples.push(
           drawApplePosition(
-            action.payload?.snakeInitialPosition!,
+            action.payload.snakeInitialPosition,
             newState.pointApples,
-            action.payload?.canvasSize!,
+            action.payload.canvasSize,
             state.scale
           )
         );
       }
-      for (let i = 0; i < action.payload!.numberOfInversionApples!; i++) {
+
+      for (let i = 0; i < action.payload.numberOfInversionApples; i++) {
         newState.inversionApples.push(
           drawApplePosition(
-            action.payload?.snakeInitialPosition!,
+            action.payload.snakeInitialPosition,
             [...newState.pointApples, ...newState.inversionApples],
-            action.payload?.canvasSize!,
+            action.payload.canvasSize,
             state.scale
           )
         );
@@ -73,15 +97,15 @@ export function snakeReducer(
 
       newState.disabled = false;
       newState.score = 0;
-      newState.snake = action.payload?.snakeInitialPosition!;
-      newState.speed = findSpeed(action.payload!.difficultyLevel!);
-      newState.difficultyLevel = action.payload!.difficultyLevel!;
-      newState.direction = action.payload?.direction!;
+      newState.snake = action.payload.snakeInitialPosition;
+      newState.speed = findSpeed(action.payload.difficultyLevel);
+      newState.difficultyLevel = action.payload.difficultyLevel;
+      newState.direction = action.payload.direction;
       newState.info = "";
       return { ...newState };
 
     case SnakeActionKind.CHANGE_DIRECTION:
-      switch (action.payload!.keyboardEvent!.key) {
+      switch (action.payload.keyboardEvent.key) {
         case "ArrowUp":
           if (state.direction.y !== 0) break;
           if (state.snake[0][1] - state.snake[1][1] > 0) break;
@@ -111,7 +135,7 @@ export function snakeReducer(
       return { ...newState };
 
     case SnakeActionKind.MOVE:
-      let newSnakeHead = [
+      let newSnakeHead: [number, number] = [
         newState.snake[0][0] + state.direction.x,
         newState.snake[0][1] + state.direction.y,
       ];
@@ -121,21 +145,24 @@ export function snakeReducer(
         newState.snake,
         newState.pointApples,
         newState.inversionApples,
-        action.payload?.canvasSize!,
+        action.payload.canvasSize,
         newState.scale
       );
+
       let newInversionApples = checkInversionApples(
         newState.snake,
         newState.inversionApples,
         newState.pointApples,
-        action.payload?.canvasSize!,
+        action.payload.canvasSize,
         newState.scale
       );
+
       if (newPointApples) {
         newState.score += 1;
       } else {
         newState.snake.pop();
       }
+
       if (newInversionApples) {
         newState.snake.reverse();
         newState.direction = {
@@ -151,7 +178,7 @@ export function snakeReducer(
       newState.info = "";
 
       if (
-        checkCollision(newState.snake, action.payload?.canvasSize!, state.scale)
+        checkCollision(newState.snake, action.payload.canvasSize, state.scale)
       ) {
         newState.speed = null;
         newState.disabled = true;
@@ -160,6 +187,7 @@ export function snakeReducer(
         newState.pointApples = [];
         newState.info = "Game Over";
       }
+
       return { ...newState };
 
     default:
