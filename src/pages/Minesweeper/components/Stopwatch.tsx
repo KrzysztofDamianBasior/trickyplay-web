@@ -1,5 +1,4 @@
-import React from "react";
-import styled from "styled-components";
+import { styled } from "@mui/material";
 
 type Props = {
   time: number;
@@ -25,15 +24,12 @@ const Stopwatch = ({ time }: Props) => {
 
 export default Stopwatch;
 
-const StopwatchContainer = styled.div`
-  /* width: 100%; */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+const StopwatchContainer = styled("div")`
+  margin-left: 5px;
 
-  .digits {
+  /* .digits {
     color: #f5f5f5;
-  }
+  } */
 
   .mili-sec {
     color: #04f230;

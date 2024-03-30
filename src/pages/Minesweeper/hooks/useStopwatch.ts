@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 export function useStopwatch(): {
   time: number;
@@ -7,41 +7,42 @@ export function useStopwatch(): {
   pauseStopwatch: () => void;
   stopStopwatch: () => void;
 } {
-  const [isActive, setIsActive] = useState<boolean>(false);
-  const [isPaused, setIsPaused] = useState<boolean>(true);
   const [time, setTime] = useState<number>(0);
+  const [timerState, setTimerState] = useState<
+    "active" | "paused" | "inactive"
+  >("inactive");
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined = undefined;
 
-    if (isActive && !isPaused) {
+    if (timerState === "active") {
       interval = setInterval(() => {
         setTime((time) => time + 10);
       }, 10);
     } else {
       clearInterval(interval);
     }
+
     return () => {
       clearInterval(interval);
     };
-  }, [isActive, isPaused]);
+  }, [timerState]);
 
   const pauseStopwatch = () => {
-    setIsPaused((prev) => !prev);
+    if (timerState === "active") setTimerState("paused");
+    if (timerState === "paused") setTimerState("active");
   };
 
   const startStopwatch = () => {
-    setIsActive(true);
-    setIsPaused(false);
+    setTimerState("active");
   };
 
   const stopStopwatch = () => {
-    setIsActive(false);
-    setIsPaused(false);
+    setTimerState("inactive");
   };
 
   const resetStopwatch = () => {
-    setIsActive(false);
+    setTimerState("inactive");
     setTime(0);
   };
 
