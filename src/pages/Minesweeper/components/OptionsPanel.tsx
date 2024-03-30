@@ -1,6 +1,7 @@
-import styled from "styled-components";
-import StatefulButton from "../../../shared/components/StatefulButton";
 import { useDarkMode } from "usehooks-ts";
+import { Box, styled } from "@mui/material";
+
+import StatefulButton from "../../../shared/components/StatefulButton";
 
 type Props = {
   difficultyLevel: "beginner" | "intermediate" | "expert";
@@ -15,7 +16,16 @@ const OptionsPanel = ({ difficultyLevel, setDifficultyLevel }: Props) => {
   return (
     <OptionsPanelContainer>
       <OptionContainer>
-        <label>difficulty level:</label>
+        <Box
+          component="label"
+          htmlFor="howManyPlayers"
+          sx={{
+            marginRight: "15px",
+            fontSize: { xs: "12px", sm: "20px", md: "20px", lg: "25px" },
+          }}
+        >
+          Difficulty level:
+        </Box>
         <ToggleSwitchContainer>
           {["beginner", "intermediate", "expert"].map((label) => (
             <StatefulButton
@@ -42,32 +52,30 @@ const OptionsPanel = ({ difficultyLevel, setDifficultyLevel }: Props) => {
 };
 export default OptionsPanel;
 
-const OptionsPanelContainer = styled.div`
-  width: 30vw;
+const OptionsPanelContainer = styled("div")`
   height: 100%;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 `;
 
-const OptionContainer = styled.div`
+const OptionContainer = styled("div")`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   margin-top: 2%;
-  label {
-    margin-right: 20px;
-  }
 `;
 
-const ToggleSwitchContainer = styled.div`
+const ToggleSwitchContainer = styled("div")`
   align-self: flex-end;
-  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-around;
+
+  position: relative;
 `;
