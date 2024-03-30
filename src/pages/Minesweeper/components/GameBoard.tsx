@@ -6,14 +6,14 @@ import CrisisAlertIcon from "@mui/icons-material/CrisisAlert";
 import {
   MinesweeperState,
   MinesweeperActionKind,
-  MinesweeperAction,
+  MinesweeperActionType,
 } from "../reducer";
 
 import GameWrapper from "../../../shared/components/GameWrapper";
 
 type Props = {
   minesweeperGameState: MinesweeperState;
-  dispatchMinesweeperGameState: React.Dispatch<MinesweeperAction>;
+  dispatchMinesweeperGameState: React.Dispatch<MinesweeperActionType>;
 };
 
 const GameBoard = ({
