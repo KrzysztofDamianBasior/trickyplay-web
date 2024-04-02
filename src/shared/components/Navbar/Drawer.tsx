@@ -90,22 +90,30 @@ const DrawerComp = () => {
               </Button>
             </Box>
           ) : (
-            <>
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+              }}
+            >
               <Button
-                sx={{ marginLeft: "auto" }}
+                sx={{ m: 1 }}
                 variant="contained"
                 onClick={() => navigate("./account")}
               >
                 Account
               </Button>
               <Button
-                sx={{ marginLeft: "10px" }}
+                sx={{ m: 1 }}
                 variant="contained"
                 onClick={() => singleSessionSignOut()}
               >
                 Logout
               </Button>
-            </>
+            </Box>
           )}
         </Box>
       </Drawer>
