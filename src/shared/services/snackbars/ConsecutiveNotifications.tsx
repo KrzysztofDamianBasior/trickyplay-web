@@ -1,8 +1,6 @@
 import { NotificationDetailsType } from "./useNotifications";
 
 import Snackbar from "@mui/material/Snackbar";
-import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Slide, { SlideProps } from "@mui/material/Slide";
@@ -26,20 +24,19 @@ export default function ConsecutiveNotifications({
       open={isOpened}
       autoHideDuration={4000}
       onClose={handleClose}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "left",
+      }}
       TransitionProps={{ onExited: handleExited }}
       TransitionComponent={SlideTransition}
-      action={
-        <IconButton
-          aria-label="close"
-          color="inherit"
-          sx={{ p: 0.5 }}
-          onClick={handleClose}
-        >
-          <CloseIcon />
-        </IconButton>
-      }
     >
-      <Alert severity={messageInfo?.severity}>
+      <Alert
+        severity={messageInfo?.severity}
+        onClose={handleClose}
+        variant="filled"
+        sx={{ width: "100%" }}
+      >
         <AlertTitle>{messageInfo?.title}</AlertTitle>
         {messageInfo?.body}
       </Alert>

@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 
-import { wait } from "../../utils";
-
 export type NotificationDetailsType = {
   title: string;
   body: string;
@@ -25,22 +23,20 @@ export default function useNotifications() {
       setSnackPack((prev) => prev.slice(1));
       setIsSnackbarOpened(true);
     } else if (snackPack.length && messageInfo && isSnackbarOpened) {
-      // wait 1.5s and close an active snack when a new one is added
-      (async () => {
-        await wait(null, 1500);
-        setIsSnackbarOpened(false);
-      })();
+      setIsSnackbarOpened(false);
     }
   }, [snackPack, messageInfo, isSnackbarOpened]);
 
-  const openSnackbar =
-    ({ title, body, severity }: Omit<NotificationDetailsType, "key">) =>
-    () => {
-      setSnackPack((prev) => [
-        ...prev,
-        { key: new Date().getTime(), body, severity, title },
-      ]);
-    };
+  const openSnackbar = ({
+    title,
+    body,
+    severity,
+  }: Omit<NotificationDetailsType, "key">) => {
+    setSnackPack((prev) => [
+      ...prev,
+      { key: new Date().getTime(), body, severity, title },
+    ]);
+  };
 
   const closeSnackbar = (
     event?: React.SyntheticEvent | Event,
