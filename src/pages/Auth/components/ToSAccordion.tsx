@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Divider } from "@mui/material";
 
 const ToSAccordion = () => {
   const [accordionExpanded, setAccordionExpanded] = useState<string | false>(
@@ -18,7 +18,7 @@ const ToSAccordion = () => {
     };
 
   return (
-    <div>
+    <Box>
       <Typography
         component="h5"
         sx={{
@@ -46,7 +46,7 @@ const ToSAccordion = () => {
             Content
           </Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails sx={{ maxHeight: "50vh", overflowY: "scroll" }}>
           <Box>
             <Typography
               paragraph={true}
@@ -104,7 +104,7 @@ const ToSAccordion = () => {
             Content Restrictions
           </Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails sx={{ maxHeight: "50vh", overflowY: "scroll" }}>
           <Typography
             paragraph={true}
             align="justify"
@@ -171,7 +171,13 @@ const ToSAccordion = () => {
             change the manner of any Content. The Company can also limit or
             revoke the use of the Service if You post such objectionable
             Content.
-            <Divider />
+          </Typography>
+          <Typography
+            paragraph={true}
+            align="justify"
+            gutterBottom={true}
+            sx={{ textIndent: "1rem" }}
+          >
             As the Company cannot control all content posted by users and/or
             third parties on the Service, you agree to use the Service at your
             own risk. You understand that by using the Service You may be
@@ -198,32 +204,30 @@ const ToSAccordion = () => {
             Termination
           </Typography>
         </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            <Typography
-              paragraph={true}
-              align="justify"
-              gutterBottom={true}
-              sx={{ textIndent: "1rem" }}
-            >
-              We may terminate or suspend Your Account immediately, without
-              prior notice or liability, for any reason whatsoever, including
-              without limitation if You breach these Terms of Service.
-            </Typography>
-            <Typography
-              paragraph={true}
-              align="justify"
-              gutterBottom={true}
-              sx={{ textIndent: "1rem" }}
-            >
-              Upon termination, Your right to use the Service will cease
-              immediately. If You wish to terminate Your Account, You may simply
-              discontinue using the Service.
-            </Typography>
+        <AccordionDetails sx={{ maxHeight: "50vh", overflowY: "scroll" }}>
+          <Typography
+            paragraph={true}
+            align="justify"
+            gutterBottom={true}
+            sx={{ textIndent: "1rem" }}
+          >
+            We may terminate or suspend Your Account immediately, without prior
+            notice or liability, for any reason whatsoever, including without
+            limitation if You breach these Terms of Service.
+          </Typography>
+          <Typography
+            paragraph={true}
+            align="justify"
+            gutterBottom={true}
+            sx={{ textIndent: "1rem" }}
+          >
+            Upon termination, Your right to use the Service will cease
+            immediately. If You wish to terminate Your Account, You may simply
+            discontinue using the Service.
           </Typography>
         </AccordionDetails>
       </Accordion>
-    </div>
+    </Box>
   );
 };
 

@@ -12,7 +12,6 @@ import AnimatedPage from "../../shared/components/AnimatedPage";
 import Footer from "../../shared/components/Footer";
 
 const Attribution = () => {
-  console.log("ok");
   return (
     <AnimatedPage>
       <Navbar />
@@ -263,5 +262,3 @@ const Attribution = () => {
 };
 
 export default Attribution;
-
-// <a href="https://www.svgbackgrounds.com/elements/simple-svg-blob-shapes/">Simple SVG Blob Shapes by SVGBackgrounds.com</a>
