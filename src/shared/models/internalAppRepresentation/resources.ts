@@ -30,6 +30,7 @@ export type GameDetailsType = {
   image: string;
   description: string;
   genres: GenreType[];
+  path: string;
 };
 
 export type GenreType =
