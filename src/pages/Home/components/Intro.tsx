@@ -1,10 +1,14 @@
 import Box from "@mui/material/Box";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 import GlowingTubelightText from "./GlowingTubelightText";
 
 import Logo from "../../../shared/assets/logo.png";
 
 const Intro = () => {
+  const theme = useTheme();
+  const isMatchMD = useMediaQuery(theme.breakpoints.down("md"));
+
   return (
     <Box
       sx={{
@@ -13,20 +17,22 @@ const Intro = () => {
         justifyContent: "space-evenly",
         alignItems: "center",
         minHeight: "80vh",
-        marginTop: "10vh",
+        marginTop: "5vh",
       }}
     >
-      <img
-        src={Logo}
-        style={{
-          maxWidth: "30vw",
-          height: "auto",
-        }}
-        alt="app logo"
-      />
+      {!isMatchMD && (
+        <img
+          src={Logo}
+          style={{
+            maxWidth: "30vw",
+            height: "auto",
+          }}
+          alt="app logo"
+        />
+      )}
       <Box
         component="blockquote"
-        sx={{ marginTop: "15vh", color: "text.primary" }}
+        sx={{ marginTop: "5vh", color: "text.primary" }}
       >
         <GlowingTubelightText>
           The obvious objective of video games is to entertain people by
@@ -35,9 +41,9 @@ const Intro = () => {
         <Box
           component="footer"
           sx={{
-            fontSize: "3rem",
+            fontSize: { xs: "1rem", sm: "2rem", md: "3rem" },
             color: "inherit",
-            marginTop: "2rem",
+            marginTop: { xs: "1rem", sm: "2rem", md: "3rem" },
             float: "right",
           }}
         >

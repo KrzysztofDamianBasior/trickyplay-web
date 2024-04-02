@@ -1,20 +1,38 @@
-import styled from "@emotion/styled";
+import { styled } from "@mui/material";
 
-const GlowingTubelightText = styled.div`
+const GlowingTubelightText = styled("div", {
+  name: "GlowingTubelightText",
+  slot: "root",
+})`
+  ${({ theme }) => `
   position: relative;
-  width: 100%;
 
-  font-size: 4rem;
+  width: 100%;
+  margin-left: 15px;
+  margin-right: 15px;
+
+  color: inherit;
   line-height: 2.8rem;
   letter-spacing: 0.2rem;
   font-weight: normal;
   text-align: center;
-  -webkit-box-reflect: below 1px linear-gradient(transparent, #0004);
-  outline: none;
-  /* color: #0e3742; */
-  color: inherit;
+  @media (min-width: ${theme.breakpoints.values.xs}px) {
+    font-size: 2rem;
+  }
+  @media (min-width: ${theme.breakpoints.values.sm}px) {
+    font-size: 3rem;
+  }
+  @media (min-width: ${theme.breakpoints.values.md}px) {
+    font-size: 4rem;
+  }
   text-shadow: 0 0 10px #03bcf4, 0 0 20px #03bcf4, 0 0 40px #03bcf4,
     0 0 80px #03bcf4, 0 0 160px #03bcf4;
+
+  @media (min-width: 400px) {
+    -webkit-box-reflect: below 1px linear-gradient(transparent, #0004);
+  }
+  
+  outline: none;
 
   /* the animation below has low performance, so it has been commented out */
   /* will-change: color, text-shadow; */
@@ -50,6 +68,7 @@ const GlowingTubelightText = styled.div`
         0 0 80px #03bcf4, 0 0 160px #03bcf4;
     }
   } */
+`}
 `;
 
 export default GlowingTubelightText;
