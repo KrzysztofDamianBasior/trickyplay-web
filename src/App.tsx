@@ -56,6 +56,13 @@ function App() {
   const location = useLocation();
   const { isDarkMode, toggle, enable, disable } = useDarkMode();
   const {
+    closeSnackbar,
+    handleSnackbarExited,
+    isSnackbarOpened,
+    messageInfo,
+    openSnackbar,
+  } = useNotifications();
+  const {
     authState,
     axiosPrivate,
     axiosPublic,
@@ -67,14 +74,7 @@ function App() {
     allSessionsSignOut,
     deleteAccount,
     accountActivitySummary,
-  } = useAccount();
-  const {
-    closeSnackbar,
-    handleSnackbarExited,
-    isSnackbarOpened,
-    messageInfo,
-    openSnackbar,
-  } = useNotifications();
+  } = useAccount({ openSnackbar });
   const {
     deleteEntitiesConfirmationDialogManager,
     changePasswordDialogManager,
@@ -151,76 +151,78 @@ function App() {
 
   return (
     <div className="app">
-      <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
-        <DialogsContext.Provider
-          value={{
-            deleteEntitiesConfirmationDialogManager,
-            changePasswordDialogManager,
-            changeUsernameDialogManager,
-            deleteAccountConfirmationDialogManager,
-          }}
-        >
-          <AccountContext.Provider
+      <ErrorBoundary>
+        <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
+          <DialogsContext.Provider
             value={{
-              authState,
-              axiosPrivate,
-              axiosPublic,
-              signIn,
-              signUp,
-              allSessionsSignOut,
-              singleSessionSignOut,
-              accountActivitySummary,
-              deleteAccount,
-              updatePassword,
-              updateUsername,
+              deleteEntitiesConfirmationDialogManager,
+              changePasswordDialogManager,
+              changeUsernameDialogManager,
+              deleteAccountConfirmationDialogManager,
             }}
           >
-            <MUIThemeProvider theme={themeOptions}>
-              <CssBaseline />
-              <AnimatePresence>
-                <Routes key={location.pathname} location={location}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/home" element={<Navigate to="/" />} />
-                  <Route path="/games" element={<Games />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/attribution" element={<Attribution />} />
-                  <Route
-                    path="/games/tic-tac-toe"
-                    element={
-                      <Suspense fallback={<Loading />}>
-                        <TicTacToe />
-                      </Suspense>
-                    }
+            <AccountContext.Provider
+              value={{
+                authState,
+                axiosPrivate,
+                axiosPublic,
+                signIn,
+                signUp,
+                allSessionsSignOut,
+                singleSessionSignOut,
+                accountActivitySummary,
+                deleteAccount,
+                updatePassword,
+                updateUsername,
+              }}
+            >
+              <MUIThemeProvider theme={themeOptions}>
+                <CssBaseline />
+                <AnimatePresence>
+                  <Routes key={location.pathname} location={location}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/home" element={<Navigate to="/" />} />
+                    <Route path="/games" element={<Games />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/attribution" element={<Attribution />} />
+                    <Route
+                      path="/games/tic-tac-toe"
+                      element={
+                        <Suspense fallback={<Loading />}>
+                          <TicTacToe />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/games/snake"
+                      element={
+                        <Suspense fallback={<Loading />}>
+                          <Snake />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/games/minesweeper"
+                      element={
+                        <Suspense fallback={<Loading />}>
+                          <Minesweeper />
+                        </Suspense>
+                      }
+                    />
+                    <Route path="*" element={<NoMatch />} />
+                  </Routes>
+                  <ConsecutiveNotifications
+                    handleClose={closeSnackbar}
+                    handleExited={handleSnackbarExited}
+                    isOpened={isSnackbarOpened}
+                    messageInfo={messageInfo}
                   />
-                  <Route
-                    path="/games/snake"
-                    element={
-                      <Suspense fallback={<Loading />}>
-                        <Snake />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/games/minesweeper"
-                    element={
-                      <Suspense fallback={<Loading />}>
-                        <Minesweeper />
-                      </Suspense>
-                    }
-                  />
-                  <Route path="*" element={<NoMatch />} />
-                </Routes>
-                <ConsecutiveNotifications
-                  handleClose={closeSnackbar}
-                  handleExited={handleSnackbarExited}
-                  isOpened={isSnackbarOpened}
-                  messageInfo={messageInfo}
-                />
-              </AnimatePresence>
-            </MUIThemeProvider>
-          </AccountContext.Provider>
-        </DialogsContext.Provider>
-      </NotificationContext.Provider>
+                </AnimatePresence>
+              </MUIThemeProvider>
+            </AccountContext.Provider>
+          </DialogsContext.Provider>
+        </NotificationContext.Provider>
+      </ErrorBoundary>
     </div>
   );
 }
