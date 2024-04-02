@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import { Form, Formik, FormikConfig, FormikHelpers } from "formik";
 
 import FormNavigation from "./FormNavigation";
@@ -26,6 +25,7 @@ const MultiStepForm = ({ children, initialValues, onSubmit }: Props) => {
     setSnapshot(values);
     setStepNumber(stepNumber + 1);
   };
+
   const previous = (values: SignUpFormFieldsType) => {
     setSnapshot(values);
     setStepNumber(stepNumber - 1);
@@ -66,6 +66,7 @@ const MultiStepForm = ({ children, initialValues, onSubmit }: Props) => {
               );
             })}
           </Stepper>
+
           {step}
 
           <FormNavigation

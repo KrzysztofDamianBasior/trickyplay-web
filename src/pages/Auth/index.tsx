@@ -15,11 +15,6 @@ const Auth = () => {
     setValue(newValue);
   };
 
-  // xs, extra-small: 0px
-  // sm, small: 600px
-  // md, medium: 900px
-  // lg, large: 1200px
-  // xl, extra-large: 1536px
   return (
     <Box
       sx={{
@@ -33,9 +28,8 @@ const Auth = () => {
       <Paper
         elevation={20}
         sx={{
-          width: { xs: 300, sm: 500, md: 550 },
-          height: 700,
-          margin: "40px auto",
+          width: { xs: 300, sm: 500, md: 600, lg: 650 },
+          m: { xs: 2, sm: 10, md: 20, lg: 30 },
         }}
       >
         <Tabs
@@ -87,7 +81,9 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`auth-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && (
+        <Box sx={{ p: { xs: 1, sm: 2, md: 3, lg: 4 } }}>{children}</Box>
+      )}
     </div>
   );
 }

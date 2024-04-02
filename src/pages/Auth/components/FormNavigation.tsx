@@ -1,8 +1,13 @@
 import { FormikValues } from "formik";
 
-import { Button, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
-import { useMediaQuery, useTheme } from "@mui/material";
 
 interface Props {
   hasPrevious?: boolean;
@@ -11,17 +16,19 @@ interface Props {
   isDisabled: boolean;
   isSubmitting: boolean;
 }
+
 const FormNavigation = (props: Props) => {
   const theme = useTheme();
   const isMatchXS = useMediaQuery(theme.breakpoints.down("xs"));
   const isMatchSM = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
-        marginTop: 50,
         justifyContent: "space-between",
+        alignItems: "center",
+        m: { xs: 1, sm: 2, md: 3 },
       }}
     >
       {props.hasPrevious && (
@@ -56,7 +63,7 @@ const FormNavigation = (props: Props) => {
             : "Submit"
           : "Next"}
       </Button>
-    </div>
+    </Box>
   );
 };
 

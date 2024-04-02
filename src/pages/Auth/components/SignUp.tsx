@@ -1,19 +1,18 @@
 import { useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-
+import { FormikHelpers } from "formik";
+import * as Yup from "yup";
 import { Stack, Paper, Avatar, Typography } from "@mui/material";
 import AppRegistrationIcon from "@mui/icons-material/AppRegistration";
 
-import { FormikHelpers } from "formik";
-import * as Yup from "yup";
-
-import { AuthContext } from "../../../shared/auth/useAuth";
+import { AccountContext } from "../../../shared/services/account/AccountContext";
 import {
   USERNAME_REGEX,
   PASSWORD_REGEX,
   PASSWORD_MESSAGE,
   USERNAME_MESSAGE,
-} from "../../../shared/data/auth";
+} from "../../../shared/services/account/authenticationConstraints";
+
 import MultiStepForm from "./MultiStepForm";
 import UsernameField from "./UsernameField";
 import PasswordField from "./PasswordField";
@@ -28,9 +27,11 @@ export type SignUpFormFieldsType = {
 };
 
 const SignUp = () => {
-  const { signUp } = useContext(AuthContext);
+  const { signUp } = useContext(AccountContext);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // const { openSnackbar } = useContext(NotificationContext);
 
   interface LocationState {
     from: {
@@ -88,16 +89,6 @@ const SignUp = () => {
       username: values.username,
       password: values.password,
     });
-    console.log(status);
-    console.log({
-      username: values.username,
-      password: values.password,
-      passwordConfirmation: values.passwordConfirmation,
-      tos: values.termsAndConditions,
-    });
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-    await delay(2000);
     props.setSubmitting(false);
     navigate(from, { replace: true });
     props.resetForm();
@@ -106,8 +97,7 @@ const SignUp = () => {
   return (
     <Paper
       sx={{
-        padding: 2,
-        height: "600px",
+        p: { xs: 1, sm: 2, md: 3, lg: 4 },
         margin: "0 auto",
         overflow: "auto",
       }}
@@ -125,7 +115,7 @@ const SignUp = () => {
         <MultiStepForm initialValues={initialValues} onSubmit={handleSubmit}>
           <FormStep
             stepName="Login credentials"
-            onSubmit={() => console.log("Step1 onSubmit")}
+            onSubmit={() => {}}
             validationSchema={loginCredentialsValidationSchema}
           >
             <UsernameField
@@ -148,7 +138,7 @@ const SignUp = () => {
           </FormStep>
           <FormStep
             stepName="Terms of service"
-            onSubmit={() => console.log("Step2 submit")}
+            onSubmit={() => {}}
             validationSchema={termsOfServiceValidationSchema}
           >
             <ToSAccordion />

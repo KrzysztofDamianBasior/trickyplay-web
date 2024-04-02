@@ -23,7 +23,6 @@ const UsernameField = ({
       error={meta.touched && Boolean(meta.error)}
       helperText={meta.touched && meta.error}
       value={meta.value}
-      sx={{ m: 1 }}
     />
   );
 };

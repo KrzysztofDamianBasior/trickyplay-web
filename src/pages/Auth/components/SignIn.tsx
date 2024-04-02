@@ -1,4 +1,8 @@
 import { useContext, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
+import { Formik, Form, FormikHelpers } from "formik";
+import * as Yup from "yup";
 
 import {
   Stack,
@@ -16,30 +20,26 @@ import {
   FormHelperText,
   CircularProgress,
 } from "@mui/material";
+
 import LockIcon from "@mui/icons-material/Lock";
 import LoginIcon from "@mui/icons-material/Login";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-import { Formik, Form, FormikHelpers } from "formik";
-import * as Yup from "yup";
-
-import { useNavigate, useLocation } from "react-router-dom";
-
-import { AuthContext } from "../../../shared/auth/useAuth";
+import { AccountContext } from "../../../shared/services/account/AccountContext";
 import {
   USERNAME_REGEX,
   PASSWORD_REGEX,
   USERNAME_MESSAGE,
   PASSWORD_MESSAGE,
-} from "../../../shared/data/auth";
+} from "../../../shared/services/account/authenticationConstraints";
 
 const SignIn = ({
   handleChange,
 }: {
   handleChange: (event: any, newValue: any) => void;
 }) => {
-  const { signIn } = useContext(AuthContext);
+  const { signIn } = useContext(AccountContext);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -91,10 +91,6 @@ const SignIn = ({
       username: values.username,
       password: values.password,
     });
-    console.log(status);
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-    await delay(2000);
     props.resetForm();
     props.setSubmitting(false);
     navigate(from, { replace: true });
@@ -103,8 +99,7 @@ const SignIn = ({
   return (
     <Paper
       sx={{
-        padding: 2,
-        height: "600px",
+        p: { xs: 1, sm: 2, md: 3, lg: 4 },
         margin: "0 auto",
         overflow: "auto",
       }}
@@ -206,7 +201,7 @@ const SignIn = ({
           </Form>
         )}
       </Formik>
-      <Typography sx={{ m: 1 }}>
+      <Typography sx={{ m: { xs: 1, sm: 2, md: 3 } }}>
         Need an Account?{" "}
         <Link href="#" onClick={() => handleChange("event", 1)}>
           Sign Up

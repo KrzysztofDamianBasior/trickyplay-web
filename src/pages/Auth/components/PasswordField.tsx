@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { useState } from "react";
-
 import { useField, FieldHookConfig } from "formik";
 
 import {
@@ -36,7 +35,7 @@ const PasswordField = ({
   };
 
   return (
-    <FormControl variant="standard" fullWidth required sx={{ m: 1 }}>
+    <FormControl variant="standard" fullWidth required>
       <InputLabel htmlFor={id} error={meta.touched && Boolean(meta.error)}>
         {label}
       </InputLabel>
