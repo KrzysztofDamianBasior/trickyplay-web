@@ -23,7 +23,9 @@ export default function useNotifications() {
       setSnackPack((prev) => prev.slice(1));
       setIsSnackbarOpened(true);
     } else if (snackPack.length && messageInfo && isSnackbarOpened) {
-      setIsSnackbarOpened(false);
+      setTimeout(() => {
+        setIsSnackbarOpened(false);
+      }, 4000);
     }
   }, [snackPack, messageInfo, isSnackbarOpened]);
 
