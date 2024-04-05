@@ -89,14 +89,12 @@ const useUsersPaginatedCollection =
           type: "SET_USERS_STATUS",
           payload: { newUsersStatus: "LOADING" },
         });
-
         const getUsersResult: Awaited<GetUsersResultType> = await getUsers({
           pageNumber: usersPaginatedCollectionState.usersActivePage,
           pageSize: usersPaginatedCollectionState.usersPerPage,
           orderDirection: "Asc",
           sortBy: "id",
         });
-
         if (
           getUsersResult.status >= 200 &&
           getUsersResult.status < 300 &&
@@ -114,18 +112,7 @@ const useUsersPaginatedCollection =
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "READY" },
           });
-          openSnackbar({
-            severity: "success",
-            title: "Successfully performed operations",
-            body: "Users section successfully populated",
-          });
         } else {
-          ///////////////// notify user of an error
-          openSnackbar({
-            severity: "error",
-            title: "Failed to perform operations",
-            body: "Failed to populate users section",
-          });
           usersPaginatedCollectionDispatch({
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "ERROR" },
@@ -143,17 +130,18 @@ const useUsersPaginatedCollection =
           const usersPaginatedCollectionLength =
             usersPaginatedCollectionState.usersPaginatedCollection.length;
           if (
-            usersPaginatedCollectionState.usersActivePage <
+            usersPaginatedCollectionState.usersActivePage ===
+              usersPaginatedCollectionLength - 1 ||
+            (usersPaginatedCollectionState.usersActivePage <
               usersPaginatedCollectionLength - 1 &&
-            usersPaginatedCollectionState.usersPaginatedCollection[
-              usersPaginatedCollectionState.usersActivePage
-            ].length < usersPaginatedCollectionState.usersPerPage
+              usersPaginatedCollectionState.usersPaginatedCollection[
+                usersPaginatedCollectionState.usersActivePage
+              ].length < usersPaginatedCollectionState.usersPerPage)
           ) {
             usersPaginatedCollectionDispatch({
               type: "SET_USERS_STATUS",
               payload: { newUsersStatus: "LOADING" },
             });
-
             const getUsersResult: Awaited<GetUsersResultType> = await getUsers({
               pageNumber: usersPaginatedCollectionState.usersActivePage,
               pageSize: usersPaginatedCollectionState.usersPerPage,
@@ -180,11 +168,6 @@ const useUsersPaginatedCollection =
                     totalNumberOfAllUsers: getUsersResult.totalElements,
                   },
                 });
-                openSnackbar({
-                  severity: "success",
-                  title: "Successfully performed operations",
-                  body: "Users section successfully populated",
-                });
               } else {
                 usersPaginatedCollectionDispatch({
                   type: "SET_ACTIVE_USERS_PAGE",
@@ -194,7 +177,7 @@ const useUsersPaginatedCollection =
                   severity: "info",
                   title:
                     "The active users page exceeds the total number of users",
-                  body: "Page 0 is set",
+                  body: "Page 1 is set",
                 });
               }
               usersPaginatedCollectionDispatch({
@@ -203,11 +186,6 @@ const useUsersPaginatedCollection =
               });
             } else {
               ///////////////// notify user of an error
-              openSnackbar({
-                severity: "error",
-                title: "Failed to perform operations on users section",
-                body: "Failed to populate users section",
-              });
               usersPaginatedCollectionDispatch({
                 type: "SET_USERS_STATUS",
                 payload: { newUsersStatus: "ERROR" },
@@ -233,7 +211,6 @@ const useUsersPaginatedCollection =
         type: "SET_USERS_STATUS",
         payload: { newUsersStatus: "LOADING" },
       });
-
       const getUsersResult: Awaited<GetUsersResultType> = await getUsers({
         pageNumber: usersPaginatedCollectionState.usersActivePage,
         pageSize: usersPaginatedCollectionState.usersPerPage,
@@ -260,11 +237,6 @@ const useUsersPaginatedCollection =
               totalNumberOfAllUsers: getUsersResult.totalElements,
             },
           });
-          openSnackbar({
-            severity: "success",
-            title: "Successfully performed operations",
-            body: "Users section successfully populated",
-          });
         } else {
           usersPaginatedCollectionDispatch({
             type: "SET_ACTIVE_USERS_PAGE",
@@ -273,7 +245,7 @@ const useUsersPaginatedCollection =
           openSnackbar({
             severity: "info",
             title: "The active users page exceeds the total number of users",
-            body: "Page 0 is set",
+            body: "Page 1 is set",
           });
         }
         usersPaginatedCollectionDispatch({
@@ -281,12 +253,6 @@ const useUsersPaginatedCollection =
           payload: { newUsersStatus: "READY" },
         });
       } else {
-        ///////////////// notify user of an error
-        openSnackbar({
-          severity: "error",
-          title: "Failed to perform operations",
-          body: "Failed to populate users section",
-        });
         usersPaginatedCollectionDispatch({
           type: "SET_USERS_STATUS",
           payload: { newUsersStatus: "ERROR" },
@@ -306,16 +272,13 @@ const useUsersPaginatedCollection =
           type: "SET_ACTIVE_USERS_PAGE",
           payload: { newActiveUsersPage: nextPage },
         });
-        openSnackbar({
-          severity: "success",
-          title: "The active users page has changed",
-          body: `Successfully changed active users page to page: ${nextPage}`,
-        });
       } else {
         ///////////////// notify user of an error
         openSnackbar({
           severity: "error",
-          title: `Failed to change the active users page to page: ${nextPage}`,
+          title: `Failed to change the active users page to page: ${
+            nextPage + 1
+          }`,
           body: "Requested users page exceeded the total number of users",
         });
       }
@@ -326,39 +289,13 @@ const useUsersPaginatedCollection =
     }: {
       newUsersPerPage: number;
     }) => {
-      if (
-        usersPaginatedCollectionState.usersActivePage <
-        calculateNumberOfPages({
-          perPage: newUsersPerPage,
-          totalNumberOfEntities:
-            usersPaginatedCollectionState.totalNumberOfAllUsers,
-        })
-      ) {
-        usersPaginatedCollectionDispatch({
-          type: "SET_USERS_PER_PAGE",
-          payload: {
-            newUsersPerPage,
-          },
-        });
-        openSnackbar({
-          severity: "success",
-          title: "The number of users per page has changed",
-          body: `The number of users per page has changed to ${newUsersPerPage} users per page`,
-        });
-      } else {
-        usersPaginatedCollectionDispatch({
-          type: "SET_ACTIVE_USERS_PAGE",
-          payload: { newActiveUsersPage: 0 },
-        });
-        openSnackbar({
-          severity: "info",
-          title: "Requested users page exceeded the total number of users",
-          body: "Page 0 is set",
-        });
-      }
+      usersPaginatedCollectionDispatch({
+        type: "SET_USERS_PER_PAGE",
+        payload: {
+          newUsersPerPage,
+        },
+      });
     };
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const handleUserBan = async ({
       user,
@@ -372,9 +309,7 @@ const useUsersPaginatedCollection =
           type: "SET_USERS_STATUS",
           payload: { newUsersStatus: "LOADING" },
         });
-
         const banUserResult = await banUser({ id: user.id });
-
         if (
           banUserResult.status >= 200 &&
           banUserResult.status < 300 &&
@@ -388,21 +323,11 @@ const useUsersPaginatedCollection =
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "READY" },
           });
-          openSnackbar({
-            severity: "success",
-            title: "Operations were applied to the user collection",
-            body: `Successfully banned user with id: ${banUserResult.user.id}`,
-          });
         } else {
           ///////////////// notify user of an error
           usersPaginatedCollectionDispatch({
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "ERROR" },
-          });
-          openSnackbar({
-            severity: "error",
-            title: `No changes were applied to the user collection`,
-            body: `Could not ban user with id: ${user.id}`,
           });
         }
       } else {
@@ -412,8 +337,8 @@ const useUsersPaginatedCollection =
         });
         openSnackbar({
           severity: "error",
-          title: `No changes were applied to the user collection`,
-          body: `Could not ban user with id: ${user.id}, lack of sufficient permissions`,
+          title: `Lack of sufficient permissions`,
+          body: `Could not ban user with id: ${user.id}, no changes were applied`,
         });
       }
     };
@@ -430,7 +355,6 @@ const useUsersPaginatedCollection =
           type: "SET_USERS_STATUS",
           payload: { newUsersStatus: "LOADING" },
         });
-
         const grantAdminPermissionsResult = await grantAdminPermissions({
           id: user.id,
         });
@@ -447,21 +371,11 @@ const useUsersPaginatedCollection =
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "READY" },
           });
-          openSnackbar({
-            severity: "success",
-            title: "Operations were applied to the user collection",
-            body: `Successfully granted admin permissions to user with id: ${grantAdminPermissionsResult.user.id}`,
-          });
         } else {
           ///////////////// notify user of an error
           usersPaginatedCollectionDispatch({
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "ERROR" },
-          });
-          openSnackbar({
-            severity: "error",
-            title: `No changes were applied to the user collection`,
-            body: `Could not grant admin permissions to user with id: ${user.id}`,
           });
         }
       } else {
@@ -471,8 +385,8 @@ const useUsersPaginatedCollection =
         });
         openSnackbar({
           severity: "error",
-          title: `No changes were applied to the user collection`,
-          body: `Could not grant admin permissions to user with id: ${user.id}, lack of sufficient permissions`,
+          title: `Lack of sufficient permissions`,
+          body: `Could not grant admin permissions to user with id: ${user.id}, no changes were applied`,
         });
       }
     };
@@ -489,9 +403,7 @@ const useUsersPaginatedCollection =
           type: "SET_USERS_STATUS",
           payload: { newUsersStatus: "LOADING" },
         });
-
         const unbanUserResult = await unbanUser({ id: user.id });
-
         if (
           unbanUserResult.status >= 200 &&
           unbanUserResult.status < 300 &&
@@ -505,21 +417,11 @@ const useUsersPaginatedCollection =
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "READY" },
           });
-          openSnackbar({
-            severity: "success",
-            title: "Operations were applied to the user collection",
-            body: `Successfully unbanned user with id: ${unbanUserResult.user.id}`,
-          });
         } else {
           ///////////////// notify user of an error
           usersPaginatedCollectionDispatch({
             type: "SET_USERS_STATUS",
             payload: { newUsersStatus: "ERROR" },
-          });
-          openSnackbar({
-            severity: "error",
-            title: `No changes were applied to the user collection`,
-            body: `Could not unban user with id: ${user.id}`,
           });
         }
       } else {
@@ -529,16 +431,14 @@ const useUsersPaginatedCollection =
         });
         openSnackbar({
           severity: "error",
-          title: `No changes were applied to the user collection`,
-          body: `Could not unban user with id: ${user.id}, lack of sufficient permissions`,
+          title: `Lack of sufficient permissions`,
+          body: `Could not unban user with id: ${user.id}, no changes were applied`,
         });
       }
     };
 
     return {
       usersPaginatedCollectionState,
-      // usersActivePage,
-      // usersPerPage,
       handleGrantAdminPermissions,
       handleUserBan,
       handleUsersPageChange,
