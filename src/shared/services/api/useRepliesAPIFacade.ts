@@ -97,12 +97,8 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
 
   const deleteReply = async ({
     id,
-    author,
   }: DeleteReplyProps): DeleteReplyResultType => {
-    if (
-      authState.user !== null &&
-      (authState.user.role === "ADMIN" || authState.user.id === author.id)
-    ) {
+    if (authState.user !== null) {
       try {
         const response = await axiosPrivate.delete(REPLIES_URL + "/" + id); // DELETE {{api-url}}/replies/:id
         // response.data.message
@@ -110,7 +106,7 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         //     "message": "Reply successfully removed",
         //   }
         openSnackbar({
-          title: `Successfully performed actions on the reply with id: ${id}`,
+          title: "Reply removed successfully",
           body: "Reply removed successfully",
           severity: "success",
         });
@@ -119,11 +115,15 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `Failed to perform actions on the reply with id: ${id}`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `Failed to remove reply with id: ${id}`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -131,8 +131,8 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
       }
     } else {
       openSnackbar({
-        title: `Failed to perform actions on the reply with id: ${id}`,
-        body: "You do not have sufficient permissions",
+        title: `Error`,
+        body: `Failed to remove reply with id: ${id}, you are not signed in`,
         severity: "error",
       });
       return {
@@ -146,11 +146,7 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
     newReplyBody,
     currentReplyDetails,
   }: UpdateReplyProps): UpdateReplyResultType => {
-    if (
-      authState.user !== null &&
-      (authState.user.role === "ADMIN" ||
-        authState.user.id === currentReplyDetails.author.id)
-    ) {
+    if (authState.user !== null) {
       try {
         const response = await axiosPrivate.patch(
           // {{api-url}}/replies/:id    "newReplyBody": "asdf"
@@ -165,23 +161,23 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         );
         const newReplyDetails: ReplyDetailsType = {
           author: {
-            id: response.data.author.id,
-            name: response.data.author.name,
-            role: response.data.author.role,
-            createdAt: response.data.author.createdAt,
-            updatedAt: response.data.author.updatedAt,
+            id: response.data?.author?.id,
+            name: response.data?.author?.name,
+            role: response.data?.author?.role,
+            createdAt: response.data?.author?.createdAt,
+            updatedAt: response.data?.author?.updatedAt,
           },
-          body: response.data.body,
-          id: response.data.id,
-          parentCommentId: response.data.parentComment.id,
-          createdAt: response.data.createdAt,
-          updatedAt: response.data.updatedAt,
+          body: response.data?.body,
+          id: response.data?.id,
+          parentCommentId: response.data?.parentComment?.id,
+          createdAt: response.data?.createdAt,
+          updatedAt: response.data?.updatedAt,
         };
 
         openSnackbar({
-          title: `Successfully performed actions on the reply with id: ${newReplyDetails.id}`,
-          body: "Reply updated successfully",
-          severity: "error",
+          title: "Reply updated successfully",
+          body: `Successfully updated reply with id: ${newReplyDetails.id}`,
+          severity: "success",
         });
         return {
           reply: newReplyDetails,
@@ -189,11 +185,15 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `Failed to perform actions on the reply with id: ${currentReplyDetails.id}`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: `Failed to update reply with id: ${currentReplyDetails.id}`,
+            body: mapResponseErrorToMessage(err),
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -202,8 +202,8 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
       }
     } else {
       openSnackbar({
-        title: `Failed to perform actions on the reply with id: ${currentReplyDetails.id}`,
-        body: "You do not have sufficient permissions",
+        title: "Error",
+        body: `Failed to update reply with id: ${currentReplyDetails.id}, you are not signed in`,
         severity: "error",
       });
       return {
@@ -239,22 +239,22 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
 
         const newReplyDetails: ReplyDetailsType = {
           author: {
-            id: response.data.author.id,
-            name: response.data.author.name,
-            role: response.data.author.role,
-            createdAt: response.data.author.createdAt,
-            updatedAt: response.data.author.updatedAt,
+            id: response.data?.author?.id,
+            name: response.data?.author?.name,
+            role: response.data?.author?.role,
+            createdAt: response.data?.author?.createdAt,
+            updatedAt: response.data?.author?.updatedAt,
           },
-          id: response.data.id,
-          body: response.data.body,
-          parentCommentId: response.data.parentComment.id,
-          createdAt: response.data.createdAt,
-          updatedAt: response.data.updatedAt,
+          id: response.data?.id,
+          body: response.data?.body,
+          parentCommentId: response.data?.parentComment?.id,
+          createdAt: response.data?.createdAt,
+          updatedAt: response.data?.updatedAt,
         };
 
         openSnackbar({
-          title: `Successfully performed actions on the reply with id: ${newReplyDetails.id}`,
-          body: "Reply created successfully",
+          title: "Reply created successfully",
+          body: `Successfully added reply with id: ${newReplyDetails.id}`,
           severity: "success",
         });
         return {
@@ -263,11 +263,15 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `Failed to create new reply`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: "Failed to create new reply",
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -276,8 +280,8 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
       }
     } else {
       openSnackbar({
-        title: `Failed to create new reply`,
-        body: "You do not have sufficient permissions",
+        title: "Error",
+        body: `Failed to create new reply, you are not signed in`,
         severity: "error",
       });
       return {
@@ -294,22 +298,22 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
 
       const newReplyDetails: ReplyDetailsType = {
         author: {
-          id: response.data.author.id,
-          name: response.data.author.name,
-          role: response.data.author.role,
-          createdAt: response.data.author.createdAt,
-          updatedAt: response.data.author.updatedAt,
+          id: response.data?.author?.id,
+          name: response.data?.author?.name,
+          role: response.data?.author?.role,
+          createdAt: response.data?.author?.createdAt,
+          updatedAt: response.data?.author?.updatedAt,
         },
-        body: response.data.body,
-        id: response.data.id,
-        createdAt: response.data.createdAt,
-        updatedAt: response.data.updatedAt,
-        parentCommentId: response.data.parentComment.id,
+        body: response.data?.body,
+        id: response.data?.id,
+        createdAt: response.data?.createdAt,
+        updatedAt: response.data?.updatedAt,
+        parentCommentId: response.data?.parentComment?.id,
       };
 
       openSnackbar({
         title: "Success",
-        body: `Successfully fetched reply with id: ${newReplyDetails.id}`,
+        body: `Successfully fetched the reply with id: ${newReplyDetails.id}`,
         severity: "success",
       });
       return {
@@ -319,8 +323,8 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
       };
     } catch (err: any) {
       openSnackbar({
-        title: `Failed to perform actions on the reply with id: ${id}`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: `Failed to fetch the reply with id: ${id}`,
         severity: "error",
       });
       return {
@@ -353,7 +357,7 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         }
       );
 
-      const replies: ReplyDetailsType[] = response.data.replies.map(function (
+      const replies: ReplyDetailsType[] = response.data?.replies?.map(function (
         reply: Omit<ReplyDetailsType, "parentCommentId"> & { _links: any } & {
           parentComment: CommentDetailsType & { _links: any };
         },
@@ -374,25 +378,28 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
           updatedAt: reply.updatedAt,
         };
       });
+
       openSnackbar({
-        title: "Successfully performed actions on replies",
-        body: "Replies fetched successfully",
+        title: `Successfully fetched replies for comment with id ${parentCommentId}`,
+        body: `Page ${pageNumber + 1} with ${
+          response.data?.replies?.length
+        } out of ${response.data?.totalElements} replies fetched successfully`,
         severity: "success",
       });
       return {
         replies: replies,
         message: "Success",
         status: response.status,
-        isLast: response.data.last,
-        pageNumber: response.data.pageNumber,
-        pageSize: response.data.pageSize,
-        totalElements: response.data.totalElements,
-        totalPages: response.data.totalPages,
+        isLast: response.data?.last,
+        pageNumber: response.data?.pageNumber,
+        pageSize: response.data?.pageSize,
+        totalElements: response.data?.totalElements,
+        totalPages: response.data?.totalPages,
       };
     } catch (err: any) {
       openSnackbar({
-        title: `Failed to fetch replies`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: "Failed to fetch replies",
         severity: "error",
       });
       return {
@@ -430,7 +437,7 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
         }
       );
 
-      const replies: ReplyDetailsType[] = response.data.replies.map(function (
+      const replies: ReplyDetailsType[] = response.data?.replies?.map(function (
         reply: Omit<ReplyDetailsType, "parentCommentId"> & { _links: any } & {
           parentComment: CommentDetailsType & { _links: any };
         },
@@ -451,25 +458,28 @@ export default function useRepliesAPIFacade(): RepliesActionsType {
           updatedAt: reply.updatedAt,
         };
       });
+
       openSnackbar({
-        title: "Successfully performed actions on replies",
-        body: "Replies fetched successfully",
+        title: `Successfully fetched replies created by user with id ${authorId}`,
+        body: `Page ${pageNumber + 1} with ${
+          response.data?.replies?.length
+        } out of ${response.data?.totalElements} replies fetched successfully.`,
         severity: "success",
       });
       return {
         replies: replies,
         message: "Success",
         status: response.status,
-        isLast: response.data.last,
-        pageNumber: response.data.pageNumber,
-        pageSize: response.data.pageSize,
-        totalElements: response.data.totalElements,
-        totalPages: response.data.totalPages,
+        isLast: response.data?.last,
+        pageNumber: response.data?.pageNumber,
+        pageSize: response.data?.pageSize,
+        totalElements: response.data?.totalElements,
+        totalPages: response.data?.totalPages,
       };
     } catch (err: any) {
       openSnackbar({
-        title: `failed to fetch replies`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: "Failed to fetch replies",
         severity: "error",
       });
       return {

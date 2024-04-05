@@ -42,7 +42,7 @@ export type GetUserResultType = Promise<{
 }>;
 
 export type GetUsersProps = {
-  pageNumber?: number;
+  pageNumber: number;
   pageSize?: number;
   sortBy?: string;
   orderDirection?: string;
@@ -87,7 +87,7 @@ export type UnbanUserResultType = Promise<{
 
 export type GetUserCommentsProps = {
   userId: string;
-  pageNumber?: number;
+  pageNumber: number;
   pageSize?: number;
   sortBy?: string;
   orderDirection?: string;
@@ -105,7 +105,7 @@ export type GetUserCommentsResultType = Promise<{
 
 export type GetUserRepliesProps = {
   userId: string;
-  pageNumber?: number;
+  pageNumber: number;
   pageSize?: number;
   sortBy?: string;
   orderDirection?: string;
@@ -152,16 +152,16 @@ export default function useUsersAPIFacade(): UsersActionsType {
     try {
       const response = await axiosPublic.get(USERS_URL + "/" + id); // GET {{api-url}}/users/:id
       openSnackbar({
-        title: `successfully performed actions`,
-        body: `user with id ${id} successfully fetched`,
+        title: "Success",
+        body: ` Successfully fetched user with id ${id}`,
         severity: "success",
       });
       const newUserDetails: UserDetailsType = {
-        id: response.data.id,
-        name: response.data.name,
-        role: response.data.role,
-        createdAt: response.data.createdAt,
-        updatedAt: response.data.updatedAt,
+        id: response.data?.id,
+        name: response.data?.name,
+        role: response.data?.role,
+        createdAt: response.data?.createdAt,
+        updatedAt: response.data?.updatedAt,
       };
       return {
         user: newUserDetails,
@@ -170,8 +170,8 @@ export default function useUsersAPIFacade(): UsersActionsType {
       };
     } catch (err: any) {
       openSnackbar({
-        title: `failed to fetch user with id ${id}`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: `Failed to fetch user with id ${id}`,
         severity: "error",
       });
       return {
@@ -189,18 +189,21 @@ export default function useUsersAPIFacade(): UsersActionsType {
     orderDirection,
   }: GetUsersProps): GetUsersResultType => {
     try {
-      const response = await axiosPublic.get(USERS_URL + USERS_FEED_ENDPOINT, {
-        // GET  {{api-url}}/users/feed?pageNumber=0&pageSize=10&sortBy=id&orderDirection=Asc
-        params: {
-          pageNumber,
-          pageSize,
-          sortBy,
-          orderDirection,
-        },
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-      const users: UserDetailsType[] = response.data.users.map(function (
+      const response = await axiosPublic.get(
+        USERS_URL + "/" + USERS_FEED_ENDPOINT,
+        {
+          // GET  {{api-url}}/users/feed?pageNumber=0&pageSize=10&sortBy=id&orderDirection=Asc
+          params: {
+            pageNumber,
+            pageSize,
+            sortBy,
+            orderDirection,
+          },
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+      const users: UserDetailsType[] = response.data?.users?.map(function (
         user: UserDetailsType & { _links: any },
         index: number
       ) {
@@ -213,8 +216,8 @@ export default function useUsersAPIFacade(): UsersActionsType {
         };
       });
       openSnackbar({
-        title: "successfully fetched page of users",
-        body: `details about ${response.data.users.length} users out of ${response.data.totaleElements} was fetched`,
+        title: "Successfully fetched page of users",
+        body: `Details about ${response.data?.users?.length} users out of ${response.data?.totalElements} was fetched`,
         severity: "success",
       });
 
@@ -222,16 +225,16 @@ export default function useUsersAPIFacade(): UsersActionsType {
         users: users,
         message: "Success",
         status: response.status,
-        isLast: response.data.last,
-        pageNumber: response.data.pageNumber,
-        pageSize: response.data.pageSize,
-        totalElements: response.data.totalElements,
-        totalPages: response.data.totalPages,
+        isLast: response.data?.last,
+        pageNumber: response.data?.pageNumber,
+        pageSize: response.data?.pageSize,
+        totalElements: response.data?.totalElements,
+        totalPages: response.data?.totalPages,
       };
     } catch (err: any) {
       openSnackbar({
-        title: `failed to perform actions on users`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: `Failed to fetch users`,
         severity: "error",
       });
       return {
@@ -262,15 +265,15 @@ export default function useUsersAPIFacade(): UsersActionsType {
           }
         );
         const newUserDetails: UserDetailsType = {
-          name: response.data.name,
-          role: response.data.role,
-          id: response.data.id,
-          createdAt: response.data.createdAt,
-          updatedAt: response.data.updatedAt,
+          name: response.data?.name,
+          role: response.data?.role,
+          id: response.data?.id,
+          createdAt: response.data?.createdAt,
+          updatedAt: response.data?.updatedAt,
         };
         openSnackbar({
-          title: `successfully granted permissions`,
-          body: `admin permissions granted to user with id ${id}`,
+          title: `Successfully granted permissions`,
+          body: `Admin permissions granted to user with id ${id}`,
           severity: "success",
         });
         return {
@@ -279,11 +282,15 @@ export default function useUsersAPIFacade(): UsersActionsType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `failed to perform actions`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `Failed to grant admin permissions`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -292,7 +299,7 @@ export default function useUsersAPIFacade(): UsersActionsType {
       }
     } else {
       openSnackbar({
-        title: `failed to perform actions`,
+        title: `Failed to grant admin permissions`,
         body: "You do not have sufficient permissions to grant admin permissions to someone",
         severity: "error",
       });
@@ -317,16 +324,16 @@ export default function useUsersAPIFacade(): UsersActionsType {
           }
         );
         const newUserDetails: UserDetailsType = {
-          id: response.data.id,
-          name: response.data.name,
-          role: response.data.role,
-          createdAt: response.data.createdAt,
-          updatedAt: response.data.updatedAt,
+          id: response.data?.id,
+          name: response.data?.name,
+          role: response.data?.role,
+          createdAt: response.data?.createdAt,
+          updatedAt: response.data?.updatedAt,
         };
 
         openSnackbar({
-          title: `successfully banned user`,
-          body: `user with id ${id} banned`,
+          title: `Successfully banned user`,
+          body: `User with id ${id} was banned`,
           severity: "success",
         });
         return {
@@ -335,11 +342,15 @@ export default function useUsersAPIFacade(): UsersActionsType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `failed to ban user with id: ${id}`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `Failed to ban user with id: ${id}`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -348,7 +359,7 @@ export default function useUsersAPIFacade(): UsersActionsType {
       }
     } else {
       openSnackbar({
-        title: `failed to ban user with id: ${id}`,
+        title: `Failed to ban user with id: ${id}`,
         body: "You do not have sufficient permissions",
         severity: "error",
       });
@@ -375,16 +386,16 @@ export default function useUsersAPIFacade(): UsersActionsType {
           }
         );
         const newUserDetails: UserDetailsType = {
-          id: response.data.id,
-          name: response.data.name,
-          role: response.data.role,
-          createdAt: response.data.createdAt,
-          updatedAt: response.data.updatedAt,
+          id: response.data?.id,
+          name: response.data?.name,
+          role: response.data?.role,
+          createdAt: response.data?.createdAt,
+          updatedAt: response.data?.updatedAt,
         };
 
         openSnackbar({
-          title: `successfully unbanned user`,
-          body: `user with id ${id} unbanned`,
+          title: `Successfully unbanned user`,
+          body: `User with id ${id} unbanned`,
           severity: "success",
         });
         return {
@@ -393,11 +404,15 @@ export default function useUsersAPIFacade(): UsersActionsType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `failed to perform actions on the user with id: ${id}`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `Failed to unban the user with id: ${id}`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -406,8 +421,8 @@ export default function useUsersAPIFacade(): UsersActionsType {
       }
     } else {
       openSnackbar({
-        title: `failed to perform actions on the user with id: ${id}`,
-        body: "You do not have sufficient permissions",
+        title: "You do not have sufficient permissions",
+        body: `Failed to unban the user with id: ${id}`,
         severity: "error",
       });
       return {
@@ -440,7 +455,7 @@ export default function useUsersAPIFacade(): UsersActionsType {
         }
       );
 
-      const comments: CommentDetailsType[] = response.data.comments.map(
+      const comments: CommentDetailsType[] = response.data?.comments?.map(
         function (
           comment: CommentDetailsType & { _links: any },
           index: number
@@ -463,24 +478,28 @@ export default function useUsersAPIFacade(): UsersActionsType {
       );
 
       openSnackbar({
-        title: `successfully fetched comments created by user with id ${userId}`,
-        body: `${response.data.comments.length} out of ${response.data.totalElements} comments fetched`,
+        title: `Successfully fetched comments created by user with id ${userId}`,
+        body: `Page ${pageNumber + 1} with ${
+          response.data?.comments?.length
+        } out of ${
+          response.data?.totalElements
+        } comments fetched successfully.`,
         severity: "success",
       });
       return {
         comments: comments,
         message: "Success",
         status: response.status,
-        isLast: response.data.last,
-        pageNumber: response.data.pageNumber,
-        pageSize: response.data.pageSize,
-        totalElements: response.data.totalElements,
-        totalPages: response.data.totalPages,
+        isLast: response.data?.last,
+        pageNumber: response.data?.pageNumber,
+        pageSize: response.data?.pageSize,
+        totalElements: response.data?.totalElements,
+        totalPages: response.data?.totalPages,
       };
     } catch (err: any) {
       openSnackbar({
-        title: "failed to fetch comments",
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: `Failed to fetch comments created by user with id ${userId}`,
         severity: "error",
       });
       return {
@@ -517,7 +536,7 @@ export default function useUsersAPIFacade(): UsersActionsType {
           },
         }
       );
-      const replies: ReplyDetailsType[] = response.data.replies.map(function (
+      const replies: ReplyDetailsType[] = response.data?.replies?.map(function (
         reply: Omit<ReplyDetailsType, "parentCommentId"> & { _links: any } & {
           parentComment: CommentDetailsType & { _links: any };
         },
@@ -540,23 +559,25 @@ export default function useUsersAPIFacade(): UsersActionsType {
       });
 
       openSnackbar({
-        title: `successfully fetched replies created by user with id ${userId}`,
-        body: `${response.data.replies.length} out of ${response.data.totaleElements} replies fetched`,
+        title: `Successfully fetched replies created by user with id ${userId}`,
+        body: `Page ${pageNumber + 1} with ${
+          response.data?.comments?.length
+        } out of ${response.data?.totalElements} replies fetched successfully.`,
         severity: "success",
       });
       return {
         replies: replies,
         message: "Success",
         status: response.status,
-        isLast: response.data.last,
-        pageNumber: response.data.pageNumber,
-        pageSize: response.data.pageSize,
-        totalElements: response.data.totalElements,
-        totalPages: response.data.totalPages,
+        isLast: response.data?.last,
+        pageNumber: response.data?.pageNumber,
+        pageSize: response.data?.pageSize,
+        totalElements: response.data?.totalElements,
+        totalPages: response.data?.totalPages,
       };
     } catch (err: any) {
       openSnackbar({
-        title: "failed to fetch replies",
+        title: `Failed to fetch replies created by user with id ${userId}`,
         body: mapResponseErrorToMessage(err),
         severity: "error",
       });
@@ -585,14 +606,19 @@ export default function useUsersAPIFacade(): UsersActionsType {
           "/" +
           USERS_ACTIVITY_SUMMARY_ENDPOINT
       );
+      openSnackbar({
+        title: "Success",
+        body: `Successfully fetched activity summary for user with id ${getUserActivitySummary.id}`,
+        severity: "error",
+      });
       return {
         message: "Success",
         status: response.status,
       };
     } catch (err: any) {
       openSnackbar({
-        title: `could not be performed fetch activity summary for user with id ${getUserActivitySummary.id}`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: `Could not fetch activity summary for user with id ${getUserActivitySummary.id}`,
         severity: "error",
       });
       return {
