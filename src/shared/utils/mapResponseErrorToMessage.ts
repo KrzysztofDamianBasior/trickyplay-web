@@ -1,9 +1,13 @@
+import { AxiosError } from "axios";
+
 /**
  * Generate a message based on the error status code
  * @param err
  * @returns message
  */
-export const mapResponseErrorToMessage = (err: any): ErrorMessageKind => {
+export const mapResponseErrorToMessage = (
+  err: AxiosError
+): ErrorMessageKind => {
   if (err.response?.status === 400) {
     return "Bad request";
   } else if (err.response?.status === 401) {
@@ -16,7 +20,7 @@ export const mapResponseErrorToMessage = (err: any): ErrorMessageKind => {
   } else if (err.response?.status === 500) {
     return "Internal server error";
   } else {
-    return "Request failed";
+    return "Network error";
   }
 };
 
@@ -25,6 +29,6 @@ export type ErrorMessageKind =
   | "Bad request"
   | "Lack of sufficient permissions"
   | "Unauthenticated"
-  | "Request failed"
+  | "Network error"
   | "Internal server error"
   | "Not found";
