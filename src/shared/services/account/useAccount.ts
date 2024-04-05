@@ -1,4 +1,4 @@
-import { useEffect, useContext, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import axios, { type AxiosRequestConfig } from "axios";
 
@@ -17,9 +17,9 @@ import {
   type UpdatePasswordProps,
   authInitialState,
 } from "./AccountContext";
-import { NotificationContext } from "../snackbars/NotificationsContext";
 import { getEnvironmentVariable, mapResponseErrorToMessage } from "../../utils";
 import { type UserDetailsType } from "../../models/internalAppRepresentation/resources";
+import { type NotificationDetailsType } from "../snackbars/useNotifications";
 
 // Base urls
 const BASE_URL: string = getEnvironmentVariable(
@@ -67,13 +67,19 @@ interface RetryQueueItem {
   config: AxiosRequestConfig;
 }
 
-export default function useAccount(): AccountContextType {
+export default function useAccount({
+  openSnackbar,
+}: {
+  openSnackbar: ({
+    title,
+    body,
+    severity,
+  }: Omit<NotificationDetailsType, "key">) => void;
+}): AccountContextType {
   const [authState, setAuthState] = useLocalStorage<AuthStateType>(
     "AUTH_STATE",
     authInitialState
   );
-
-  const { openSnackbar } = useContext(NotificationContext);
 
   // Flag to prevent multiple token refresh requests
   const isRefreshing = useRef<boolean>(false);
@@ -94,9 +100,6 @@ export default function useAccount(): AccountContextType {
       (response) => response, // just return the response
       async (error) => {
         // The request was made and the server responded with a status code that falls out of the range of 2xx
-        // console.log(error.response.data);
-        // console.log(error.response.status);
-        // console.log(error.response.headers);
 
         const originalRequest: AxiosRequestConfig = error.config;
 
@@ -108,15 +111,15 @@ export default function useAccount(): AccountContextType {
           if (!isRefreshing.current) {
             // we only want to retry once
             openSnackbar({
-              title: "authentication info",
-              body: "access token has expired, a request to renew the token has been sent",
+              title: "Authentication info",
+              body: "Access token has expired, a request to renew the token has been sent",
               severity: "info",
             });
 
             isRefreshing.current = true;
             const response = await axiosPublic.post(
               // POST {{api-url}}/auth/refresh-access-token
-              AUTH_URL + REFRESH_ACCESS_TOKEN_ENDPOINT,
+              AUTH_URL + "/" + REFRESH_ACCESS_TOKEN_ENDPOINT,
               { refreshToken: authState.refreshToken },
               { withCredentials: true }
             ); // response.data.accessToken
@@ -125,8 +128,8 @@ export default function useAccount(): AccountContextType {
             if (response.status === 200) {
               // response is successful
               openSnackbar({
-                title: "successfully authenticated",
-                body: "access token has been renewed",
+                title: "Successfully authenticated",
+                body: "Access token has been renewed",
                 severity: "success",
               });
 
@@ -156,8 +159,8 @@ export default function useAccount(): AccountContextType {
             } else {
               // You can clear all storage and redirect the user to the login page
               openSnackbar({
-                title: "authentication actions failed",
-                body: "access token failed to renew, you will be logged out in a moment",
+                title: "Authentication failed",
+                body: "Access token failed to renew, you will be logged out in a moment",
                 severity: "error",
               });
 
@@ -170,9 +173,9 @@ export default function useAccount(): AccountContextType {
           } else {
             return new Promise<void>((resolve, reject) => {
               openSnackbar({
-                title: "the access token renewal process is in progress",
-                body: "the task has been moved to the action queue- waiting for access token renewal",
-                severity: "error",
+                title: "The access token renewal process is in progress",
+                body: "The task has been moved to the action queue- waiting for access token renewal",
+                severity: "warning",
               });
               refreshAndRetryQueue.current.push({
                 config: originalRequest,
@@ -196,8 +199,8 @@ export default function useAccount(): AccountContextType {
   const singleSessionSignOut = async (): SignOutResultType => {
     if (authState.user !== null) {
       try {
-        const response = await axiosPublic.post(
-          AUTH_URL + SINGLE_SESSION_SIGN_OUT_ENDPOINT,
+        const response = await axiosPrivate.post(
+          AUTH_URL + "/" + SINGLE_SESSION_SIGN_OUT_ENDPOINT,
           // POST {{api-url}}/auth/single-session-sign-out
           // {
           //     "refreshToken": "{refresh-token}"
@@ -209,8 +212,8 @@ export default function useAccount(): AccountContextType {
         // response.data.numberOfRefreshTokensRemoved
         // response.data.message
         openSnackbar({
-          title: `actions were successfully performed`,
-          body: "successfully logged out of a single account",
+          title: "Success",
+          body: "Successfully signed out of a single account",
           severity: "success",
         });
         setAuthState(authInitialState);
@@ -219,11 +222,16 @@ export default function useAccount(): AccountContextType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `all actions could not be performed`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        setAuthState(authInitialState);
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: "Sign out could not be performed",
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -231,8 +239,8 @@ export default function useAccount(): AccountContextType {
       }
     } else {
       openSnackbar({
-        title: `actions could not be performed`,
-        body: "you are not logged in",
+        title: `Error`,
+        body: "You are not signed in, sign out could not be performed",
         severity: "error",
       });
       return {
@@ -245,19 +253,17 @@ export default function useAccount(): AccountContextType {
   const allSessionsSignOut = async (): SignOutResultType => {
     if (authState.user !== null) {
       try {
-        const response = await axiosPublic.post(
-          AUTH_URL + ALL_SESSIONS_SIGN_OUT_ENDPOINT
+        const response = await axiosPrivate.post(
+          AUTH_URL + "/" + ALL_SESSIONS_SIGN_OUT_ENDPOINT
           // POST {{api-url}}/auth/all-sessions-sign-out
 
           // {
           //   headers: { Authorization: `Bearer ${authState?.accessToken}` },
           // }
         );
-        // console.log(response.data.message);
-        // console.log(response.data.numberOfRefreshTokensRemoved);
         openSnackbar({
-          title: `actions were successfully performed`,
-          body: `successfully logged out from ${response.data.numberOfRefreshTokensRemoved} accounts`,
+          title: `Success`,
+          body: `Successfully signed out from ${response.data.numberOfRefreshTokensRemoved} accounts`,
           severity: "success",
         });
         setAuthState(authInitialState);
@@ -266,11 +272,15 @@ export default function useAccount(): AccountContextType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `actions could not be performed`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `Signed out could not be performed`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -278,8 +288,8 @@ export default function useAccount(): AccountContextType {
       }
     } else {
       openSnackbar({
-        title: `actions could not be performed`,
-        body: "you are not logged in",
+        title: "Error",
+        body: "You are not signed in, signed out could not be performed",
         severity: "error",
       });
       return {
@@ -300,7 +310,7 @@ export default function useAccount(): AccountContextType {
         //   "username": "test",
         //   "password": "test123"
         // }
-        AUTH_URL + SIGN_IN_ENDPOINT,
+        AUTH_URL + "/" + SIGN_IN_ENDPOINT,
         {
           username,
           password,
@@ -316,8 +326,8 @@ export default function useAccount(): AccountContextType {
       };
 
       openSnackbar({
-        title: `actions were successfully performed`,
-        body: "successfully logged in",
+        title: "Successfully signed in",
+        body: "Sign in was successfully performed",
         severity: "success",
       });
       setAuthState({
@@ -335,8 +345,8 @@ export default function useAccount(): AccountContextType {
     } catch (err: any) {
       setAuthState(authInitialState);
       openSnackbar({
-        title: `actions could not be performed`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: `Sign in opereation could not be performed`,
         severity: "error",
       });
       return {
@@ -358,7 +368,7 @@ export default function useAccount(): AccountContextType {
         //   "username": "testUser123",
         //   "password": "testUser1234"
         // }
-        ACCOUNT_URL + SIGN_UP_ENDPOINT,
+        AUTH_URL + "/" + SIGN_UP_ENDPOINT,
         { username, password }
       );
 
@@ -378,8 +388,8 @@ export default function useAccount(): AccountContextType {
         status: "LOGGED_IN",
       });
       openSnackbar({
-        title: `actions were successfully performed`,
-        body: "successfully signed up",
+        title: `Successfully signed up`,
+        body: "The sign up was successfully performed",
         severity: "success",
       });
       return {
@@ -390,8 +400,8 @@ export default function useAccount(): AccountContextType {
     } catch (err: any) {
       setAuthState(authInitialState);
       openSnackbar({
-        title: `actions could not be performed`,
-        body: mapResponseErrorToMessage(err),
+        title: mapResponseErrorToMessage(err),
+        body: `The sign up could not be performed`,
         severity: "error",
       });
       return {
@@ -434,8 +444,8 @@ export default function useAccount(): AccountContextType {
         };
 
         openSnackbar({
-          title: `actions were successfully performed, the username has changed`,
-          body: "username changed",
+          title: `Username changed successfully`,
+          body: "The username change was successfully performed",
           severity: "success",
         });
         setAuthState((prev) => {
@@ -448,11 +458,15 @@ export default function useAccount(): AccountContextType {
         };
       } catch (err: any) {
         setAuthState(authInitialState);
-        openSnackbar({
-          title: `actions could not be performed, the username has not changed`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `The username change operation could not be performed, the username has not changed`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -461,8 +475,8 @@ export default function useAccount(): AccountContextType {
       }
     } else {
       openSnackbar({
-        title: `actions could not be performed, the username has not changed`,
-        body: "authorization failed",
+        title: "Authorization failed",
+        body: `The username change could not be performed, the username has not changed`,
         severity: "error",
       });
       setAuthState(authInitialState);
@@ -506,8 +520,8 @@ export default function useAccount(): AccountContextType {
         };
 
         openSnackbar({
-          title: `actions were successfully performed`,
-          body: "password changed",
+          title: `Password changed successfully`,
+          body: "The password change operation was successfully performed",
           severity: "success",
         });
         setAuthState((prev) => {
@@ -520,11 +534,15 @@ export default function useAccount(): AccountContextType {
         };
       } catch (err: any) {
         setAuthState(authInitialState);
-        openSnackbar({
-          title: `actions could not be performed, the password has not changed`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `The password change operation could not be performed, the password has not changed`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -533,8 +551,8 @@ export default function useAccount(): AccountContextType {
       }
     } else {
       openSnackbar({
-        title: `the password has not changed`,
-        body: "authorization failed",
+        title: "Authorization failed",
+        body: `The password change could not be performed, the password has not changed`,
         severity: "error",
       });
       setAuthState(authInitialState);
@@ -551,18 +569,27 @@ export default function useAccount(): AccountContextType {
     if (authState.user !== null) {
       try {
         const response = await axiosPrivate.get(
-          ACCOUNT_URL + ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT
+          ACCOUNT_URL + "/" + ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT
         );
+        openSnackbar({
+          title: `Success`,
+          body: "Activity summary download successfully started",
+          severity: "error",
+        });
         return {
           message: "Success",
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `actions could not be performed`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `Activity summary download could not be performed`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -570,8 +597,8 @@ export default function useAccount(): AccountContextType {
       }
     } else {
       openSnackbar({
-        title: `actions could not be performed`,
-        body: "authorization failed",
+        title: "Authorization failed",
+        body: `Activity summary download could not be performed`,
         severity: "error",
       });
       return {
@@ -587,8 +614,8 @@ export default function useAccount(): AccountContextType {
         const response = await axiosPrivate.delete(ACCOUNT_URL); // DELETE {{api-url}}/account
         // response.data.message
         openSnackbar({
-          title: `actions were successfully performed`,
-          body: "account deleted successfully",
+          title: `Account deleted successfully`,
+          body: "The account deletion was successfully performed",
           severity: "success",
         });
         setAuthState(authInitialState);
@@ -597,11 +624,15 @@ export default function useAccount(): AccountContextType {
           status: response.status,
         };
       } catch (err: any) {
-        openSnackbar({
-          title: `actions could not be performed`,
-          body: mapResponseErrorToMessage(err),
-          severity: "error",
-        });
+        // eslint-disable-next-line eqeqeq
+        if (err.response?.status != 403 || err.response?.status != 401) {
+          // for axiosPrivate error notifications do not include errors 403 and 401
+          openSnackbar({
+            title: mapResponseErrorToMessage(err),
+            body: `Account deletion could not be performed`,
+            severity: "error",
+          });
+        }
         return {
           message: mapResponseErrorToMessage(err),
           status: err.response?.status,
@@ -609,8 +640,8 @@ export default function useAccount(): AccountContextType {
       }
     } else {
       openSnackbar({
-        title: `actions could not be performed`,
-        body: "authorization failed",
+        title: "Authorization failed",
+        body: `Account deletion could not be performed`,
         severity: "error",
       });
       return {
