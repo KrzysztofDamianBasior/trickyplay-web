@@ -4,4 +4,7 @@ export const calculateNumberOfPages = ({
 }: {
   totalNumberOfEntities: number;
   perPage: number;
-}) => Math.ceil(totalNumberOfEntities / perPage);
+}) => {
+  if (totalNumberOfEntities === 0) return 1;
+  return Math.ceil(totalNumberOfEntities / perPage);
+};
