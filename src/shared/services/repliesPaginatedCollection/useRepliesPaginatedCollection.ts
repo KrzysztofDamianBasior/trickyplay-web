@@ -116,9 +116,7 @@ const useRepliesPaginatedCollection = (
         type: "SET_REPLIES_STATUS",
         payload: { newRepliesStatus: "LOADING" },
       });
-
       const getRepliesResult = await getReplies(props);
-
       if (
         getRepliesResult.status >= 200 &&
         getRepliesResult.status < 300 &&
@@ -136,18 +134,7 @@ const useRepliesPaginatedCollection = (
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "READY" },
         });
-        openSnackbar({
-          severity: "success",
-          title: "successfully performed operations",
-          body: "replies section successfully populated",
-        });
       } else {
-        ///////////////// notify user of an error
-        openSnackbar({
-          severity: "error",
-          title: "failed to perform operations",
-          body: "failed to populate replies section",
-        });
         repliesPaginatedCollectionDispatch({
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "ERROR" },
@@ -165,11 +152,13 @@ const useRepliesPaginatedCollection = (
         const repliesPaginatedCollectionLength =
           repliesPaginatedCollectionState.repliesPaginatedCollection.length;
         if (
-          repliesPaginatedCollectionState.repliesActivePage <
+          repliesPaginatedCollectionState.repliesActivePage ===
+            repliesPaginatedCollectionLength - 1 ||
+          (repliesPaginatedCollectionState.repliesActivePage <
             repliesPaginatedCollectionLength - 1 &&
-          repliesPaginatedCollectionState.repliesPaginatedCollection[
-            repliesPaginatedCollectionState.repliesActivePage
-          ].length < repliesPaginatedCollectionState.repliesPerPage
+            repliesPaginatedCollectionState.repliesPaginatedCollection[
+              repliesPaginatedCollectionState.repliesActivePage
+            ].length < repliesPaginatedCollectionState.repliesPerPage)
         ) {
           repliesPaginatedCollectionDispatch({
             type: "SET_REPLIES_STATUS",
@@ -198,11 +187,6 @@ const useRepliesPaginatedCollection = (
                   totalNumberOfAllReplies: getRepliesResult.totalElements,
                 },
               });
-              openSnackbar({
-                severity: "success",
-                title: "successfully performed operations",
-                body: "replies section successfully populated",
-              });
             } else {
               repliesPaginatedCollectionDispatch({
                 type: "SET_ACTIVE_REPLIES_PAGE",
@@ -211,8 +195,8 @@ const useRepliesPaginatedCollection = (
               openSnackbar({
                 severity: "info",
                 title:
-                  "the active replies page exceeds the total number of replies",
-                body: "page 0 is set",
+                  "The active replies page exceeds the total number of replies",
+                body: "Page 1 is set",
               });
             }
             repliesPaginatedCollectionDispatch({
@@ -220,12 +204,6 @@ const useRepliesPaginatedCollection = (
               payload: { newRepliesStatus: "READY" },
             });
           } else {
-            ///////////////// notify user of an error
-            openSnackbar({
-              severity: "error",
-              title: "failed to perform operations",
-              body: "failed to populate replies section",
-            });
             repliesPaginatedCollectionDispatch({
               type: "SET_REPLIES_STATUS",
               payload: { newRepliesStatus: "ERROR" },
@@ -233,7 +211,6 @@ const useRepliesPaginatedCollection = (
           }
         }
       })();
-      // }
     } else {
       isMounted.current = true;
     }
@@ -275,7 +252,6 @@ const useRepliesPaginatedCollection = (
       type: "SET_REPLIES_STATUS",
       payload: { newRepliesStatus: "LOADING" },
     });
-
     const getRepliesResult = await getReplies(props);
     if (
       getRepliesResult.status >= 200 &&
@@ -297,11 +273,6 @@ const useRepliesPaginatedCollection = (
             totalNumberOfAllReplies: getRepliesResult.totalElements,
           },
         });
-        openSnackbar({
-          severity: "success",
-          title: "Successfully performed operations",
-          body: "Replies sections successfully populated",
-        });
       } else {
         repliesPaginatedCollectionDispatch({
           type: "SET_ACTIVE_REPLIES_PAGE",
@@ -310,7 +281,7 @@ const useRepliesPaginatedCollection = (
         openSnackbar({
           severity: "info",
           title: "The active replies page exceeds the total number of replies",
-          body: "Page 0 is set",
+          body: "Page 1 is set",
         });
       }
       repliesPaginatedCollectionDispatch({
@@ -318,12 +289,6 @@ const useRepliesPaginatedCollection = (
         payload: { newRepliesStatus: "READY" },
       });
     } else {
-      ///////////////// notify user of an error
-      openSnackbar({
-        severity: "error",
-        title: "Failed to perform operations",
-        body: "Failed to populate replies section",
-      });
       repliesPaginatedCollectionDispatch({
         type: "SET_REPLIES_STATUS",
         payload: { newRepliesStatus: "ERROR" },
@@ -351,22 +316,18 @@ const useRepliesPaginatedCollection = (
       nextPage <
       repliesPaginatedCollectionState.repliesPaginatedCollection.length
     ) {
-      // setRepliesActivePage(nextPage);
       repliesPaginatedCollectionDispatch({
         type: "SET_ACTIVE_REPLIES_PAGE",
         payload: { newActiveRepliesPage: nextPage },
-      });
-      openSnackbar({
-        severity: "success",
-        title: "The active replies page has changed",
-        body: `Successfully changed active replies page to page: ${nextPage}`,
       });
     } else {
       ///////////////// notify user of an error
       openSnackbar({
         severity: "error",
-        title: `Failed to change the active replies page to page: ${nextPage}`,
-        body: "New replies page exceeds the total number of replies",
+        title: `Failed to change the active replies page to page: ${
+          nextPage + 1
+        }`,
+        body: "Requested replies page exceeds the total number of replies",
       });
     }
   };
@@ -377,38 +338,13 @@ const useRepliesPaginatedCollection = (
     newRepliesPerPage: number;
   }) => {
     const prevRepliesPerPage = repliesPaginatedCollectionState.repliesPerPage;
-
-    if (
-      repliesPaginatedCollectionState.repliesActivePage <
-      calculateNumberOfPages({
-        perPage: newRepliesPerPage,
-        totalNumberOfEntities:
-          repliesPaginatedCollectionState.totalNumberOfAllReplies,
-      })
-    ) {
-      repliesPaginatedCollectionDispatch({
-        type: "SET_REPLIES_PER_PAGE",
-        payload: {
-          newRepliesPerPage,
-          prevRepliesPerPage,
-        },
-      });
-      openSnackbar({
-        severity: "success",
-        title: "The number of replies per page has changed",
-        body: `The number of replies per page has changed to ${newRepliesPerPage} replies per page`,
-      });
-    } else {
-      repliesPaginatedCollectionDispatch({
-        type: "SET_ACTIVE_REPLIES_PAGE",
-        payload: { newActiveRepliesPage: 0 },
-      });
-      openSnackbar({
-        severity: "info",
-        title: "The active replies page exceeds the total number of replies",
-        body: "Page 0 is set",
-      });
-    }
+    repliesPaginatedCollectionDispatch({
+      type: "SET_REPLIES_PER_PAGE",
+      payload: {
+        newRepliesPerPage,
+        prevRepliesPerPage,
+      },
+    });
   };
 
   const handleReplyAdd = async ({
@@ -423,12 +359,10 @@ const useRepliesPaginatedCollection = (
         type: "SET_REPLIES_STATUS",
         payload: { newRepliesStatus: "LOADING" },
       });
-
       const createReplyResult = await createReply({
         body: content,
         parentCommentId,
       });
-
       if (
         createReplyResult.status >= 200 &&
         createReplyResult.status < 300 &&
@@ -440,22 +374,12 @@ const useRepliesPaginatedCollection = (
             reply: createReplyResult.reply,
           },
         });
-        openSnackbar({
-          severity: "success",
-          title: "New reply added to the collection",
-          body: `Added reply with id: ${createReplyResult.reply.id}`,
-        });
         repliesPaginatedCollectionDispatch({
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "READY" },
         });
       } else {
         ///////////////// notify user of an error
-        openSnackbar({
-          severity: "error",
-          title: `Failed to add new reply`,
-          body: "Reply could not be added to the collection",
-        });
         repliesPaginatedCollectionDispatch({
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "ERROR" },
@@ -464,8 +388,8 @@ const useRepliesPaginatedCollection = (
     } else {
       openSnackbar({
         severity: "error",
-        title: `Failed to add a new reply to the collection`,
-        body: `Lack of sufficient permissions`,
+        title: `Lack of sufficient permissions`,
+        body: `Failed to add a new reply to the collection`,
       });
       repliesPaginatedCollectionDispatch({
         type: "SET_REPLIES_STATUS",
@@ -486,9 +410,7 @@ const useRepliesPaginatedCollection = (
         type: "SET_REPLIES_STATUS",
         payload: { newRepliesStatus: "LOADING" },
       });
-
       const deleteReplyResult = await deleteReply(reply);
-
       if (deleteReplyResult.status >= 200 && deleteReplyResult.status < 300) {
         repliesPaginatedCollectionDispatch({
           type: "DELETE_REPLY",
@@ -498,22 +420,12 @@ const useRepliesPaginatedCollection = (
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "READY" },
         });
-        openSnackbar({
-          severity: "success",
-          title: "Reply removed from the collection",
-          body: `Successfully removed reply with id: ${reply.id}`,
-        });
         return deleteReplyResult;
       } else {
         ///////////////// notify user of an error
         repliesPaginatedCollectionDispatch({
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "ERROR" },
-        });
-        openSnackbar({
-          severity: "error",
-          title: `Reply could not be removed from the collection`,
-          body: `Could not remove reply with id: ${reply.id}`,
         });
         return deleteReplyResult;
       }
@@ -545,12 +457,10 @@ const useRepliesPaginatedCollection = (
         type: "SET_REPLIES_STATUS",
         payload: { newRepliesStatus: "LOADING" },
       });
-
       const updateReplyResult = await updateReply({
         currentReplyDetails: reply,
         newReplyBody: newContent,
       });
-
       if (
         updateReplyResult.status >= 200 &&
         updateReplyResult.status < 300 &&
@@ -564,21 +474,11 @@ const useRepliesPaginatedCollection = (
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "READY" },
         });
-        openSnackbar({
-          severity: "success",
-          title: "Reply updated",
-          body: `Successfully updated reply with id: ${reply.id}`,
-        });
       } else {
         ///////////////// notify user of an error
         repliesPaginatedCollectionDispatch({
           type: "SET_REPLIES_STATUS",
           payload: { newRepliesStatus: "ERROR" },
-        });
-        openSnackbar({
-          severity: "error",
-          title: `Replies collection has not been modified`,
-          body: `Could not update reply with id: ${reply.id}`,
         });
       }
     } else {
