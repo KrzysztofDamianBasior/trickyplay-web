@@ -84,7 +84,6 @@ export function usersPaginatedCollectionReducer(
 ): UsersPaginatedCollectionStateType {
   let usersPaginatedCollectionNewState: UsersPaginatedCollectionStateType =
     JSON.parse(JSON.stringify(state));
-  let user: UserDetailsType | undefined | null = null;
 
   const currentPaginatedCollectionLength =
     state.usersPaginatedCollection.length;
@@ -114,18 +113,18 @@ export function usersPaginatedCollectionReducer(
 
     case "ADD_USERS":
       // modifies: usersPaginatedCollection, totalNumberOfAllUsers, usersCurrentPage
-      usersPaginatedCollectionNewState.usersPaginatedCollection[
-        action.payload.usersPage
-      ] = action.payload.users;
-
-      const oldTotalNumberOfUsers = state.totalNumberOfAllUsers;
-      usersPaginatedCollectionNewState.totalNumberOfAllUsers =
-        action.payload.totalNumberOfAllUsers;
 
       if (
-        oldTotalNumberOfUsers !==
-        usersPaginatedCollectionNewState.totalNumberOfAllUsers
+        action.payload.usersPage <
+        usersPaginatedCollectionNewState.usersPaginatedCollection.length
       ) {
+        usersPaginatedCollectionNewState.usersPaginatedCollection[
+          action.payload.usersPage
+        ] = action.payload.users;
+
+        usersPaginatedCollectionNewState.totalNumberOfAllUsers =
+          action.payload.totalNumberOfAllUsers;
+
         if (
           state.usersActivePage <
           calculateNumberOfPages({
@@ -164,34 +163,58 @@ export function usersPaginatedCollectionReducer(
       return { ...usersPaginatedCollectionNewState };
 
     case "BAN_USER":
-      user = usersPaginatedCollectionNewState.usersPaginatedCollection[
-        action.payload.userPage
-      ].find((rep) => rep.id === action.payload.user.id);
+      if (
+        action.payload.userPage <
+        usersPaginatedCollectionNewState.usersPaginatedCollection.length
+      ) {
+        const indexOfUserToUpdate =
+          usersPaginatedCollectionNewState.usersPaginatedCollection[
+            action.payload.userPage
+          ].findIndex((usr) => usr.id === action.payload.user.id);
 
-      if (user) {
-        user.role = "BANNED";
+        if (indexOfUserToUpdate >= 0) {
+          usersPaginatedCollectionNewState.usersPaginatedCollection[
+            action.payload.userPage
+          ][indexOfUserToUpdate].role = "BANNED";
+        }
       }
 
       return { ...usersPaginatedCollectionNewState };
 
     case "UNBAN_USER":
-      user = usersPaginatedCollectionNewState.usersPaginatedCollection[
-        action.payload.userPage
-      ].find((rep) => rep.id === action.payload.user.id);
+      if (
+        action.payload.userPage <
+        usersPaginatedCollectionNewState.usersPaginatedCollection.length
+      ) {
+        const indexOfUserToUpdate =
+          usersPaginatedCollectionNewState.usersPaginatedCollection[
+            action.payload.userPage
+          ].findIndex((usr) => usr.id === action.payload.user.id);
 
-      if (user) {
-        user.role = "USER";
+        if (indexOfUserToUpdate >= 0) {
+          usersPaginatedCollectionNewState.usersPaginatedCollection[
+            action.payload.userPage
+          ][indexOfUserToUpdate].role = "USER";
+        }
       }
 
       return { ...usersPaginatedCollectionNewState };
 
     case "GRANT_ADMIN_PERMISSIONS":
-      user = usersPaginatedCollectionNewState.usersPaginatedCollection[
-        action.payload.userPage
-      ].find((rep) => rep.id === action.payload.user.id);
+      if (
+        action.payload.userPage <
+        usersPaginatedCollectionNewState.usersPaginatedCollection.length
+      ) {
+        const indexOfUserToUpdate =
+          usersPaginatedCollectionNewState.usersPaginatedCollection[
+            action.payload.userPage
+          ].findIndex((usr) => usr.id === action.payload.user.id);
 
-      if (user) {
-        user.role = "ADMIN";
+        if (indexOfUserToUpdate >= 0) {
+          usersPaginatedCollectionNewState.usersPaginatedCollection[
+            action.payload.userPage
+          ][indexOfUserToUpdate].role = "ADMIN";
+        }
       }
 
       return { ...usersPaginatedCollectionNewState };
@@ -209,20 +232,18 @@ export function usersPaginatedCollectionReducer(
 
     case "SET_USERS_PER_PAGE":
       // let prevUsersPerPage = action.payload.prevUsersPerPage;
-      let newUsersPerPage = action.payload.newUsersPerPage;
-
       usersPaginatedCollectionNewState.usersPaginatedCollection =
         regroupEntities<UserDetailsType>({
           currentEntitiesPaginatedCollection:
             usersPaginatedCollectionNewState.usersPaginatedCollection,
           // currentPerPage: prevUsersPerPage,
           currentPerPage: state.usersPerPage,
-          newPerPage: newUsersPerPage,
-          newTotalNumberOfAllEntities:
-            usersPaginatedCollectionNewState.totalNumberOfAllUsers,
+          newPerPage: action.payload.newUsersPerPage,
+          newTotalNumberOfAllEntities: state.totalNumberOfAllUsers,
         });
 
-      usersPaginatedCollectionNewState.usersPerPage = newUsersPerPage;
+      usersPaginatedCollectionNewState.usersPerPage =
+        action.payload.newUsersPerPage;
 
       if (
         usersPaginatedCollectionNewState.usersPaginatedCollection.length - 1 <
