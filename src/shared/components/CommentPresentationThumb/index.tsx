@@ -1,18 +1,17 @@
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
-import CardActions from "@mui/material/CardActions";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
-import { CommentDetailsType } from "../../services/api/useCommentsAPIFacade";
+
+import { type CommentDetailsType } from "../../models/internalAppRepresentation/resources";
 
 export default function CommentCard({
   commentDetails,
 }: {
   commentDetails: CommentDetailsType;
 }) {
-  const { author, body, createdAt, lastUpdatedAt, gameName, id } =
-    commentDetails;
+  const { author, body, createdAt, updatedAt, id } = commentDetails;
   return (
     <Card sx={{ maxWidth: 345 }} key={id}>
       <CardHeader
@@ -22,22 +21,18 @@ export default function CommentCard({
           </Avatar>
         }
         title={author.name}
-        subheader={`comment created at: ${createdAt}, last updated at: ${lastUpdatedAt}`}
+        subheader={`comment created at: ${new Date(
+          createdAt
+        ).toLocaleString()}, last updated at: ${new Date(
+          updatedAt
+        ).toLocaleString()}`}
       />
+
       <CardContent>
         <Typography variant="body2" color="text.secondary">
           {body}
         </Typography>
       </CardContent>
-
-      <CardActions>
-        <Typography variant="body2" color="text.secondary">
-          id: {id}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          game name: {gameName}
-        </Typography>
-      </CardActions>
     </Card>
   );
 }

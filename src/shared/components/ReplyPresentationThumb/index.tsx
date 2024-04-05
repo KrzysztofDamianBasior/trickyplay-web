@@ -1,7 +1,6 @@
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
-import CardActions from "@mui/material/CardActions";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 
@@ -12,8 +11,7 @@ export default function ReplyCard({
 }: {
   replyDetails: ReplyDetailsType;
 }) {
-  const { author, body, createdAt, updatedAt, id, parentCommentId } =
-    replyDetails;
+  const { author, body, createdAt, updatedAt, id } = replyDetails;
   return (
     <Card sx={{ maxWidth: 345 }} key={id}>
       <CardHeader
@@ -23,22 +21,18 @@ export default function ReplyCard({
           </Avatar>
         }
         title={author.name}
-        subheader={`reply created at: ${createdAt}, last updated at: ${updatedAt}`}
+        subheader={`reply created at: ${new Date(
+          createdAt
+        ).toLocaleString()}, last updated at: ${new Date(
+          updatedAt
+        ).toLocaleString()}`}
       />
+
       <CardContent>
         <Typography variant="body2" color="text.secondary">
           {body}
         </Typography>
       </CardContent>
-
-      <CardActions>
-        <Typography variant="body2" color="text.secondary">
-          id: {id}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          parent id: {parentCommentId}
-        </Typography>
-      </CardActions>
     </Card>
   );
 }
