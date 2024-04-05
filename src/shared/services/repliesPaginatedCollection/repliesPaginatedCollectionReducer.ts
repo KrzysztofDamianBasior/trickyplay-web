@@ -106,7 +106,6 @@ export function repliesPaginatedCollectionReducer(
 ): RepliesPaginatedCollectionStateType {
   let repliesPaginatedCollectionNewState: RepliesPaginatedCollectionStateType =
     JSON.parse(JSON.stringify(state));
-  let reply: ReplyDetailsType | undefined | null = null;
 
   const currentPaginatedCollectionLength =
     state.repliesPaginatedCollection.length;
@@ -155,18 +154,17 @@ export function repliesPaginatedCollectionReducer(
     case "ADD_REPLIES":
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies, repliesCurrentPage
 
-      repliesPaginatedCollectionNewState.repliesPaginatedCollection[
-        action.payload.repliesPage
-      ] = action.payload.replies;
-
-      const oldTotalNumberOfReplies = state.totalNumberOfAllReplies;
-      repliesPaginatedCollectionNewState.totalNumberOfAllReplies =
-        action.payload.totalNumberOfAllReplies;
-
       if (
-        oldTotalNumberOfReplies !==
-        repliesPaginatedCollectionNewState.totalNumberOfAllReplies
+        action.payload.repliesPage <
+        repliesPaginatedCollectionNewState.repliesPaginatedCollection.length
       ) {
+        repliesPaginatedCollectionNewState.repliesPaginatedCollection[
+          action.payload.repliesPage
+        ] = action.payload.replies;
+
+        repliesPaginatedCollectionNewState.totalNumberOfAllReplies =
+          action.payload.totalNumberOfAllReplies;
+
         if (
           state.repliesActivePage <
           calculateNumberOfPages({
@@ -219,12 +217,20 @@ export function repliesPaginatedCollectionReducer(
       return { ...repliesPaginatedCollectionNewState };
 
     case "UPDATE_REPLY":
-      reply = repliesPaginatedCollectionNewState.repliesPaginatedCollection[
-        action.payload.replyPage
-      ].find((rep) => rep.id === action.payload.reply.id);
+      if (
+        action.payload.replyPage <
+        repliesPaginatedCollectionNewState.repliesPaginatedCollection.length
+      ) {
+        const indexOfReplyToUpdate =
+          repliesPaginatedCollectionNewState.repliesPaginatedCollection[
+            action.payload.replyPage
+          ].findIndex((repl) => repl.id === action.payload.reply.id);
 
-      if (reply) {
-        reply = action.payload.reply;
+        if (indexOfReplyToUpdate !== -1) {
+          repliesPaginatedCollectionNewState.repliesPaginatedCollection[
+            action.payload.replyPage
+          ][indexOfReplyToUpdate] = action.payload.reply;
+        }
       }
 
       return { ...repliesPaginatedCollectionNewState };
@@ -246,19 +252,19 @@ export function repliesPaginatedCollectionReducer(
       return { ...repliesPaginatedCollectionNewState };
 
     case "SET_REPLIES_PER_PAGE":
-      let prevRepliesPerPage = action.payload.prevRepliesPerPage;
-      repliesPaginatedCollectionNewState.repliesPerPage =
-        action.payload.newRepliesPerPage;
-
+      // let prevRepliesPerPage = action.payload.prevRepliesPerPage;
       repliesPaginatedCollectionNewState.repliesPaginatedCollection =
         regroupEntities<ReplyDetailsType>({
           currentEntitiesPaginatedCollection:
             repliesPaginatedCollectionNewState.repliesPaginatedCollection,
-          currentPerPage: prevRepliesPerPage,
-          newPerPage: repliesPaginatedCollectionNewState.repliesPerPage,
-          newTotalNumberOfAllEntities:
-            repliesPaginatedCollectionNewState.totalNumberOfAllReplies,
+          // currentPerPage: prevRepliesPerPage,
+          currentPerPage: state.repliesPerPage,
+          newPerPage: action.payload.newRepliesPerPage,
+          newTotalNumberOfAllEntities: state.totalNumberOfAllReplies,
         });
+
+      repliesPaginatedCollectionNewState.repliesPerPage =
+        action.payload.newRepliesPerPage;
 
       if (
         repliesPaginatedCollectionNewState.repliesPaginatedCollection.length -
