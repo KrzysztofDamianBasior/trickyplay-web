@@ -13,7 +13,7 @@ export const commentsPaginatedCollectionInitialState: CommentsPaginatedCollectio
   };
 
 export type CommentsPaginatedCollectionStateType = {
-  textAlignment: TextAlignentType;
+  textAlignment: TextAlignmentType;
   commentsPaginatedCollection: CommentDetailsType[][]; // [numOfPages][commentsPerPage]
   status: CommentsPaginatedCollectionStatusType;
   totalNumberOfAllComments: number;
@@ -34,7 +34,7 @@ export type ActiveCommentDetailsType = {
 
 export type ActiveCommentActionType = "Editing" | "Replying";
 
-export type TextAlignentType = "center" | "left" | "right" | "justify";
+export type TextAlignmentType = "center" | "left" | "right" | "justify";
 
 export type CommentsPaginatedCollectionActionType =
   | AddCommentActionType
@@ -75,7 +75,7 @@ export type UpdateCommentActionType = {
 
 export type SetTextAlignmentActionType = {
   type: "SET_TEXT_ALIGNMENT";
-  payload: { textAlignment: TextAlignentType };
+  payload: { textAlignment: TextAlignmentType };
 };
 
 export type SetActiveCommentActionType = {
@@ -103,7 +103,6 @@ export function commentsPaginatedCollectionReducer(
 ): CommentsPaginatedCollectionStateType {
   let commentsSectionNewState: CommentsPaginatedCollectionStateType =
     JSON.parse(JSON.stringify(state));
-  let comment: CommentDetailsType | undefined | null = null;
 
   const currentPaginatedCollectionLength =
     state.commentsPaginatedCollection.length;
@@ -151,18 +150,17 @@ export function commentsPaginatedCollectionReducer(
     case "ADD_COMMENTS":
       // modifies: commentsPaginatedCollection, totalNumberOfAllComments, commentsCurrentPage
 
-      commentsSectionNewState.commentsPaginatedCollection[
-        action.payload.commentsPage
-      ] = action.payload.comments;
-
-      const oldTotalNumberOfComments = state.totalNumberOfAllComments;
-      commentsSectionNewState.totalNumberOfAllComments =
-        action.payload.totalNumberOfAllComments;
-
       if (
-        oldTotalNumberOfComments !==
-        commentsSectionNewState.totalNumberOfAllComments
+        action.payload.commentsPage <
+        commentsSectionNewState.commentsPaginatedCollection.length
       ) {
+        commentsSectionNewState.commentsPaginatedCollection[
+          action.payload.commentsPage
+        ] = action.payload.comments;
+
+        commentsSectionNewState.totalNumberOfAllComments =
+          action.payload.totalNumberOfAllComments;
+
         if (
           state.commentsActivePage <
           calculateNumberOfPages({
@@ -206,6 +204,7 @@ export function commentsPaginatedCollectionReducer(
       } else {
         commentsSectionNewState.activeComment = null;
       }
+
       return { ...commentsSectionNewState };
 
     case "SET_COMMENTS_STATUS":
@@ -215,12 +214,20 @@ export function commentsPaginatedCollectionReducer(
       return { ...commentsSectionNewState };
 
     case "UPDATE_COMMENT":
-      comment = commentsSectionNewState.commentsPaginatedCollection[
-        action.payload.page
-      ].find((comm) => comm.id === action.payload.comment.id);
+      if (
+        action.payload.page <
+        commentsSectionNewState.commentsPaginatedCollection.length
+      ) {
+        const indexOfCommentToUpdate =
+          commentsSectionNewState.commentsPaginatedCollection[
+            action.payload.page
+          ].findIndex((comm) => comm.id === action.payload.comment.id);
 
-      if (comment) {
-        comment = { ...action.payload.comment };
+        if (indexOfCommentToUpdate !== -1) {
+          commentsSectionNewState.commentsPaginatedCollection[
+            action.payload.page
+          ][indexOfCommentToUpdate] = action.payload.comment;
+        }
       }
 
       return { ...commentsSectionNewState };
@@ -242,19 +249,19 @@ export function commentsPaginatedCollectionReducer(
       return { ...commentsSectionNewState };
 
     case "SET_COMMENTS_PER_PAGE":
-      let prevCommentsPerPage = action.payload.prevCommentsPerPage;
-      let newCommentsPerPage = action.payload.newCommentsPerPage;
-      // commentsPerPage = action.payload.commentsPerPage;
-
+      // let prevCommentsPerPage = state.commentsPerPage;
       commentsSectionNewState.commentsPaginatedCollection =
         regroupEntities<CommentDetailsType>({
           currentEntitiesPaginatedCollection:
             commentsSectionNewState.commentsPaginatedCollection,
-          currentPerPage: prevCommentsPerPage,
-          newPerPage: newCommentsPerPage,
-          newTotalNumberOfAllEntities:
-            commentsSectionNewState.totalNumberOfAllComments,
+          // currentPerPage: prevCommentsPerPage,
+          currentPerPage: state.commentsPerPage,
+          newPerPage: action.payload.newCommentsPerPage,
+          newTotalNumberOfAllEntities: state.totalNumberOfAllComments,
         });
+
+      commentsSectionNewState.commentsPerPage =
+        action.payload.newCommentsPerPage;
 
       if (
         commentsSectionNewState.commentsPaginatedCollection.length - 1 <
