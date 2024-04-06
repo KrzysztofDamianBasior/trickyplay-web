@@ -9,6 +9,12 @@ import Loading from "./pages/Loading";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
 import Auth from "./pages/Auth";
+// import Profile from "./pages/Profile";
+
+import DeleteAccountDialog from "./shared/components/DeleteAccountDialog";
+import DeleteEntitiesDialog from "./shared/components/DeleteEntitiesDialog/DeleteEntitiesDialog";
+import ChangePasswordDialog from "./shared/components/ChangePasswordDialog";
+import ChangeUsernameDialog from "./shared/components/ChangeUsernameDialog";
 
 import { useDarkMode } from "usehooks-ts";
 
@@ -151,40 +157,41 @@ function App() {
 
   return (
     <div className="app">
-      <ErrorBoundary>
-        <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
-          <DialogsContext.Provider
+      <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
+        <DialogsContext.Provider
+          value={{
+            deleteEntitiesConfirmationDialogManager,
+            changePasswordDialogManager,
+            changeUsernameDialogManager,
+            deleteAccountConfirmationDialogManager,
+          }}
+        >
+          <AccountContext.Provider
             value={{
-              deleteEntitiesConfirmationDialogManager,
-              changePasswordDialogManager,
-              changeUsernameDialogManager,
-              deleteAccountConfirmationDialogManager,
+              authState,
+              axiosPrivate,
+              axiosPublic,
+              signIn,
+              signUp,
+              allSessionsSignOut,
+              singleSessionSignOut,
+              accountActivitySummary,
+              deleteAccount,
+              updatePassword,
+              updateUsername,
             }}
           >
-            <AccountContext.Provider
-              value={{
-                authState,
-                axiosPrivate,
-                axiosPublic,
-                signIn,
-                signUp,
-                allSessionsSignOut,
-                singleSessionSignOut,
-                accountActivitySummary,
-                deleteAccount,
-                updatePassword,
-                updateUsername,
-              }}
-            >
-              <MUIThemeProvider theme={themeOptions}>
-                <CssBaseline />
-                <AnimatePresence>
+            <MUIThemeProvider theme={themeOptions}>
+              <CssBaseline />
+              <AnimatePresence>
+                <ErrorBoundary>
                   <Routes key={location.pathname} location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/home" element={<Navigate to="/" />} />
                     <Route path="/games" element={<Games />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/attribution" element={<Attribution />} />
+                    {/* <Route path="/account" element={<Profile />} /> */}
                     <Route
                       path="/games/tic-tac-toe"
                       element={
@@ -217,12 +224,16 @@ function App() {
                     isOpened={isSnackbarOpened}
                     messageInfo={messageInfo}
                   />
-                </AnimatePresence>
-              </MUIThemeProvider>
-            </AccountContext.Provider>
-          </DialogsContext.Provider>
-        </NotificationContext.Provider>
-      </ErrorBoundary>
+                  <DeleteEntitiesDialog />
+                  <DeleteAccountDialog />
+                  <ChangePasswordDialog />
+                  <ChangeUsernameDialog />
+                </ErrorBoundary>
+              </AnimatePresence>
+            </MUIThemeProvider>
+          </AccountContext.Provider>
+        </DialogsContext.Provider>
+      </NotificationContext.Provider>
     </div>
   );
 }

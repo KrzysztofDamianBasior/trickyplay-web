@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import Dialog from "@mui/material/Dialog";
 import Divider from "@mui/material/Divider";
@@ -25,6 +25,19 @@ export default function DeleteAccountDialog() {
   const { closeDialog, isDeleteAccountConfirmationDialogOpened } =
     deleteAccountConfirmationDialogManager;
 
+  const onCloseDialog = () => {
+    closeDialog();
+  };
+
+  useEffect(() => {
+    if (
+      deleteAccountConfirmationDialogManager.isDeleteAccountConfirmationDialogOpened
+    )
+      setDeleteAccountDialogStatus("FORM_PROCESSING_PHASE");
+  }, [
+    deleteAccountConfirmationDialogManager.isDeleteAccountConfirmationDialogOpened,
+  ]);
+
   return (
     <Dialog
       open={isDeleteAccountConfirmationDialogOpened}
@@ -34,16 +47,20 @@ export default function DeleteAccountDialog() {
       aria-describedby="delete-account-dialog-description"
     >
       {deleteAccountDialogStatus === "OPERATION_SUCCEEDED" && (
-        <AccountDeletedSuccessfully />
+        <AccountDeletedSuccessfully onCloseDialog={onCloseDialog} />
       )}
       {deleteAccountDialogStatus === "OPERATION_FAILED" && (
-        <AccountDeleteFailed deleteAccountResult={deleteAccountResult} />
+        <AccountDeleteFailed
+          deleteAccountResult={deleteAccountResult}
+          onCloseDialog={onCloseDialog}
+        />
       )}
       <Divider />
       {deleteAccountDialogStatus === "FORM_PROCESSING_PHASE" && (
         <DeleteAccountConfirmatin
           setDeleteAccountDialogStatus={setDeleteAccountDialogStatus}
           setDeleteAccountResult={setDeleteAccountResult}
+          onCloseDialog={onCloseDialog}
         />
       )}
     </Dialog>

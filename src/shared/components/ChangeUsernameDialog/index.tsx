@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import Dialog from "@mui/material/Dialog";
 import Divider from "@mui/material/Divider";
@@ -22,6 +22,15 @@ export default function ChangeUsernameDialog() {
   const { closeDialog, isChangeUsernameDialogOpened } =
     changeUsernameDialogManager;
 
+  const onCloseDialog = () => {
+    closeDialog();
+  };
+
+  useEffect(() => {
+    if (changeUsernameDialogManager.isChangeUsernameDialogOpened)
+      setUsernameChangeDialogStatus("FORM_PROCESSING_PHASE");
+  }, [changeUsernameDialogManager.isChangeUsernameDialogOpened]);
+
   return (
     <Dialog
       open={isChangeUsernameDialogOpened}
@@ -31,10 +40,10 @@ export default function ChangeUsernameDialog() {
       aria-describedby="change-username-dialog-description"
     >
       {usernameChangeDialogStatus === "OPERATION_SUCCEEDED" && (
-        <UsernameUpdatedSuccessfully />
+        <UsernameUpdatedSuccessfully onCloseDialog={onCloseDialog} />
       )}
       {usernameChangeDialogStatus === "OPERATION_FAILED" && (
-        <UsernameUpdateFailed />
+        <UsernameUpdateFailed onCloseDialog={onCloseDialog} />
       )}
       <Divider />
       {usernameChangeDialogStatus === "FORM_PROCESSING_PHASE" && (
@@ -42,6 +51,7 @@ export default function ChangeUsernameDialog() {
           setDialogStatus={(newStatus) => {
             setUsernameChangeDialogStatus(newStatus);
           }}
+          onCloseDialog={onCloseDialog}
         />
       )}
     </Dialog>

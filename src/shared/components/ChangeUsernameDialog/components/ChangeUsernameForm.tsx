@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 
-import { Formik, Form, FormikHelpers } from "formik";
+import { Formik, Form, type FormikHelpers } from "formik";
 import * as Yup from "yup";
 
 import Button from "@mui/material/Button";
@@ -24,7 +24,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Visibility from "@mui/icons-material/Visibility";
 import CancelIcon from "@mui/icons-material/Cancel";
 
-import { ChangeUsernameDialogStatusType } from "..";
+import { type ChangeUsernameDialogStatusType } from "..";
 import {
   PASSWORD_MESSAGE,
   PASSWORD_REGEX,
@@ -32,10 +32,10 @@ import {
   USERNAME_REGEX,
 } from "../../../services/account/authenticationConstraints";
 import { AccountContext } from "../../../services/account/AccountContext";
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
 
 type Props = {
   setDialogStatus: (status: ChangeUsernameDialogStatusType) => void;
+  onCloseDialog: () => void;
 };
 const validationSchema = Yup.object().shape({
   username: Yup.string()
@@ -46,12 +46,9 @@ const validationSchema = Yup.object().shape({
     .required("Required"),
 });
 
-const ChangeUsernameForm = ({ setDialogStatus }: Props) => {
+const ChangeUsernameForm = ({ setDialogStatus, onCloseDialog }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
-  const { authState, updateMyUsername } = useContext(AccountContext);
-  const { changeUsernameDialogManager } = useContext(DialogsContext);
-
-  const { closeDialog } = changeUsernameDialogManager;
+  const { authState, updateUsername } = useContext(AccountContext);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -78,15 +75,10 @@ const ChangeUsernameForm = ({ setDialogStatus }: Props) => {
   ) => {
     props.setSubmitting(true);
 
-    const changeUsernameResponseStatus = await updateMyUsername({
-      ...values,
+    const changeUsernameResponseStatus = await updateUsername({
+      currentPassword: values.password,
+      newUsername: values.newName,
     });
-
-    console.log(changeUsernameResponseStatus);
-
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-    await delay(2000);
 
     props.resetForm();
     props.setSubmitting(false);
@@ -198,7 +190,7 @@ const ChangeUsernameForm = ({ setDialogStatus }: Props) => {
           </DialogContent>
           <DialogActions>
             <Button
-              onClick={closeDialog}
+              onClick={onCloseDialog}
               variant="contained"
               disabled={props.isSubmitting}
               color="secondary"

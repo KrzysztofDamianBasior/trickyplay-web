@@ -9,13 +9,13 @@ import DialogActions from "@mui/material/DialogActions";
 import DoneIcon from "@mui/icons-material/Done";
 
 import { AccountContext } from "../../../services/account/AccountContext";
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
 
-const UsernameUpdatedSuccessfully = () => {
+const UsernameUpdatedSuccessfully = ({
+  onCloseDialog,
+}: {
+  onCloseDialog: () => void;
+}) => {
   const { authState } = useContext(AccountContext);
-  const { changeUsernameDialogManager } = useContext(DialogsContext);
-
-  const { closeDialog } = changeUsernameDialogManager;
 
   return (
     <>
@@ -30,7 +30,7 @@ const UsernameUpdatedSuccessfully = () => {
       </DialogContent>
       <DialogActions>
         <Button
-          onClick={closeDialog}
+          onClick={onCloseDialog}
           variant="contained"
           color="success"
           size="medium"

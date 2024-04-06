@@ -1,5 +1,3 @@
-import { useContext } from "react";
-
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContentText from "@mui/material/DialogContentText";
@@ -9,16 +7,16 @@ import DialogActions from "@mui/material/DialogActions";
 import ErrorIcon from "@mui/icons-material/Error";
 
 import { DeleteAccountResultType } from "../../../services/account/AccountContext";
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
 
 type Props = {
   deleteAccountResult: Awaited<DeleteAccountResultType> | null;
+  onCloseDialog: () => void;
 };
-const UsernameUpdateFailed = ({ deleteAccountResult }: Props) => {
-  const { changeUsernameDialogManager } = useContext(DialogsContext);
 
-  const { closeDialog } = changeUsernameDialogManager;
-
+const UsernameUpdateFailed = ({
+  deleteAccountResult,
+  onCloseDialog,
+}: Props) => {
   return (
     <>
       <DialogTitle id="scroll-dialog-title">
@@ -37,7 +35,7 @@ const UsernameUpdateFailed = ({ deleteAccountResult }: Props) => {
       </DialogContent>
       <DialogActions>
         <Button
-          onClick={closeDialog}
+          onClick={onCloseDialog}
           variant="contained"
           color="error"
           size="medium"

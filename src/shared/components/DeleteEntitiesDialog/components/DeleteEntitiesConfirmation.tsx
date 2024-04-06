@@ -5,18 +5,16 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import CircularProgress from "@mui/material/CircularProgress";
 
 import CancelIcon from "@mui/icons-material/Cancel";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 
 import CommentCard from "../../CommentPresentationThumb";
 import ReplyCard from "../../ReplyPresentationThumb";
-import { DeleteEntitiesDialogStatusType } from "../DeleteEntitiesDialog";
+import { type DeleteEntitiesDialogStatusType } from "../DeleteEntitiesDialog";
 
 import {
-  DeleteEntitiesOnConfirmResultType,
+  type DeleteEntitiesOnConfirmResultType,
   DialogsContext,
 } from "../../../services/dialogs/DialogsContext";
 
@@ -27,11 +25,13 @@ type Props = {
   setDeleteEntitiesResults: (
     deleteEntitiesOnConfirmResultType: Awaited<DeleteEntitiesOnConfirmResultType>
   ) => void;
+  onCloseDialog: () => void;
 };
 
 const DeleteEntitiesConfirmation = ({
   setDeleteEntitiesDialogStatus,
   setDeleteEntitiesResults,
+  onCloseDialog,
 }: Props) => {
   const { deleteEntitiesConfirmationDialogManager } =
     useContext(DialogsContext);
@@ -42,11 +42,11 @@ const DeleteEntitiesConfirmation = ({
     "USER_CONFIRMATION_PHASE"
   );
 
-  const { commentsToDelete, repliesToDelete, closeDialog, onConfirm } =
+  const { commentsToDelete, repliesToDelete, onConfirm } =
     deleteEntitiesConfirmationDialogManager;
 
   const handleCancel = () => {
-    closeDialog();
+    onCloseDialog();
   };
 
   const handleConfirm = async () => {
@@ -77,26 +77,29 @@ const DeleteEntitiesConfirmation = ({
           ? "Are you sure you want to delete this comment?"
           : "Are you sure you want to delete these entities?"}
       </DialogTitle>
-      <DialogContent dividers={true} id="delete-entities-dialog-description">
+      <DialogContent
+        dividers={true}
+        id="delete-entities-dialog-description"
+        sx={{ display: "flex", alignItems: "center", flexDirection: "column" }}
+      >
         {commentsToDelete.length > 0 && (
           <>
-            <Typography>
+            <Typography sx={{ m: 1, alignSelf: "start" }}>
               {commentsToDelete.length === 1 ? "Comment: " : "Comments:"}
             </Typography>
             {commentsToDelete.map((comment) => (
-              <CommentCard commentDetails={comment} />
+              <CommentCard key={comment.id} commentDetails={comment} />
             ))}
           </>
         )}
 
         {repliesToDelete.length > 0 && (
           <>
-            <Divider />
-            <Typography>
+            <Typography sx={{ m: 1, alignSelf: "start" }}>
               {repliesToDelete.length === 1 ? "Reply:" : "Replies:"}
             </Typography>
             {repliesToDelete.map((reply) => (
-              <ReplyCard replyDetails={reply} />
+              <ReplyCard key={reply.id} replyDetails={reply} />
             ))}
           </>
         )}
@@ -121,13 +124,7 @@ const DeleteEntitiesConfirmation = ({
           onClick={handleConfirm}
           type="submit"
           color="success"
-          startIcon={
-            deleteEntitiesConfirmationStatus === "USER_CONFIRMATION_PHASE" ? (
-              <CircularProgress color="secondary" size={20} />
-            ) : (
-              <PublishedWithChangesIcon />
-            )
-          }
+          endIcon={<PublishedWithChangesIcon />}
           variant="contained"
           disabled={
             deleteEntitiesConfirmationStatus === "SERVER_PROCESSING_PHASE"

@@ -1,5 +1,3 @@
-import React, { useContext } from "react";
-
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContentText from "@mui/material/DialogContentText";
@@ -8,20 +6,15 @@ import DialogActions from "@mui/material/DialogActions";
 
 import ErrorIcon from "@mui/icons-material/Error";
 
-import {
-  DeleteEntitiesOnConfirmResultType,
-  DialogsContext,
-} from "../../../services/dialogs/DialogsContext";
+import { DeleteEntitiesOnConfirmResultType } from "../../../services/dialogs/DialogsContext";
 
 const DeleteEntitiesFailed = ({
   deleteEntitiesResults,
+  onCloseDialog,
 }: {
   deleteEntitiesResults: Awaited<DeleteEntitiesOnConfirmResultType> | null;
+  onCloseDialog: () => void;
 }) => {
-  const { deleteEntitiesConfirmationDialogManager } =
-    useContext(DialogsContext);
-  const { closeDialog } = deleteEntitiesConfirmationDialogManager;
-
   let message: string = "";
   if (deleteEntitiesResults) {
     if (deleteEntitiesResults.deleteCommentsResults.length > 0) {
@@ -33,7 +26,7 @@ const DeleteEntitiesFailed = ({
         deleteEntitiesResults.deleteCommentsResults.length -
         numberOfSuccessfullyDeletedComments;
       message += `
-      number of successfully deleted comments: ${numberOfSuccessfullyDeletedComments}
+      number of successfully deleted comments: ${numberOfSuccessfullyDeletedComments}, 
       number of failed comment deletes: ${numberOfFailedDeletes}
       `;
     }
@@ -46,7 +39,7 @@ const DeleteEntitiesFailed = ({
         deleteEntitiesResults.deleteRepliesResults.length -
         numberOfSuccessfullyDeletedReplies;
       message += `
-      number of successfully deleted replies: ${numberOfSuccessfullyDeletedReplies}
+      number of successfully deleted replies: ${numberOfSuccessfullyDeletedReplies}, 
       number of failed replies deletes: ${numberOfFailedDeletes}
       `;
     }
@@ -66,7 +59,7 @@ const DeleteEntitiesFailed = ({
       </DialogContent>
       <DialogActions>
         <Button
-          onClick={closeDialog}
+          onClick={onCloseDialog}
           variant="contained"
           color="error"
           size="medium"

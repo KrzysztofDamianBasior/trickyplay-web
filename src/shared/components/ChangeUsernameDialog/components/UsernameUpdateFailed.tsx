@@ -9,13 +9,13 @@ import DialogActions from "@mui/material/DialogActions";
 import ErrorIcon from "@mui/icons-material/Error";
 
 import { AccountContext } from "../../../services/account/AccountContext";
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
 
-const UsernameUpdateFailed = () => {
+const UsernameUpdateFailed = ({
+  onCloseDialog,
+}: {
+  onCloseDialog: () => void;
+}) => {
   const { authState } = useContext(AccountContext);
-  const { changeUsernameDialogManager } = useContext(DialogsContext);
-
-  const { closeDialog } = changeUsernameDialogManager;
 
   return (
     <>
@@ -30,7 +30,7 @@ const UsernameUpdateFailed = () => {
       </DialogContent>
       <DialogActions>
         <Button
-          onClick={closeDialog}
+          onClick={onCloseDialog}
           variant="contained"
           color="error"
           size="medium"

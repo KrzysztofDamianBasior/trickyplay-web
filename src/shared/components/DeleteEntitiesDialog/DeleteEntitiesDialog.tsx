@@ -1,11 +1,12 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import Dialog from "@mui/material/Dialog";
 
 import {
-  DeleteEntitiesOnConfirmResultType,
+  type DeleteEntitiesOnConfirmResultType,
   DialogsContext,
 } from "../../services/dialogs/DialogsContext";
+
 import DeleteEntitiesConfirmation from "./components/DeleteEntitiesConfirmation";
 import DeleteEntitiesFailed from "./components/DeleteEntitiesFailed";
 import DeleteEntitiesSucceeded from "./components/DeleteEntitiesSucceeded";
@@ -28,11 +29,24 @@ export default function DeleteEntitiesDialog() {
   const { isDeleteEntitiesConfirmationDialogOpened, closeDialog } =
     deleteEntitiesConfirmationDialogManager;
 
+  const onCloseDialog = () => {
+    closeDialog();
+  };
+
+  useEffect(() => {
+    if (
+      deleteEntitiesConfirmationDialogManager.isDeleteEntitiesConfirmationDialogOpened
+    )
+      setDeleteEntitiesDialogStatus("CONFIRMATION_PHASE");
+  }, [
+    deleteEntitiesConfirmationDialogManager.isDeleteEntitiesConfirmationDialogOpened,
+  ]);
+
   return (
     <Dialog
       open={isDeleteEntitiesConfirmationDialogOpened}
-      onClose={() => closeDialog()}
-      scroll={"paper"}
+      onClose={onCloseDialog}
+      scroll="paper"
       aria-labelledby="delete-entities-dialog-title"
       aria-describedby="delete-entities-dialog-description"
     >
@@ -40,15 +54,17 @@ export default function DeleteEntitiesDialog() {
         <DeleteEntitiesConfirmation
           setDeleteEntitiesDialogStatus={setDeleteEntitiesDialogStatus}
           setDeleteEntitiesResults={setDeleteEntitiesResults}
+          onCloseDialog={onCloseDialog}
         />
       )}
       {deleteEntitiesDialogStatus === "OPERATION_FAILED" && (
-        <DeleteEntitiesFailed deleteEntitiesResults={deleteEntitiesResults} />
+        <DeleteEntitiesFailed
+          deleteEntitiesResults={deleteEntitiesResults}
+          onCloseDialog={onCloseDialog}
+        />
       )}
       {deleteEntitiesDialogStatus === "OPERATION_SUCCEEDED" && (
-        <DeleteEntitiesSucceeded
-          deleteEntitiesResults={deleteEntitiesResults}
-        />
+        <DeleteEntitiesSucceeded onCloseDialog={onCloseDialog} />
       )}
     </Dialog>
   );

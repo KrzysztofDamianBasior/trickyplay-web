@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 
-import { Formik, Form, FormikHelpers } from "formik";
+import { Formik, Form, type FormikHelpers } from "formik";
 import * as Yup from "yup";
 
 import Button from "@mui/material/Button";
@@ -23,17 +23,19 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Visibility from "@mui/icons-material/Visibility";
 import CancelIcon from "@mui/icons-material/Cancel";
 
-import { ChangePasswordDialogStatusType } from "..";
+import { type ChangePasswordDialogStatusType } from "..";
+
 import {
   PASSWORD_MESSAGE,
   PASSWORD_REGEX,
 } from "../../../services/account/authenticationConstraints";
 import { AccountContext } from "../../../services/account/AccountContext";
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
 
 type Props = {
   setDialogStatus: (status: ChangePasswordDialogStatusType) => void;
+  onCloseDialog: () => void;
 };
+
 const validationSchema = Yup.object().shape({
   previousPassword: Yup.string()
     .matches(PASSWORD_REGEX, PASSWORD_MESSAGE)
@@ -55,16 +57,13 @@ const validationSchema = Yup.object().shape({
     }),
 });
 
-const ChangePasswordForm = ({ setDialogStatus }: Props) => {
+const ChangePasswordForm = ({ setDialogStatus, onCloseDialog }: Props) => {
   const [showPreviousPassword, setShowPreviousPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showNewPasswordConfirmation, setShowNewPasswordConfirmation] =
     useState(false);
 
-  const { authState, updateMyPassword } = useContext(AccountContext);
-  const { changePasswordDialogManager } = useContext(DialogsContext);
-
-  const { closeDialog } = changePasswordDialogManager;
+  const { authState, updatePassword } = useContext(AccountContext);
 
   const handleClickShowPreviousPassword = () =>
     setShowPreviousPassword((show) => !show);
@@ -98,16 +97,10 @@ const ChangePasswordForm = ({ setDialogStatus }: Props) => {
   ) => {
     props.setSubmitting(true);
 
-    const changePasswordResponseStatus = await updateMyPassword({
+    const changePasswordResponseStatus = await updatePassword({
       newPassword: values.newPasswordConfirmation,
-      oldPassword: values.previousPassword,
+      currentPassword: values.previousPassword,
     });
-
-    console.log(changePasswordResponseStatus);
-
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-    await delay(2000);
 
     props.resetForm();
     props.setSubmitting(false);
@@ -300,7 +293,7 @@ const ChangePasswordForm = ({ setDialogStatus }: Props) => {
           </DialogContent>
           <DialogActions>
             <Button
-              onClick={closeDialog}
+              onClick={onCloseDialog}
               variant="contained"
               disabled={props.isSubmitting}
               color="secondary"
@@ -313,7 +306,7 @@ const ChangePasswordForm = ({ setDialogStatus }: Props) => {
             <Button
               type="submit"
               color="success"
-              startIcon={
+              endIcon={
                 props.isSubmitting ? (
                   <CircularProgress color="secondary" size={20} />
                 ) : (

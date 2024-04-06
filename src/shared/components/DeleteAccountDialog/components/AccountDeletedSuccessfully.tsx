@@ -1,5 +1,3 @@
-import { useContext } from "react";
-
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContentText from "@mui/material/DialogContentText";
@@ -8,13 +6,11 @@ import DialogActions from "@mui/material/DialogActions";
 
 import DoneIcon from "@mui/icons-material/Done";
 
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
-
-const UsernameUpdatedSuccessfully = () => {
-  const { changeUsernameDialogManager } = useContext(DialogsContext);
-
-  const { closeDialog } = changeUsernameDialogManager;
-
+const UsernameUpdatedSuccessfully = ({
+  onCloseDialog,
+}: {
+  onCloseDialog: () => void;
+}) => {
   return (
     <>
       <DialogTitle id="scroll-dialog-title">
@@ -27,7 +23,7 @@ const UsernameUpdatedSuccessfully = () => {
       </DialogContent>
       <DialogActions>
         <Button
-          onClick={closeDialog}
+          onClick={onCloseDialog}
           variant="contained"
           color="success"
           size="medium"

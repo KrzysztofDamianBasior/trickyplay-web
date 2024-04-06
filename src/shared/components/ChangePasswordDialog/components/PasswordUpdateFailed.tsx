@@ -1,5 +1,3 @@
-import { useContext } from "react";
-
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContentText from "@mui/material/DialogContentText";
@@ -8,13 +6,11 @@ import DialogActions from "@mui/material/DialogActions";
 
 import ErrorIcon from "@mui/icons-material/Error";
 
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
-
-const UsernameUpdateFailed = () => {
-  const { changeUsernameDialogManager } = useContext(DialogsContext);
-
-  const { closeDialog } = changeUsernameDialogManager;
-
+const PasswordUpdateFailed = ({
+  onCloseDialog,
+}: {
+  onCloseDialog: () => void;
+}) => {
   return (
     <>
       <DialogTitle id="change-password-title">
@@ -28,7 +24,7 @@ const UsernameUpdateFailed = () => {
       </DialogContent>
       <DialogActions>
         <Button
-          onClick={closeDialog}
+          onClick={onCloseDialog}
           variant="contained"
           color="error"
           size="medium"
@@ -44,4 +40,4 @@ const UsernameUpdateFailed = () => {
   );
 };
 
-export default UsernameUpdateFailed;
+export default PasswordUpdateFailed;

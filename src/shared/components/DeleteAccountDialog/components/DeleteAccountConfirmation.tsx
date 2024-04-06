@@ -25,8 +25,6 @@ import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Visibility from "@mui/icons-material/Visibility";
 
-import { DialogsContext } from "../../../services/dialogs/DialogsContext";
-
 import { DeleteAccountDialogStatusType } from "..";
 import {
   AccountContext,
@@ -42,6 +40,7 @@ type Props = {
     newStatus: DeleteAccountDialogStatusType
   ) => void;
   setDeleteAccountResult: (result: Awaited<DeleteAccountResultType>) => void;
+  onCloseDialog: () => void;
 };
 
 const validationSchema = Yup.object().shape({
@@ -61,19 +60,13 @@ const initialValues = {
 const DeleteEntitiesConfirmation = ({
   setDeleteAccountDialogStatus,
   setDeleteAccountResult,
+  onCloseDialog,
 }: Props) => {
-  const { deleteAccountConfirmationDialogManager } = useContext(DialogsContext);
   const { deleteAccount } = useContext(AccountContext);
 
   const [showPassword, setShowPassword] = useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
-
-  const { closeDialog } = deleteAccountConfirmationDialogManager;
-
-  const handleCancel = () => {
-    closeDialog();
-  };
 
   const handleMouseDownPassword = (
     event: React.MouseEvent<HTMLButtonElement>
@@ -95,8 +88,6 @@ const DeleteEntitiesConfirmation = ({
 
     const deleteAccountResult = await deleteAccount();
     setDeleteAccountResult(deleteAccountResult);
-
-    console.log(deleteAccountResult);
 
     props.resetForm();
     props.setSubmitting(false);
@@ -212,7 +203,7 @@ const DeleteEntitiesConfirmation = ({
             </DialogContent>
             <DialogActions>
               <Button
-                onClick={handleCancel}
+                onClick={onCloseDialog}
                 variant="contained"
                 disabled={props.isSubmitting}
                 color="secondary"

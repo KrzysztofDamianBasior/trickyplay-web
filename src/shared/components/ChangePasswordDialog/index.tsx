@@ -1,7 +1,6 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import Dialog from "@mui/material/Dialog";
-import Divider from "@mui/material/Divider";
 
 import { DialogsContext } from "../../services/dialogs/DialogsContext";
 
@@ -22,26 +21,35 @@ export default function ChangePasswordDialog() {
   const { closeDialog, isChangePasswordDialogOpened } =
     changePasswordDialogManager;
 
+  const onCloseDialog = () => {
+    closeDialog();
+  };
+
+  useEffect(() => {
+    if (changePasswordDialogManager.isChangePasswordDialogOpened)
+      setPasswordChangeDialogStatus("FORM_PROCESSING_PHASE");
+  }, [changePasswordDialogManager.isChangePasswordDialogOpened]);
+
   return (
     <Dialog
       open={isChangePasswordDialogOpened}
       onClose={() => closeDialog()}
-      scroll={"paper"}
+      scroll="paper"
       aria-labelledby="change-password-dialog-title"
       aria-describedby="change-password-dialog-description"
     >
       {passwordChangeDialogStatus === "OPERATION_SUCCEEDED" && (
-        <PasswordUpdatedSuccessfully />
+        <PasswordUpdatedSuccessfully onCloseDialog={onCloseDialog} />
       )}
       {passwordChangeDialogStatus === "OPERATION_FAILED" && (
-        <PasswordUpdateFailed />
+        <PasswordUpdateFailed onCloseDialog={onCloseDialog} />
       )}
-      <Divider />
       {passwordChangeDialogStatus === "FORM_PROCESSING_PHASE" && (
         <ChangePasswordForm
           setDialogStatus={(newStatus) => {
             setPasswordChangeDialogStatus(newStatus);
           }}
+          onCloseDialog={onCloseDialog}
         />
       )}
     </Dialog>
