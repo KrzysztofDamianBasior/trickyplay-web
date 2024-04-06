@@ -1,22 +1,17 @@
-import { useState } from "react";
-
 import Paper from "@mui/material/Paper";
-import TablePagination from "@mui/material/TablePagination";
-import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Stack from "@mui/material/Stack";
 import Pagination from "@mui/material/Pagination";
 import Select from "@mui/material/Select/Select";
 import FormControl from "@mui/material/FormControl/FormControl";
 import MenuItem from "@mui/material/MenuItem/MenuItem";
 import InputLabel from "@mui/material/InputLabel/InputLabel";
-import FormHelperText from "@mui/material/FormHelperText/FormHelperText";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 import { SelectChangeEvent } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
@@ -31,9 +26,10 @@ import CommentForm from "./components/CommentForm";
 import Comment from "./components/Comment";
 
 import useCommentsPaginatedCollection from "../../services/commentsPaginatedCollection/useCommentsPaginatedCollection";
+import { GameNameType } from "../../models/internalAppRepresentation/resources";
 
 type Props = {
-  gameName: string;
+  gameName: GameNameType;
 };
 
 const CommentsSection = ({ gameName }: Props) => {
@@ -46,14 +42,17 @@ const CommentsSection = ({ gameName }: Props) => {
     handleCommentDelete,
     handleCommentUpdate,
     handleSetActiveComment,
-    commentsActivePage,
-    commentsPerPage,
     refreshActivePage,
-  } = useCommentsPaginatedCollection({ gameName, userId: null });
+    authState,
+  } = useCommentsPaginatedCollection({
+    gameName,
+    collectionType: "GAME_COMMENTS",
+  });
 
-  const [rpp, setRpp] = useState<number>(10);
   const handleSelectChange = (event: SelectChangeEvent) => {
-    setRpp(parseInt(event.target.value));
+    handleCommentsRowsPerPageChange({
+      newCommentsPerPage: parseInt(event.target.value),
+    });
   };
 
   const textAlignButtons = [
@@ -72,19 +71,31 @@ const CommentsSection = ({ gameName }: Props) => {
   ];
 
   return (
-    <Paper elevation={5}>
-      <AppBar>
-        <Toolbar
-          sx={{
-            pl: { sm: 2 },
-            pr: { xs: 1, sm: 1 },
-            ...(commentsPaginatedCollectionState.status === "ERROR" && {
-              bgcolor: (theme) =>
-                alpha(
+    <Paper sx={{ width: "90%", marginY: 4 }} variant="outlined">
+      <Toolbar
+        sx={{
+          display: "flex",
+          alginItems: "center",
+          justifyContent: "space-between",
+          flexDirection: { xs: "column", md: "row" },
+          width: "100%",
+          bgcolor: (theme) =>
+            commentsPaginatedCollectionState.status === "ERROR"
+              ? alpha(
+                  theme.palette.error.main,
+                  theme.palette.action.activatedOpacity
+                )
+              : alpha(
                   theme.palette.primary.main,
                   theme.palette.action.activatedOpacity
                 ),
-            }),
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            marginX: { xs: 1, sm: 2, md: 3, lg: 4 },
           }}
         >
           <Tooltip title="refresh the active comments page" arrow>
@@ -94,71 +105,55 @@ const CommentsSection = ({ gameName }: Props) => {
               size="large"
               onClick={refreshActivePage}
               edge="start"
-              sx={{ mr: 2 }}
             >
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          {/* {commentsPaginatedCollectionState.status === "ERROR" && ( */}
-          <Tooltip
-            title="An error occured. Try refreshing the comments section or page, or wait for the server to start responding."
-            arrow
-          >
-            <ErrorIcon fontSize="large" color="error" />
-          </Tooltip>
-          {/* )} */}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h5" sx={{ mr: 1 }}>
             Comments Section
           </Typography>
-          <TablePagination
-            component="div"
-            count={commentsPaginatedCollectionState.totalNumberOfAllComments}
-            page={commentsActivePage} // 0 - ...
-            rowsPerPage={commentsPerPage}
-            rowsPerPageOptions={[5, 10, 15]}
-            onPageChange={(_, page) => {
-              console.log("next comments page" + page);
-              handleCommentsPageChange({ nextPage: page });
-            }}
-            onRowsPerPageChange={(
-              event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-            ) => {
-              handleCommentsRowsPerPageChange({
-                newCommentsPerPage: parseInt(event.target.value, 10),
-              });
-            }}
-          />
+          {commentsPaginatedCollectionState.status === "ERROR" && (
+            <Tooltip
+              title="An error occured. Try refreshing the comments section or page, or wait for the server to start responding."
+              arrow
+            >
+              <ErrorIcon fontSize="medium" color="error" />
+            </Tooltip>
+          )}
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            marginX: { xs: 1, sm: 2, md: 3, lg: 4 },
+          }}
+        >
           <Pagination
             count={
               commentsPaginatedCollectionState.commentsPaginatedCollection
                 .length
             }
-            page={commentsActivePage}
-            onChange={(_, page) => handleCommentsPageChange({ nextPage: page })}
+            page={commentsPaginatedCollectionState.commentsActivePage + 1}
+            onChange={(_, page) => {
+              handleCommentsPageChange({ nextPage: page - 1 });
+            }}
             variant="outlined"
             color="secondary"
             showFirstButton
             showLastButton
           />
-          <Stack spacing={2} alignItems="center">
-            <Tooltip title="set comment alignment" arrow>
-              <ToggleButtonGroup
-                size="medium"
-                value={commentsPaginatedCollectionState.textAlignment}
-                onChange={(_, value) => {
-                  handleTextAlignmentChange({ newAlignment: value });
-                }}
-                exclusive={true}
-                aria-label="Medium sizes"
-              >
-                {textAlignButtons}
-              </ToggleButtonGroup>
-            </Tooltip>
-          </Stack>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            marginX: { xs: 1, sm: 2, md: 3, lg: 4 },
+          }}
+        >
           <FormControl
             variant="standard"
-            sx={{ m: 1, minWidth: 120 }}
             error={false}
+            sx={{ minWidth: "80px", m: 1 }}
           >
             <InputLabel id="comments-per-page-select-label">
               Rows per page
@@ -166,43 +161,92 @@ const CommentsSection = ({ gameName }: Props) => {
             <Select
               labelId="comments-per-page-select-label"
               id="rows-per-page-select"
-              value={rpp.toString()}
+              value={commentsPaginatedCollectionState.commentsPerPage.toString()}
               label="Rows per page"
               onChange={handleSelectChange}
             >
+              <MenuItem value={5}>5</MenuItem>
               <MenuItem value={10}>10</MenuItem>
+              <MenuItem value={15}>15</MenuItem>
               <MenuItem value={20}>20</MenuItem>
               <MenuItem value={30}>30</MenuItem>
             </Select>
-            <FormHelperText>
-              Set the number of displayed comments per page
-            </FormHelperText>
           </FormControl>
+        </Box>
+      </Toolbar>
+      {authState.status === "LOGGED_IN" ? (
+        <Paper
+          elevation={4}
+          sx={{
+            m: { xs: 1, sm: 2, md: 3 },
+            p: { xs: 1, sm: 2, md: 3 },
+          }}
+        >
+          <Typography sx={{ m: 1 }} variant="h6">
+            Write comment
+          </Typography>
+          <CommentForm
+            onCancelCallback={() => {}}
+            onSubmitCallback={(commentContent: string) =>
+              handleCommentAdd({ content: commentContent, gameName })
+            }
+            hasCancelButton={true}
+            initialText=""
+            submitLabel="Publish"
+            disabled={commentsPaginatedCollectionState.status === "LOADING"}
+          />
+        </Paper>
+      ) : (
+        <Paper
+          elevation={4}
+          sx={{ m: 1, paddingX: { xs: 1, sm: 2, md: 3, lg: 4 }, paddingY: 1 }}
+        >
+          <Typography sx={{ m: 1 }} variant="h6">
+            You have to be signed in to post a comment
+          </Typography>
+        </Paper>
+      )}
+
+      <Paper
+        sx={{
+          m: { xs: 1, sm: 2, md: 3 },
+          p: { xs: 1, sm: 2, md: 3 },
+        }}
+        variant="outlined"
+      >
+        <Toolbar>
+          <ToggleButtonGroup
+            size="small"
+            value={commentsPaginatedCollectionState.textAlignment}
+            onChange={(_, value) => {
+              handleTextAlignmentChange({ newAlignment: value });
+            }}
+            exclusive={true}
+            aria-label="Medium sizes"
+            sx={{ marginLeft: "auto" }}
+          >
+            {textAlignButtons}
+          </ToggleButtonGroup>
         </Toolbar>
-      </AppBar>
-
-      <Paper elevation={3}>
-        <Typography>Write comment</Typography>
-        <CommentForm
-          onCancelCallback={() => {}}
-          onSubmitCallback={(commentContent: string) =>
-            handleCommentAdd({ content: commentContent })
-          }
-          hasCancelButton={true}
-          initialText=""
-          submitLabel="Publish"
-          disabled={commentsPaginatedCollectionState.status === "LOADING"}
-        />
-      </Paper>
-
-      <Paper elevation={3}>
         {commentsPaginatedCollectionState.status === "LOADING" ? (
-          <CircularProgress color="secondary" />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <CircularProgress
+              color="secondary"
+              sx={{ m: { xs: 1, sm: 2, md: 3, lg: 4 } }}
+            />
+          </Box>
         ) : (
           commentsPaginatedCollectionState.commentsPaginatedCollection[
-            commentsActivePage
+            commentsPaginatedCollectionState.commentsActivePage
           ].map((comment) => (
             <Comment
+              key={comment.id}
               commentDetails={comment}
               activeCommentDetails={
                 commentsPaginatedCollectionState.activeComment
@@ -210,7 +254,7 @@ const CommentsSection = ({ gameName }: Props) => {
               handleCommentDelete={handleCommentDelete}
               handleCommentUpdate={handleCommentUpdate}
               handleSetActiveComment={handleSetActiveComment}
-              commentPage={commentsActivePage}
+              commentPage={commentsPaginatedCollectionState.commentsActivePage}
               gameName={gameName}
               textAlignment={commentsPaginatedCollectionState.textAlignment}
             />

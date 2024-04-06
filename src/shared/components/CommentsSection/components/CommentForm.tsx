@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-import { TextField, Button } from "@mui/material";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 import SendIcon from "@mui/icons-material/Send";
 import CancelIcon from "@mui/icons-material/Cancel";
 
@@ -18,8 +19,8 @@ const CommentForm = ({
   submitLabel,
   onCancelCallback,
   onSubmitCallback,
-  disabled,
   hasCancelButton = false,
+  disabled,
 }: Props) => {
   const [text, setText] = useState<string>(initialText);
 
@@ -33,9 +34,10 @@ const CommentForm = ({
 
   const isInputInvalid: boolean =
     text.length > maxNumOfWords || text.length < minNumOfWords;
+
   const inputMessage: string = `The current word count is ${text.length}. Acceptable range: from ${minNumOfWords} to ${maxNumOfWords} words.`;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.SyntheticEvent) => {
     event.preventDefault();
     setText("");
     if (!isInputInvalid) {
@@ -51,7 +53,7 @@ const CommentForm = ({
   return (
     <form onSubmit={handleSubmit}>
       <TextField
-        label="Comment field"
+        label="Express your opinions"
         variant="outlined"
         color="secondary"
         disabled={disabled}
@@ -65,16 +67,6 @@ const CommentForm = ({
         value={text}
         helperText={inputMessage}
       />
-      <Button
-        variant="contained"
-        disabled={isInputInvalid || disabled}
-        color="secondary"
-        size="medium"
-        endIcon={<SendIcon />}
-      >
-        {submitLabel}
-      </Button>
-      ;
       {hasCancelButton && text.length > 0 && (
         <Button
           variant="contained"
@@ -84,10 +76,23 @@ const CommentForm = ({
           size="medium"
           type="button"
           endIcon={<CancelIcon />}
+          sx={{ m: 1 }}
         >
           Cancel
         </Button>
       )}
+      <Button
+        variant="contained"
+        disabled={isInputInvalid || disabled}
+        color="secondary"
+        size="medium"
+        onClick={handleSubmit}
+        type="submit"
+        endIcon={<SendIcon />}
+        sx={{ m: 1 }}
+      >
+        {submitLabel}
+      </Button>
     </form>
   );
 };

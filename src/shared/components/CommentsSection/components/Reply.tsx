@@ -10,32 +10,29 @@ import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
-
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 import CommentForm from "./CommentForm";
 
-import useAuth from "../../../services/account/useAccount";
-import { TextAlignentType } from "../../../services/commentsPaginatedCollection/commentsPaginatedCollectionReducer";
+import { type TextAlignmentType } from "../../../services/commentsPaginatedCollection/commentsPaginatedCollectionReducer";
 import {
-  handleReplyDeleteType,
-  handleReplyUpdateType,
-  handleSetActiveReplyType,
+  type handleReplyDeleteType,
+  type handleReplyUpdateType,
+  type handleSetActiveReplyType,
 } from "../../../services/repliesPaginatedCollection/useRepliesPaginatedCollection";
-import { ReplyDetailsType } from "../../../services/api/useRepliesAPIFacade";
-import { ActiveReplyDetailsType } from "../../../services/repliesPaginatedCollection/repliesPaginatedCollectionReducer";
+import { type ActiveReplyDetailsType } from "../../../services/repliesPaginatedCollection/repliesPaginatedCollectionReducer";
 import { DialogsContext } from "../../../services/dialogs/DialogsContext";
-import { NotificationContext } from "../../../services/snackbars/NotificationsContext";
+import { type ReplyDetailsType } from "../../../models/internalAppRepresentation/resources";
+import { AccountContext } from "../../../services/account/AccountContext";
 
 type Props = {
   activeReplyDetails: ActiveReplyDetailsType;
   replyDetails: ReplyDetailsType;
   replyPage: number;
-  gameName: string;
   handleReplyDelete: handleReplyDeleteType;
   handleReplyUpdate: handleReplyUpdateType;
   handleSetActiveReply: handleSetActiveReplyType;
-  textAlignment: TextAlignentType;
+  textAlignment: TextAlignmentType;
 };
 
 const Reply = ({
@@ -46,12 +43,10 @@ const Reply = ({
   handleReplyUpdate,
   handleSetActiveReply,
   textAlignment,
-  gameName,
 }: Props) => {
-  const { authState } = useAuth();
+  const { authState } = useContext(AccountContext);
   const { deleteEntitiesConfirmationDialogManager } =
     useContext(DialogsContext);
-  const { openSnackbar } = useContext(NotificationContext);
 
   const isEditing =
     activeReplyDetails &&
@@ -64,25 +59,33 @@ const Reply = ({
   const canUpdate =
     authState.user && authState.user.id === replyDetails.author.id;
 
+  const createdAt = new Date(replyDetails.createdAt);
+  const updatedAt = new Date(replyDetails.updatedAt);
+
   const deleteReply = () => {
     deleteEntitiesConfirmationDialogManager.openDialog({
       commentsToDelete: [],
       repliesToDelete: [replyDetails],
-      onCancel: () => {
-        openSnackbar({
-          severity: "info",
-          title: `reply with id ${replyDetails.id} has not been deleted`,
-          body: "reply deletion aborted",
+      onConfirm: async () => {
+        const result = await handleReplyDelete({
+          reply: replyDetails,
+          replyPage,
         });
-      },
-      onConfirm: () => {
-        handleReplyDelete({ reply: replyDetails, replyPage });
+
+        return {
+          deleteCommentsResults: [],
+          deleteRepliesResults: [result],
+        };
       },
     });
   };
 
   return (
-    <Card elevation={1} key={replyDetails.id}>
+    <Card
+      elevation={24}
+      key={replyDetails.id}
+      sx={{ m: { xs: 1, sm: 2, md: 3 }, p: 1 }}
+    >
       <CardHeader
         avatar={
           <Avatar aria-label="the first letter of the user's nickname">
@@ -91,13 +94,13 @@ const Reply = ({
         }
         action={
           <Tooltip title="Delete reply">
-            <IconButton onClick={() => deleteReply()}>
+            <IconButton onClick={deleteReply}>
               <DeleteOutlineIcon />
             </IconButton>
           </Tooltip>
         }
         title={replyDetails.author.name}
-        subheader={`reply created at: ${replyDetails.createdAt}, last updated at: ${replyDetails.lastUpdatedAt}`}
+        subheader={`reply created at: ${createdAt.toLocaleString()}, last updated at: ${updatedAt.toLocaleString()}`}
       />
 
       <CardContent>
@@ -106,6 +109,9 @@ const Reply = ({
             variant="body2"
             color="textSecondary"
             textAlign={textAlignment}
+            sx={{
+              wordWrap: "break-word",
+            }}
           >
             {replyDetails.body}
           </Typography>
@@ -132,11 +138,7 @@ const Reply = ({
       </CardContent>
 
       <CardActions disableSpacing>
-        <ButtonGroup
-          variant="text"
-          aria-label="text button group"
-          className="comment-actions"
-        >
+        <ButtonGroup variant="text" aria-label="text button group">
           {canUpdate && (
             <Button
               onClick={() => {
@@ -149,15 +151,7 @@ const Reply = ({
               Edit
             </Button>
           )}
-          {canDelete && (
-            <Button
-              onClick={() => {
-                deleteReply();
-              }}
-            >
-              Delete
-            </Button>
-          )}
+          {canDelete && <Button onClick={deleteReply}>Delete</Button>}
         </ButtonGroup>
       </CardActions>
     </Card>

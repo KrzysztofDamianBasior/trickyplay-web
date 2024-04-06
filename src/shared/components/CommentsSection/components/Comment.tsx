@@ -11,27 +11,27 @@ import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Collapse from "@mui/material/Collapse";
 import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
 import IconButton, { IconButtonProps } from "@mui/material/IconButton";
-
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 import CommentForm from "./CommentForm";
+import Replies from "./Replies";
 
-import { CommentDetailsType } from "../../../services/api/useCommentsAPIFacade";
-import useAccount from "../../../services/account/useAccount";
 import {
-  ActiveCommentDetailsType,
-  TextAlignentType,
+  type ActiveCommentDetailsType,
+  type TextAlignmentType,
 } from "../../../services/commentsPaginatedCollection/commentsPaginatedCollectionReducer";
 import {
-  handleCommentDeleteType,
-  handleCommentUpdateType,
-  handleSetActiveCommentType,
+  type handleCommentDeleteType,
+  type handleCommentUpdateType,
+  type handleSetActiveCommentType,
 } from "../../../services/commentsPaginatedCollection/useCommentsPaginatedCollection";
-import Replies from "./Replies";
 import { DialogsContext } from "../../../services/dialogs/DialogsContext";
-import { NotificationContext } from "../../../services/snackbars/NotificationsContext";
+import { AccountContext } from "../../../services/account/AccountContext";
+
+import { type CommentDetailsType } from "../../../models/internalAppRepresentation/resources";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -41,7 +41,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
   return <IconButton {...other} />;
 })(({ theme, expand }) => ({
-  transform: !expand ? "rotate(0deg)" : "rotate(180deg)",
+  transform: expand ? "rotate(180deg)" : "rotate(0deg)",
   marginLeft: "auto",
   transition: theme.transitions.create("transform", {
     duration: theme.transitions.duration.shortest,
@@ -56,14 +56,13 @@ type Props = {
   handleCommentDelete: handleCommentDeleteType;
   handleCommentUpdate: handleCommentUpdateType;
   handleSetActiveComment: handleSetActiveCommentType;
-  textAlignment: TextAlignentType;
+  textAlignment: TextAlignmentType;
 };
 
 const Comment = ({
   commentDetails,
   activeCommentDetails,
   commentPage,
-  gameName,
   handleCommentDelete,
   handleCommentUpdate,
   handleSetActiveComment,
@@ -72,9 +71,8 @@ const Comment = ({
   const [expanded, setExpanded] = useState(false);
   const { deleteEntitiesConfirmationDialogManager } =
     useContext(DialogsContext);
-  const { openSnackbar } = useContext(NotificationContext);
 
-  const { authState } = useAccount();
+  const { authState } = useContext(AccountContext);
 
   const haveRepliesBeenMounted = useRef(false);
 
@@ -105,21 +103,21 @@ const Comment = ({
     deleteEntitiesConfirmationDialogManager.openDialog({
       commentsToDelete: [commentDetails],
       repliesToDelete: [],
-      onCancel: () => {
-        openSnackbar({
-          severity: "info",
-          title: `comment with id ${commentDetails.id} has not been deleted`,
-          body: "comment deletion aborted",
+      onConfirm: async () => {
+        const result = await handleCommentDelete({
+          comment: commentDetails,
+          commentPage,
         });
-      },
-      onConfirm: () => {
-        handleCommentDelete({ comment: commentDetails, commentPage });
+        return {
+          deleteCommentsResults: [result],
+          deleteRepliesResults: [],
+        };
       },
     });
   };
 
   return (
-    <Card elevation={1} key={commentDetails.id}>
+    <Card elevation={8} sx={{ m: { xs: 1, sm: 2, md: 3 }, p: 1 }}>
       <CardHeader
         avatar={
           <Avatar aria-label="the first letter of the user's nickname">
@@ -134,7 +132,11 @@ const Comment = ({
           </Tooltip>
         }
         title={commentDetails.author.name}
-        subheader={`comment created at: ${commentDetails.createdAt}, last updated at: ${commentDetails.lastUpdatedAt}`}
+        subheader={`comment created at: ${new Date(
+          commentDetails.createdAt
+        ).toLocaleString()}, last updated at: ${new Date(
+          commentDetails.updatedAt
+        ).toLocaleString()}`}
       />
 
       <CardContent>
@@ -142,6 +144,9 @@ const Comment = ({
           <Typography
             variant="body2"
             color="textSecondary"
+            sx={{
+              wordWrap: "break-word",
+            }}
             textAlign={textAlignment}
           >
             {commentDetails.body}
@@ -198,25 +203,31 @@ const Comment = ({
               Edit
             </Button>
           )}
-          {canDelete && (
-            <Button
-              onClick={() => {
-                deleteComment();
-              }}
-            >
-              Delete
-            </Button>
-          )}
+          {canDelete && <Button onClick={deleteComment}>Delete</Button>}
         </ButtonGroup>
-        <Typography>Show replies</Typography>
-        <ExpandMore
-          expand={expanded}
-          onClick={handleExpandClick}
-          aria-expanded={expanded}
-          aria-label="show replies"
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginLeft: "auto",
+          }}
         >
-          <ExpandMoreIcon />
-        </ExpandMore>
+          <Typography
+            variant="body2"
+            sx={{ display: { xs: "none", sm: "block" } }}
+          >
+            Show replies:
+          </Typography>
+          <ExpandMore
+            expand={expanded}
+            onClick={handleExpandClick}
+            aria-expanded={expanded}
+            aria-label="show replies"
+          >
+            <ExpandMoreIcon />
+          </ExpandMore>
+        </Box>
       </CardActions>
 
       <Collapse
@@ -224,16 +235,15 @@ const Comment = ({
         timeout="auto"
         // unmountOnExit
       >
-        <CardContent>
-          {haveRepliesBeenMounted && (
+        <Box>
+          {haveRepliesBeenMounted.current && (
             <Replies
               parentCommentDetails={commentDetails}
-              gameName={gameName}
               isReplying={Boolean(isReplying)}
               handleSetActiveComment={handleSetActiveComment}
             />
           )}
-        </CardContent>
+        </Box>
       </Collapse>
     </Card>
   );
