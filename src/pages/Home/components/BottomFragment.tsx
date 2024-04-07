@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { useDarkMode } from "usehooks-ts";
-import Box from "@mui/material/Box";
 
 import GlowingMovingText from "./GlowingMovingText";
 
+import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material";
+
 const BottomFragment = () => {
-  const { isDarkMode } = useDarkMode();
+  const theme = useTheme();
   const navigate = useNavigate();
 
   return (
@@ -18,7 +19,7 @@ const BottomFragment = () => {
       }}
     >
       <GlowingMovingText
-        isDarkMode={isDarkMode}
+        isDarkMode={theme.palette.mode === "dark"}
         onClick={() => navigate("/games")}
       >
         <span>START </span> A <span> GAME</span>

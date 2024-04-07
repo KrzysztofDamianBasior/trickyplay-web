@@ -1,9 +1,12 @@
+import { useContext } from "react";
+
 import EmojiObjectsIcon from "@mui/icons-material/EmojiObjects";
-import { useDarkMode } from "usehooks-ts";
 import Box from "@mui/material/Box";
 
+import { ThemeContext } from "../../services/theme/ThemeContext";
+
 const ToggleThemeSwitch = () => {
-  const { isDarkMode, toggle } = useDarkMode();
+  const { isDarkMode, toggle } = useContext(ThemeContext);
 
   return (
     <Box
