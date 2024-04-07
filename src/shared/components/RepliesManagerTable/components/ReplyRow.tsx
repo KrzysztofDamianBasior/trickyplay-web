@@ -8,7 +8,7 @@ import { type handleReplyDeleteType } from "../../../services/repliesPaginatedCo
 import { DialogsContext } from "../../../services/dialogs/DialogsContext";
 import { AccountContext } from "../../../services/account/AccountContext";
 
-import { ReplyDetailsType } from "../../../models/internalAppRepresentation/resources";
+import { type ReplyDetailsType } from "../../../models/internalAppRepresentation/resources";
 
 type Props = {
   replyDetails: ReplyDetailsType;
@@ -49,15 +49,21 @@ const ReplyRow = ({ handleReplyDelete, replyDetails, replyPage }: Props) => {
       hover
       key={replyDetails.id}
     >
-      <TableCell align="left">{replyDetails.id}id</TableCell>
-      <TableCell align="left">{replyDetails.body}content</TableCell>
-      <TableCell align="left">{replyDetails.createdAt}created at</TableCell>
+      <TableCell align="left">{replyDetails.id}</TableCell>
+      <TableCell align="left">{replyDetails.body}</TableCell>
       <TableCell align="left">
-        {replyDetails.updatedAt}last updated at
+        {new Date(replyDetails.createdAt).toLocaleString()}
       </TableCell>
-      <TableCell align="left">{replyDetails.author.name}author name</TableCell>
       <TableCell align="left">
-        {canReplyGetDeleted && <Button onClick={deleteReply}>Delete</Button>}
+        {new Date(replyDetails.updatedAt).toLocaleString()}
+      </TableCell>
+      <TableCell align="left">{replyDetails.author.name}</TableCell>
+      <TableCell align="left">
+        {canReplyGetDeleted && (
+          <Button variant="outlined" onClick={deleteReply}>
+            Delete
+          </Button>
+        )}
       </TableCell>
     </TableRow>
   );

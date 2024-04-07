@@ -1,3 +1,4 @@
+import Box from "@mui/material/Button";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -6,7 +7,6 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
@@ -45,67 +45,78 @@ const RepliesTable = (props: Props) => {
       : { collectionType: "USER_REPLIES", authorId: props.authorId }
   );
 
-  //maybe try TableContainer instead of Paper
   return (
-    <Paper sx={{ margin: 1 }}>
-      <AppBar>
-        <Toolbar
-          sx={{
-            pl: { sm: 2 },
-            pr: { xs: 1, sm: 1 },
-            ...(repliesPaginatedCollectionState.status === "ERROR" && {
-              bgcolor: (theme) =>
-                alpha(
+    <Paper sx={{ m: 1 }} elevation={8}>
+      <Toolbar
+        sx={{
+          display: "flex",
+          alginItems: "center",
+          justifyContent: "space-between",
+          flexDirection: { xs: "column", md: "row" },
+          width: "100%",
+          bgcolor: (theme) =>
+            repliesPaginatedCollectionState.status === "ERROR"
+              ? alpha(
+                  theme.palette.error.main,
+                  theme.palette.action.activatedOpacity
+                )
+              : alpha(
                   theme.palette.primary.main,
                   theme.palette.action.activatedOpacity
                 ),
-            }),
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            marginX: { xs: 1, sm: 2, md: 3, lg: 4 },
           }}
         >
-          <Tooltip title="refresh the active users page" arrow>
+          <Tooltip title="refresh the active page" arrow>
             <IconButton
               aria-label="refresh button"
               color="secondary"
               size="large"
               onClick={refreshActivePage}
               edge="start"
-              sx={{ mr: 2 }}
             >
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          {/* {repliesPaginatedCollectionState.status === "ERROR" && ( */}
-          <Tooltip
-            title="An error occured. Try refreshing the comments section or page, or wait for the server to start responding."
-            arrow
-          >
-            <ErrorIcon fontSize="large" color="error" />
-          </Tooltip>
-          {/* )} */}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+
+          <Typography variant="h6" sx={{ mr: 1 }}>
             Replies Table
           </Typography>
-          <TablePagination
-            component="div"
-            count={repliesPaginatedCollectionState.totalNumberOfAllReplies}
-            page={repliesPaginatedCollectionState.repliesActivePage} // 0 - ...
-            rowsPerPage={repliesPaginatedCollectionState.repliesPerPage}
-            // rowsPerPageOptions={[10, 25, 100]}
-            onPageChange={(_, page) => {
-              console.log("next replies page" + page);
-              handleRepliesPageChange({ nextPage: page });
-            }}
-            onRowsPerPageChange={(
-              event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-            ) => {
-              handleRepliesRowsPerPageChange({
-                newRepliesPerPage: parseInt(event.target.value, 10),
-              });
-            }}
-          />
-        </Toolbar>
-      </AppBar>
-      <Table size="small" sx={{ minWidth: 650 }} aria-label="replies">
+          {repliesPaginatedCollectionState.status === "ERROR" && (
+            <Tooltip
+              title="An error occured. Try refreshing the replies section or page, or wait for the server to start responding."
+              arrow
+            >
+              <ErrorIcon fontSize="medium" color="error" />
+            </Tooltip>
+          )}
+        </Box>
+
+        <TablePagination
+          component="div"
+          count={repliesPaginatedCollectionState.totalNumberOfAllReplies}
+          page={repliesPaginatedCollectionState.repliesActivePage} // The zero-based index of the current page.
+          rowsPerPage={repliesPaginatedCollectionState.repliesPerPage}
+          rowsPerPageOptions={[5, 10, 15, 20, 25]}
+          onPageChange={(_, page) => {
+            handleRepliesPageChange({ nextPage: page });
+          }}
+          onRowsPerPageChange={(
+            event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+          ) => {
+            handleRepliesRowsPerPageChange({
+              newRepliesPerPage: parseInt(event.target.value, 10),
+            });
+          }}
+        />
+      </Toolbar>
+      <Table size="small" aria-label="replies">
         <TableHead>
           <TableRow>
             {[
@@ -113,18 +124,26 @@ const RepliesTable = (props: Props) => {
               "content",
               "created at",
               "last updated at",
-              "author name",
+              "author",
               "actions",
             ].map((label) => (
               <TableCell
                 align={"center"}
-                style={{ minWidth: 100 }}
                 component="th"
                 scope="col"
-                // sx={{
-                //   backgroundColor: 'background.paper',
-                // }}
                 key={label}
+                sx={{
+                  bgcolor: (theme) =>
+                    repliesPaginatedCollectionState.status === "ERROR"
+                      ? alpha(
+                          theme.palette.error.main,
+                          theme.palette.action.selectedOpacity
+                        )
+                      : alpha(
+                          theme.palette.primary.main,
+                          theme.palette.action.selectedOpacity
+                        ),
+                }}
               >
                 {label}
               </TableCell>
@@ -133,12 +152,17 @@ const RepliesTable = (props: Props) => {
         </TableHead>
         <TableBody>
           {repliesPaginatedCollectionState.status === "LOADING" ? (
-            <CircularProgress color="secondary" />
+            <TableRow>
+              <TableCell colSpan={8}>
+                <CircularProgress color="secondary" />
+              </TableCell>
+            </TableRow>
           ) : (
             repliesPaginatedCollectionState.repliesPaginatedCollection[
               repliesPaginatedCollectionState.repliesActivePage
             ].map((reply) => (
               <ReplyRow
+                key={reply.id}
                 handleReplyDelete={handleReplyDelete}
                 replyDetails={reply}
                 replyPage={repliesPaginatedCollectionState.repliesActivePage}
