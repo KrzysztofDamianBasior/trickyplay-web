@@ -25,7 +25,7 @@ const UsernameUpdateFailed = ({
       <DialogContent dividers={false}>
         <DialogContentText id="change-username-dialog-description">
           Unfortunately the username change process failed. Your current
-          username is ${authState.user?.name}. Please try again later.
+          username is {authState.user?.name}. Please try again later.
         </DialogContentText>
       </DialogContent>
       <DialogActions>

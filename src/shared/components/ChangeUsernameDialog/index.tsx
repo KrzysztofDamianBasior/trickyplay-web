@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 
 import Dialog from "@mui/material/Dialog";
-import Divider from "@mui/material/Divider";
 
 import { DialogsContext } from "../../services/dialogs/DialogsContext";
 
@@ -35,7 +34,7 @@ export default function ChangeUsernameDialog() {
     <Dialog
       open={isChangeUsernameDialogOpened}
       onClose={() => closeDialog()}
-      scroll={"paper"}
+      scroll="paper"
       aria-labelledby="change-username-dialog-title"
       aria-describedby="change-username-dialog-description"
     >
@@ -45,7 +44,6 @@ export default function ChangeUsernameDialog() {
       {usernameChangeDialogStatus === "OPERATION_FAILED" && (
         <UsernameUpdateFailed onCloseDialog={onCloseDialog} />
       )}
-      <Divider />
       {usernameChangeDialogStatus === "FORM_PROCESSING_PHASE" && (
         <ChangeUsernameForm
           setDialogStatus={(newStatus) => {

@@ -1,14 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 
 import Dialog from "@mui/material/Dialog";
-import Divider from "@mui/material/Divider";
 
 import { DialogsContext } from "../../services/dialogs/DialogsContext";
 
 import AccountDeletedSuccessfully from "./components/AccountDeletedSuccessfully";
 import AccountDeleteFailed from "./components/AccountDeleteFailed";
 import DeleteAccountConfirmatin from "./components/DeleteAccountConfirmation";
-import { DeleteAccountResultType } from "../../services/account/AccountContext";
+import { type DeleteAccountResultType } from "../../services/account/AccountContext";
 
 export type DeleteAccountDialogStatusType =
   | "FORM_PROCESSING_PHASE"
@@ -55,7 +54,6 @@ export default function DeleteAccountDialog() {
           onCloseDialog={onCloseDialog}
         />
       )}
-      <Divider />
       {deleteAccountDialogStatus === "FORM_PROCESSING_PHASE" && (
         <DeleteAccountConfirmatin
           setDeleteAccountDialogStatus={setDeleteAccountDialogStatus}

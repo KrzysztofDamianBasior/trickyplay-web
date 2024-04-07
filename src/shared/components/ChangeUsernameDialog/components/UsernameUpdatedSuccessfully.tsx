@@ -19,13 +19,13 @@ const UsernameUpdatedSuccessfully = ({
 
   return (
     <>
-      <DialogTitle id="scroll-dialog-title">
+      <DialogTitle id="change-username-dialog-title">
         Username updated successfully
       </DialogTitle>
       <DialogContent dividers={false}>
         <DialogContentText id="change-username-dialog-description">
-          Your username has been updated. Now you will log in using username: $
-          {authState.user?.name}. Have a great time browsing.
+          Your username has been updated. Now you will sign in using username:{" "}
+          {authState.user?.name}. Have a great time browsing!
         </DialogContentText>
       </DialogContent>
       <DialogActions>

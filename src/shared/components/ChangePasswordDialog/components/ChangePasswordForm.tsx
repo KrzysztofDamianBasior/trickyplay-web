@@ -37,9 +37,6 @@ type Props = {
 };
 
 const validationSchema = Yup.object().shape({
-  previousPassword: Yup.string()
-    .matches(PASSWORD_REGEX, PASSWORD_MESSAGE)
-    .required("Required"),
   newPassword: Yup.string()
     .matches(PASSWORD_REGEX, PASSWORD_MESSAGE)
     .required("Please enter your password")
@@ -58,15 +55,12 @@ const validationSchema = Yup.object().shape({
 });
 
 const ChangePasswordForm = ({ setDialogStatus, onCloseDialog }: Props) => {
-  const [showPreviousPassword, setShowPreviousPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showNewPasswordConfirmation, setShowNewPasswordConfirmation] =
     useState(false);
 
   const { authState, updatePassword } = useContext(AccountContext);
 
-  const handleClickShowPreviousPassword = () =>
-    setShowPreviousPassword((show) => !show);
   const handleClickShowNewPassword = () => setShowNewPassword((show) => !show);
   const handleClickShowNewPasswordConfirmation = () =>
     setShowNewPasswordConfirmation((show) => !show);
@@ -78,19 +72,16 @@ const ChangePasswordForm = ({ setDialogStatus, onCloseDialog }: Props) => {
   };
 
   const initialValues = {
-    previousPassword: "",
     newPassword: "",
     newPasswordConfirmation: "",
   };
 
   const handleSubmit = async (
     values: {
-      previousPassword: string;
       newPassword: string;
       newPasswordConfirmation: string;
     },
     props: FormikHelpers<{
-      previousPassword: string;
       newPassword: string;
       newPasswordConfirmation: string;
     }>
@@ -99,7 +90,6 @@ const ChangePasswordForm = ({ setDialogStatus, onCloseDialog }: Props) => {
 
     const changePasswordResponseStatus = await updatePassword({
       newPassword: values.newPasswordConfirmation,
-      currentPassword: values.previousPassword,
     });
 
     props.resetForm();
@@ -139,65 +129,17 @@ const ChangePasswordForm = ({ setDialogStatus, onCloseDialog }: Props) => {
               </DialogTitle>
               <DialogContent dividers={false}>
                 <DialogContentText>
-                  Hello ${authState.user?.name}.
+                  Hello {authState.user?.name}!
                 </DialogContentText>
                 <DialogContentText id="change-password-dialog-description">
-                  To change your password, please enter the current password,
-                  the new password and repeat the new password to avoid mistakes
+                  To change your password, please enter the the new password and
+                  repeat it to avoid mistakes
                 </DialogContentText>
               </DialogContent>
             </>
           )}
           <DialogContent dividers={true}>
             <Stack justifyContent="center" alignItems="center">
-              <FormControl variant="standard" fullWidth required sx={{ m: 1 }}>
-                <InputLabel
-                  htmlFor="previous-password"
-                  error={
-                    props.touched.previousPassword &&
-                    Boolean(props.errors.previousPassword)
-                  }
-                >
-                  Current password
-                </InputLabel>
-                <Input
-                  value={props.values.previousPassword}
-                  onChange={props.handleChange}
-                  onBlur={props.handleBlur}
-                  error={
-                    props.touched.previousPassword &&
-                    Boolean(props.errors.previousPassword)
-                  }
-                  name="previousPassword"
-                  placeholder="Enter your current password"
-                  id="previous-password"
-                  type={showPreviousPassword ? "text" : "password"}
-                  endAdornment={
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPreviousPassword}
-                        onMouseDown={handleMouseDownPassword}
-                      >
-                        {showPreviousPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                />
-                {props.touched.previousPassword &&
-                  props.errors.previousPassword && (
-                    <FormHelperText
-                      id="previous-password-helper-text"
-                      sx={{ color: "error.main" }}
-                    >
-                      {props.errors.previousPassword}
-                    </FormHelperText>
-                  )}
-              </FormControl>
               <FormControl variant="standard" fullWidth required sx={{ m: 1 }}>
                 <InputLabel
                   htmlFor="new-password"
