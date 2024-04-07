@@ -1,6 +1,4 @@
-import React from "react";
-import { useDarkMode } from "usehooks-ts";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import { Box } from "@mui/material";
 
 import StatefulButton from "../../../shared/components/StatefulButton";
@@ -19,7 +17,7 @@ type Props = {
 };
 
 const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
-  const { isDarkMode } = useDarkMode();
+  const theme = useTheme();
 
   return (
     <OptionsPanelContainer>
@@ -38,7 +36,7 @@ const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
           {["easy", "medium", "hard"].map((label) => (
             <StatefulButton
               isActive={optionsState.difficultyLevel === label ? true : false}
-              isDarkMode={isDarkMode}
+              isDarkMode={theme.palette.mode === "dark"}
               onClick={() => {
                 if (
                   label === "easy" ||

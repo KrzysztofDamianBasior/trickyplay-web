@@ -1,5 +1,4 @@
-import { useDarkMode } from "usehooks-ts";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 
 import ActionButton from "../../../shared/components/ActionButton";
 import StatefulButton from "../../../shared/components/StatefulButton";
@@ -21,7 +20,7 @@ const ControlsPanel = ({
   setPause,
   openModal,
 }: Props) => {
-  const { isDarkMode } = useDarkMode();
+  const theme = useTheme();
 
   return (
     <SnakeControls>
@@ -35,8 +34,7 @@ const ControlsPanel = ({
           backgroundRepeat: "no-repeat",
           backgroundSize: "70%",
           backgroundPosition: "center",
-          padding: { xs: "80px", sm: "120x", md: "140px" },
-          // margin: "50px",
+          padding: "60px",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -73,7 +71,7 @@ const ControlsPanel = ({
           </Box>
           <Box sx={{ backgroundColor: "secondary.light" }}>
             <StatefulButton
-              isDarkMode={isDarkMode}
+              isDarkMode={theme.palette.mode === "dark"}
               isActive={pause && !disabled}
               onClick={() => {
                 if (!disabled) setPause();

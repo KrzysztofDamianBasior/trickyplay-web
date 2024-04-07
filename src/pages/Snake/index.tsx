@@ -1,12 +1,15 @@
 import { useRef, useReducer, useEffect, useState } from "react";
 import { useInterval } from "usehooks-ts";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
+import { Box, useMediaQuery } from "@mui/material";
 
 import { useResponsiveCanvasSize } from "./hooks/useResponsiveCanvasSize";
 
 import AnimatedPage from "../../shared/components/AnimatedPage";
 import Navbar from "../../shared/components/Navbar";
 import Modal from "../../shared/components/Modal";
+import CommentsSection from "../../shared/components/CommentsSection";
+import Footer from "../../shared/components/Footer";
 
 import ControlsPanel from "./components/ControlsPanel";
 import OptionsPanel from "./components/OptionsPanel";
@@ -20,7 +23,13 @@ const SCALE = 30;
 const Snake = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const gameWrapperRef = useRef<HTMLDivElement | null>(null);
-  const canvasSize = useResponsiveCanvasSize(70, SCALE);
+  const theme = useTheme();
+  const isMatchLG = useMediaQuery(theme.breakpoints.down("lg"));
+  const isMatchMD = useMediaQuery(theme.breakpoints.down("md"));
+  const canvasSize = useResponsiveCanvasSize(
+    isMatchLG ? (isMatchMD ? 70 : 40) : 70,
+    SCALE
+  );
   const [snakeGameState, dispatchSnakeGameState] = useReducer(snakeReducer, {
     direction: { x: 0, y: -1 },
     snake: [],
@@ -129,56 +138,68 @@ const Snake = () => {
           optionsState={modalState}
         />
       </Modal>
-
-      <SnakeContainer>
-        <ControlsPanel
-          openModal={() =>
-            setModalState((prev) => {
-              return { ...prev, opened: true };
-            })
-          }
-          pause={snakeGameState.speed === null ? true : false}
-          disabled={snakeGameState.disabled}
-          setPause={() => {
-            dispatchSnakeGameState({
-              type: SnakeActionKind.PAUSE,
-            });
-            gameWrapperRef.current?.focus();
-          }}
-          score={snakeGameState.score}
-        />
-        <GameBoard
-          canvasRef={canvasRef}
-          wrapperRef={gameWrapperRef}
-          canvasSize={canvasSize}
-          disabled={snakeGameState.disabled}
-          info={snakeGameState.info}
-          changeDirection={(e) => {
-            if (!snakeGameState.disabled) {
-              dispatchSnakeGameState({
-                type: SnakeActionKind.CHANGE_DIRECTION,
-                payload: { keyboardEvent: e },
-              });
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <SnakeContainer>
+          <ControlsPanel
+            openModal={() =>
+              setModalState((prev) => {
+                return { ...prev, opened: true };
+              })
             }
-          }}
-          onPlayAgain={() => {
-            dispatchSnakeGameState({
-              type: SnakeActionKind.START_GAME,
-              payload: {
-                numberOfInversionApples: 2,
-                numberOfPointApples: 4,
-                snakeInitialPosition: [
-                  [3, 8],
-                  [3, 9],
-                ],
-                direction: { x: 0, y: -1 },
-                canvasSize: [canvasSize.x, canvasSize.y],
-                difficultyLevel: modalState.difficultyLevel,
-              },
-            });
-          }}
-        />
-      </SnakeContainer>
+            pause={snakeGameState.speed === null ? true : false}
+            disabled={snakeGameState.disabled}
+            setPause={() => {
+              dispatchSnakeGameState({
+                type: SnakeActionKind.PAUSE,
+              });
+              gameWrapperRef.current?.focus();
+            }}
+            score={snakeGameState.score}
+          />
+          <GameBoard
+            canvasRef={canvasRef}
+            wrapperRef={gameWrapperRef}
+            canvasSize={canvasSize}
+            disabled={snakeGameState.disabled}
+            info={snakeGameState.info}
+            changeDirection={(e) => {
+              if (!snakeGameState.disabled) {
+                dispatchSnakeGameState({
+                  type: SnakeActionKind.CHANGE_DIRECTION,
+                  payload: { keyboardEvent: e },
+                });
+              }
+            }}
+            onPlayAgain={() => {
+              dispatchSnakeGameState({
+                type: SnakeActionKind.START_GAME,
+                payload: {
+                  numberOfInversionApples: 2,
+                  numberOfPointApples: 4,
+                  snakeInitialPosition: [
+                    [3, 8],
+                    [3, 9],
+                  ],
+                  direction: { x: 0, y: -1 },
+                  canvasSize: [canvasSize.x, canvasSize.y],
+                  difficultyLevel: modalState.difficultyLevel,
+                },
+              });
+            }}
+          />
+        </SnakeContainer>
+
+        <CommentsSection gameName="Snake" />
+
+        <Footer />
+      </Box>
     </AnimatedPage>
   );
 };
