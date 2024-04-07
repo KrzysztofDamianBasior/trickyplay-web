@@ -9,7 +9,7 @@ import Loading from "./pages/Loading";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
 import Auth from "./pages/Auth";
-// import Profile from "./pages/Profile";
+import Profile from "./pages/Profile";
 
 import DeleteAccountDialog from "./shared/components/DeleteAccountDialog";
 import DeleteEntitiesDialog from "./shared/components/DeleteEntitiesDialog/DeleteEntitiesDialog";
@@ -60,7 +60,7 @@ const Minesweeper = lazy(async () => {
 
 function App() {
   const location = useLocation();
-  const { isDarkMode, toggle, enable, disable } = useDarkMode();
+  const { isDarkMode, disable, enable, set, toggle } = useDarkMode();
   const {
     closeSnackbar,
     handleSnackbarExited,
@@ -191,7 +191,7 @@ function App() {
                     <Route path="/games" element={<Games />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/attribution" element={<Attribution />} />
-                    {/* <Route path="/account" element={<Profile />} /> */}
+                    <Route path="/account" element={<Profile />} />
                     <Route
                       path="/games/tic-tac-toe"
                       element={
