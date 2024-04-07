@@ -414,7 +414,6 @@ export default function useAccount({
 
   const updateUsername = async ({
     newUsername,
-    currentPassword,
   }: UpdateUsernameProps): UpdateAccountResultType => {
     if (authState.user !== null) {
       try {
@@ -427,7 +426,6 @@ export default function useAccount({
           ACCOUNT_URL,
           {
             newUsername,
-            currentPassword,
           },
           {
             headers: { "Content-Type": "application/json" },
@@ -490,7 +488,6 @@ export default function useAccount({
 
   const updatePassword = async ({
     newPassword,
-    currentPassword,
   }: UpdatePasswordProps): UpdateAccountResultType => {
     if (authState.user !== null) {
       try {
@@ -502,7 +499,6 @@ export default function useAccount({
           // }
           ACCOUNT_URL,
           {
-            currentPassword,
             newPassword,
           },
           {
@@ -569,13 +565,23 @@ export default function useAccount({
     if (authState.user !== null) {
       try {
         const response = await axiosPrivate.get(
-          ACCOUNT_URL + "/" + ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT
+          ACCOUNT_URL + "/" + ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT,
+          {
+            responseType: "arraybuffer",
+          }
         );
         openSnackbar({
           title: `Success`,
           body: "Activity summary download successfully started",
-          severity: "error",
+          severity: "success",
         });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "activitySummary.pdf");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         return {
           message: "Success",
           status: response.status,

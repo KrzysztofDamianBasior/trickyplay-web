@@ -46,11 +46,9 @@ export type AccountActivitySummaryResultType = Promise<{
 
 export type UpdateUsernameProps = {
   newUsername: string;
-  currentPassword: string;
 };
 export type UpdatePasswordProps = {
   newPassword: string;
-  currentPassword: string;
 };
 export type UpdateAccountResultType = Promise<{
   status: number;
