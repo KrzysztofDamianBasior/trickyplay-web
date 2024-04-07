@@ -60,9 +60,13 @@ const GameBoard = ({
     <GameWrapper style={{ margin: "20px" }}>
       <MinesweeperGameBoard>
         {minesweeperGameState.board.map((row, rowIndex) => (
-          <MinesweeperRow rowsNumber={minesweeperGameState.board.length}>
+          <MinesweeperRow
+            rowsNumber={minesweeperGameState.board.length}
+            key={rowIndex}
+          >
             {row.map((cell, columnIndex) => (
               <MinesweeperCell
+                key={columnIndex}
                 columnsNumber={minesweeperGameState.board.length}
                 isChecked={cell.isChecked}
                 hasMine={cell.hasMine}
@@ -114,10 +118,16 @@ const MinesweeperGameBoard = styled("div")`
 
     font-size: 2rem;
 
-    width: 80vmin;
-    height: 80vmin;
+    width: 70vmin;
+    height: 70vmin;
+    @media (max-width: ${theme.breakpoints.values.lg}px) {
+      width: 50vmin;
+      height: 50vmin;
+    }
     @media (max-width: ${theme.breakpoints.values.md}px) {
       font-size: 1.5rem;
+      width: 80vmin;
+      height: 80vmin;
     }
     @media (max-width: ${theme.breakpoints.values.sm}px) {
       font-size: 1rem;

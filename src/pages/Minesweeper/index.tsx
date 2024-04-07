@@ -1,9 +1,11 @@
 import { useState, useReducer, useEffect } from "react";
-import { styled } from "@mui/material";
+import { Box, styled } from "@mui/material";
 
 import AnimatedPage from "../../shared/components/AnimatedPage";
 import Navbar from "../../shared/components/Navbar";
 import Modal from "../../shared/components/Modal";
+import Footer from "../../shared/components/Footer";
+import CommentsSection from "../../shared/components/CommentsSection";
 
 import { useStopwatch } from "./hooks/useStopwatch";
 
@@ -79,21 +81,34 @@ const Minesweeper = () => {
         />
       </Modal>
 
-      <MinesweeperContainer>
-        <ControlsPanel
-          openModal={() => {
-            setModalState((prev) => {
-              return { ...prev, opened: true };
-            });
-          }}
-          time={time}
-          gameStatus={minesweeperGameState.info}
-        />
-        <GameBoard
-          minesweeperGameState={minesweeperGameState}
-          dispatchMinesweeperGameState={dispatchMinesweeperGameState}
-        />
-      </MinesweeperContainer>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <MinesweeperContainer>
+          <ControlsPanel
+            openModal={() => {
+              setModalState((prev) => {
+                return { ...prev, opened: true };
+              });
+            }}
+            time={time}
+            gameStatus={minesweeperGameState.info}
+          />
+          <GameBoard
+            minesweeperGameState={minesweeperGameState}
+            dispatchMinesweeperGameState={dispatchMinesweeperGameState}
+          />
+        </MinesweeperContainer>
+
+        <CommentsSection gameName="Minesweeper" />
+
+        <Footer />
+      </Box>
     </AnimatedPage>
   );
 };
