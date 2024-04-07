@@ -1,14 +1,16 @@
+import { useContext } from "react";
+
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Button from "@mui/material/Button";
 
-import useAccount from "../../../services/account/useAccount";
 import {
   type HandleGrantAdminPermissionsType,
   type HandleUserBanType,
   type HandleUserUnbanType,
 } from "../../../services/usersPaginatedCollection/useUsersPaginatedCollection";
 import { type UserDetailsType } from "../../../models/internalAppRepresentation/resources";
+import { AccountContext } from "../../../services/account/AccountContext";
 
 type Props = {
   userDetails: UserDetailsType;
@@ -25,14 +27,22 @@ const UserRow = ({
   handleUserBan,
   handleUserUnban,
 }: Props) => {
-  const { authState } = useAccount();
+  const { authState } = useContext(AccountContext);
 
-  const canUserGetBanned = authState.user && authState.user.role === "USER";
+  const canUserGetBanned =
+    authState.user &&
+    authState.user.role === "ADMIN" &&
+    userDetails.role === "USER";
 
-  const canUserGetUnbanned = authState.user && authState.user.role === "BANNED";
+  const canUserGetUnbanned =
+    authState.user &&
+    authState.user.role === "ADMIN" &&
+    userDetails.role === "BANNED";
 
   const canUserGetAdminPermissions =
-    authState.user && authState.user.role === "USER";
+    authState.user &&
+    authState.user.role === "ADMIN" &&
+    userDetails.role === "USER";
 
   return (
     <TableRow
@@ -49,33 +59,45 @@ const UserRow = ({
       <TableCell align={"left"}>
         {new Date(userDetails.updatedAt).toLocaleString()}
       </TableCell>
-      <TableCell align={"left"}>
+      <TableCell
+        align={"left"}
+        sx={{ display: "flex", flexDirection: "column" }}
+      >
         {canUserGetAdminPermissions && (
           <Button
+            variant="outlined"
             onClick={() =>
               handleGrantAdminPermissions({
                 user: userDetails,
                 page: userPage,
               })
             }
+            sx={{ m: 1 }}
+            size="small"
           >
             Grant admin permissions
           </Button>
         )}
         {canUserGetBanned && (
           <Button
+            variant="outlined"
             onClick={() => {
               handleUserBan({ user: userDetails, page: userPage });
             }}
+            sx={{ m: 1 }}
+            size="small"
           >
             Ban
           </Button>
         )}
         {canUserGetUnbanned && (
           <Button
+            variant="outlined"
             onClick={() =>
               handleUserUnban({ user: userDetails, page: userPage })
             }
+            sx={{ m: 1 }}
+            size="small"
           >
             Unban
           </Button>

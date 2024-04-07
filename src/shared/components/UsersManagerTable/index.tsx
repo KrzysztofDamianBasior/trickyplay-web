@@ -1,21 +1,18 @@
+import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
+import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
-import { alpha } from "@mui/material/styles";
-
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ErrorIcon from "@mui/icons-material/Error";
+import { alpha } from "@mui/material/styles";
 
 import useUsersPaginatedCollection from "../../services/usersPaginatedCollection/useUsersPaginatedCollection";
 import UserRow from "./components/UserRow";
@@ -32,19 +29,45 @@ const UsersTable = () => {
   } = useUsersPaginatedCollection();
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <AppBar>
-        <Toolbar
-          sx={{
-            pl: { sm: 2 },
-            pr: { xs: 1, sm: 1 },
-            ...(usersPaginatedCollectionState.status === "ERROR" && {
-              bgcolor: (theme) =>
-                alpha(
+    <Paper
+      sx={{
+        marginLeft: "auto",
+        marginRight: "auto",
+        maxWidth: "95%",
+        maxHeight: "1000px",
+        p: { xs: 1, sm: 2, md: 3 },
+        marginY: 3,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alginItems: "center",
+          justifyContent: "space-between",
+          flexDirection: { xs: "column", sm: "row" },
+          width: "100%",
+          bgcolor: (theme) =>
+            usersPaginatedCollectionState.status === "ERROR"
+              ? alpha(
+                  theme.palette.error.main,
+                  theme.palette.action.activatedOpacity
+                )
+              : alpha(
                   theme.palette.primary.main,
                   theme.palette.action.activatedOpacity
                 ),
-            }),
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            marginX: { xs: 1, sm: 2, md: 3, lg: 4 },
           }}
         >
           <Tooltip title="refresh the active page" arrow>
@@ -54,83 +77,111 @@ const UsersTable = () => {
               size="large"
               onClick={refreshActivePage}
               edge="start"
-              sx={{ mr: 2 }}
             >
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          {/* {usersPaginatedCollectionState.status === "ERROR" && ( */}
-          <Tooltip
-            title="An error occured. Try refreshing the comments section or page, or wait for the server to start responding."
-            arrow
-          >
-            <ErrorIcon fontSize="large" color="error" />
-          </Tooltip>
-          {/* )} */}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+
+          <Typography variant="h6" sx={{ mr: 1 }}>
             Users Table
           </Typography>
-          <TablePagination
-            component="div"
-            count={usersPaginatedCollectionState.totalNumberOfAllUsers}
-            page={usersPaginatedCollectionState.usersActivePage} // 0 - ...
-            rowsPerPage={usersPaginatedCollectionState.usersPerPage}
-            // rowsPerPageOptions={[10, 25, 100]}
-            onPageChange={(_, page) => {
-              console.log("next users page" + page);
-              handleUsersPageChange({ nextPage: page });
+          {usersPaginatedCollectionState.status === "ERROR" && (
+            <Tooltip
+              title="An error occured. Try refreshing the users section or page, or wait for the server to start responding."
+              arrow
+            >
+              <ErrorIcon fontSize="medium" color="error" />
+            </Tooltip>
+          )}
+        </Box>
+
+        <TablePagination
+          component="div"
+          count={usersPaginatedCollectionState.totalNumberOfAllUsers}
+          page={usersPaginatedCollectionState.usersActivePage} // The zero-based index of the current page.
+          rowsPerPage={usersPaginatedCollectionState.usersPerPage}
+          rowsPerPageOptions={[5, 10, 15, 20, 25]}
+          onPageChange={(_, page) => {
+            handleUsersPageChange({ nextPage: page });
+          }}
+          onRowsPerPageChange={(
+            event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+          ) => {
+            handleUsersRowsPerPageChange({
+              newUsersPerPage: parseInt(event.target.value, 10),
+            });
+          }}
+        />
+      </Box>
+      <Box sx={{ overflow: "auto" }}>
+        <Box sx={{ width: "100%", display: "table", tableLayout: "fixed" }}>
+          <Table
+            stickyHeader
+            aria-label="sticky collapsible users table"
+            sx={{
+              [`& .${tableCellClasses.root}`]: {
+                borderBottom: "none",
+              },
             }}
-            onRowsPerPageChange={(
-              event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-            ) => {
-              handleUsersRowsPerPageChange({
-                newUsersPerPage: parseInt(event.target.value, 10),
-              });
-            }}
-          />
-        </Toolbar>
-      </AppBar>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky collapsible table">
-          <TableHead>
-            <TableRow>
-              {["id", "name", "roles", "createdAt", "lastUpdatedAt"].map(
-                (label) => (
+          >
+            <TableHead>
+              <TableRow>
+                {[
+                  "id",
+                  "name",
+                  "role",
+                  "created at",
+                  "last updated at",
+                  "actions",
+                ].map((label) => (
                   <TableCell
                     align={"center"}
-                    style={{ minWidth: 100 }}
                     component="th"
                     scope="col"
-                    // sx={{
-                    //   backgroundColor: 'background.paper',
-                    // }}
                     key={label}
+                    sx={{
+                      bgcolor: (theme) =>
+                        usersPaginatedCollectionState.status === "ERROR"
+                          ? alpha(
+                              theme.palette.error.main,
+                              theme.palette.action.selectedOpacity
+                            )
+                          : alpha(
+                              theme.palette.primary.main,
+                              theme.palette.action.selectedOpacity
+                            ),
+                    }}
                   >
                     {label}
                   </TableCell>
-                )
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {usersPaginatedCollectionState.status === "LOADING" ? (
+                <TableRow>
+                  <TableCell colSpan={8}>
+                    <CircularProgress color="secondary" />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                usersPaginatedCollectionState.usersPaginatedCollection[
+                  usersPaginatedCollectionState.usersActivePage
+                ].map((user) => (
+                  <UserRow
+                    key={user.id}
+                    userDetails={user}
+                    userPage={usersPaginatedCollectionState.usersActivePage}
+                    handleGrantAdminPermissions={handleGrantAdminPermissions}
+                    handleUserBan={handleUserBan}
+                    handleUserUnban={handleUserUnban}
+                  />
+                ))
               )}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {usersPaginatedCollectionState.status === "LOADING" ? (
-              <CircularProgress color="secondary" />
-            ) : (
-              usersPaginatedCollectionState.usersPaginatedCollection[
-                usersPaginatedCollectionState.usersActivePage
-              ].map((user) => (
-                <UserRow
-                  userDetails={user}
-                  userPage={usersPaginatedCollectionState.usersActivePage}
-                  handleGrantAdminPermissions={handleGrantAdminPermissions}
-                  handleUserBan={handleUserBan}
-                  handleUserUnban={handleUserUnban}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableBody>
+          </Table>
+        </Box>
+      </Box>
     </Paper>
   );
 };
