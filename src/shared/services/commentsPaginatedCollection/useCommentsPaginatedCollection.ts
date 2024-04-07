@@ -414,7 +414,11 @@ const useCommentsPaginatedCollection = (
     comment: CommentDetailsType;
     commentPage: number;
   }): Promise<DeleteCommentResultType> => {
-    if (authState.user && comment.author.id === authState.user.id) {
+    if (
+      authState.user &&
+      (comment.author.id === authState.user.id ||
+        authState.user.role === "ADMIN")
+    ) {
       commentsPaginatedCollectionDispatch({
         type: "SET_COMMENTS_STATUS",
         payload: { newStatus: "LOADING" },
