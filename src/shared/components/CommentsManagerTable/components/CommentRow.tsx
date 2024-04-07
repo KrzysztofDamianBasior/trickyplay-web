@@ -11,30 +11,26 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 import RepliesTable from "../../RepliesManagerTable";
 
-import { handleCommentDeleteType } from "../../../services/commentsPaginatedCollection/useCommentsPaginatedCollection";
 import { DialogsContext } from "../../../services/dialogs/DialogsContext";
-import { NotificationContext } from "../../../services/snackbars/NotificationsContext";
-import { CommentDetailsType } from "../../../services/api/useCommentsAPIFacade";
+import { type handleCommentDeleteType } from "../../../services/commentsPaginatedCollection/useCommentsPaginatedCollection";
+import { type CommentDetailsType } from "../../../models/internalAppRepresentation/resources";
+import { AccountContext } from "../../../services/account/AccountContext";
 
 type Props = {
   handleCommentDelete: handleCommentDeleteType;
   commentDetails: CommentDetailsType;
   commentPage: number;
-  gameName: string;
 };
 
 export default function CommentRow({
   commentDetails,
   commentPage,
-  gameName,
   handleCommentDelete,
 }: Props) {
+  const { authState } = useContext(AccountContext);
   const [expanded, setExpanded] = useState(false);
   const { deleteEntitiesConfirmationDialogManager } =
     useContext(DialogsContext);
-
-  const { openSnackbar } = useContext(NotificationContext);
-
   const haveRepliesBeenMounted = useRef(false);
 
   const handleExpandClick = () => {
@@ -42,22 +38,27 @@ export default function CommentRow({
     setExpanded(!expanded);
   };
 
-  const deleteComment = () => {
+  const deleteComment = async () => {
     deleteEntitiesConfirmationDialogManager.openDialog({
       commentsToDelete: [commentDetails],
       repliesToDelete: [],
-      onCancel: () => {
-        openSnackbar({
-          severity: "info",
-          title: `comment with id ${commentDetails.id} has not been deleted`,
-          body: "comment deletion aborted",
+      onConfirm: async () => {
+        const result = await handleCommentDelete({
+          comment: commentDetails,
+          commentPage,
         });
-      },
-      onConfirm: () => {
-        handleCommentDelete({ comment: commentDetails, commentPage });
+        return {
+          deleteCommentsResults: [result],
+          deleteRepliesResults: [],
+        };
       },
     });
   };
+
+  const canCommentGetDeleted =
+    authState.user &&
+    (authState.user.id === commentDetails.author.id ||
+      authState.user.role === "ADMIN");
 
   return (
     <>
@@ -75,33 +76,38 @@ export default function CommentRow({
             {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell align={"left"}>{commentDetails.id}id</TableCell>
-        <TableCell align={"left"}>{commentDetails.body}content</TableCell>
+        <TableCell align={"left"}>{commentDetails.id}</TableCell>
+        <TableCell align={"left"}>{commentDetails.body}</TableCell>
         <TableCell align={"left"}>
-          {commentDetails.createdAt}created at
+          {new Date(commentDetails.createdAt).toLocaleString()}
         </TableCell>
         <TableCell align={"left"}>
-          {commentDetails.lastUpdatedAt}last updated at
+          {new Date(commentDetails.updatedAt).toLocaleString()}
         </TableCell>
+        <TableCell align={"left"}>{commentDetails.author.name}</TableCell>
+        <TableCell align={"left"}>{commentDetails.gameName}</TableCell>
         <TableCell align={"left"}>
-          {commentDetails.author.name}author name
-        </TableCell>
-        <TableCell align={"left"}>
-          <Button onClick={deleteComment}>Delete</Button>
+          {canCommentGetDeleted && (
+            <Button onClick={deleteComment} variant="outlined">
+              Delete
+            </Button>
+          )}
         </TableCell>
       </TableRow>
 
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+      <TableRow sx={{ minHeight: 0 }}>
+        <TableCell colSpan={8} style={{ paddingBottom: 0, paddingTop: 0 }}>
           <Collapse
             in={expanded}
             timeout="auto"
             //unmountOnExit
           >
-            <RepliesTable
-              gameName={gameName}
-              parentCommentDetails={commentDetails}
-            />
+            {haveRepliesBeenMounted.current && (
+              <RepliesTable
+                parentCommentId={commentDetails.id}
+                tableType="COMMENT_REPLIES"
+              />
+            )}
           </Collapse>
         </TableCell>
       </TableRow>

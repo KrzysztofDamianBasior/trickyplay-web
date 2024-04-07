@@ -1,13 +1,11 @@
+import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
@@ -20,124 +18,173 @@ import ErrorIcon from "@mui/icons-material/Error";
 import useCommentsPaginatedCollection from "../../services/commentsPaginatedCollection/useCommentsPaginatedCollection";
 import CommentRow from "./components/CommentRow";
 
-type Props = { gameName: string; commentsOwner: null };
+type Props =
+  | {
+      collectionType: "USER_COMMENTS";
+      authorId: string;
+    }
+  | {
+      collectionType: "GAME_COMMENTS";
+      gameName: string;
+    };
 
-const CommentsTable = ({ gameName, commentsOwner }: Props) => {
+const CommentsTable = (props: Props) => {
   const {
     commentsPaginatedCollectionState,
     handleCommentsPageChange,
     handleCommentsRowsPerPageChange,
     handleCommentDelete,
-    commentsActivePage,
-    commentsPerPage,
     refreshActivePage,
-  } = useCommentsPaginatedCollection({ gameName, userId: commentsOwner });
+  } = useCommentsPaginatedCollection(props);
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <AppBar>
-        <Toolbar
-          sx={{
-            pl: { sm: 2 },
-            pr: { xs: 1, sm: 1 },
-            ...(commentsPaginatedCollectionState.status === "ERROR" && {
-              bgcolor: (theme) =>
-                alpha(
+    <Paper
+      sx={{
+        marginLeft: "auto",
+        marginRight: "auto",
+        maxWidth: "95%",
+        maxHeight: "1000px",
+        p: { xs: 1, sm: 2, md: 3 },
+        marginY: 3,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alginItems: "center",
+          justifyContent: "space-between",
+          flexDirection: { xs: "column", sm: "row" },
+          width: "100%",
+          bgcolor: (theme) =>
+            commentsPaginatedCollectionState.status === "ERROR"
+              ? alpha(
+                  theme.palette.error.main,
+                  theme.palette.action.activatedOpacity
+                )
+              : alpha(
                   theme.palette.primary.main,
                   theme.palette.action.activatedOpacity
                 ),
-            }),
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            marginX: { xs: 1, sm: 2, md: 3, lg: 4 },
           }}
         >
-          <Tooltip title="refresh the active users page" arrow>
+          <Tooltip title="refresh the active page" arrow>
             <IconButton
               aria-label="refresh button"
               color="secondary"
               size="large"
               onClick={refreshActivePage}
               edge="start"
-              sx={{ mr: 2 }}
             >
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          {/* {commentsPaginatedCollectionState.status === "ERROR" && ( */}
-          <Tooltip
-            title="An error occured. Try refreshing the comments section or page, or wait for the server to start responding."
-            arrow
-          >
-            <ErrorIcon fontSize="large" color="error" />
-          </Tooltip>
-          {/* )} */}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+
+          <Typography variant="h6" sx={{ mr: 1 }}>
             Comments Table
           </Typography>
-          <TablePagination
-            component="div"
-            count={commentsPaginatedCollectionState.totalNumberOfAllComments}
-            page={commentsActivePage} // 0 - ...
-            rowsPerPage={commentsPerPage}
-            // rowsPerPageOptions={[10, 25, 100]}
-            onPageChange={(_, page) => {
-              console.log("next comments page" + page);
-              handleCommentsPageChange({ nextPage: page });
-            }}
-            onRowsPerPageChange={(
-              event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-            ) => {
-              handleCommentsRowsPerPageChange({
-                newCommentsPerPage: parseInt(event.target.value, 10),
-              });
-            }}
-          />
-        </Toolbar>
-      </AppBar>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky collapsible table">
-          <TableHead>
-            <TableRow>
-              {[
-                "Show replies",
-                "id",
-                "content",
-                "created at",
-                "last updated at",
-                "author name",
-                "actions",
-              ].map((label) => (
-                <TableCell
-                  align={"center"}
-                  style={{ minWidth: 100 }}
-                  component="th"
-                  scope="col"
-                  // sx={{
-                  //   backgroundColor: 'background.paper',
-                  // }}
-                  key={label}
-                >
-                  {label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {commentsPaginatedCollectionState.status === "LOADING" ? (
-              <CircularProgress color="secondary" />
-            ) : (
-              commentsPaginatedCollectionState.commentsPaginatedCollection[
-                commentsActivePage
-              ].map((comment) => (
-                <CommentRow
-                  handleCommentDelete={handleCommentDelete}
-                  commentDetails={comment}
-                  commentPage={commentsActivePage}
-                  gameName={gameName}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          {commentsPaginatedCollectionState.status === "ERROR" && (
+            <Tooltip
+              title="An error occured. Try refreshing the comments table or page, or wait for the server to start responding."
+              arrow
+            >
+              <ErrorIcon fontSize="medium" color="error" />
+            </Tooltip>
+          )}
+        </Box>
+
+        <TablePagination
+          component="div"
+          count={commentsPaginatedCollectionState.totalNumberOfAllComments}
+          page={commentsPaginatedCollectionState.commentsActivePage} // The zero-based index of the current page.
+          rowsPerPage={commentsPaginatedCollectionState.commentsPerPage}
+          rowsPerPageOptions={[5, 10, 15, 20, 25]}
+          onPageChange={(_, page) => {
+            handleCommentsPageChange({ nextPage: page });
+          }}
+          onRowsPerPageChange={(
+            event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+          ) => {
+            handleCommentsRowsPerPageChange({
+              newCommentsPerPage: parseInt(event.target.value, 10),
+            });
+          }}
+        />
+      </Box>
+      <Box sx={{ overflow: "auto" }}>
+        <Box sx={{ width: "100%", display: "table", tableLayout: "fixed" }}>
+          <Table stickyHeader aria-label="sticky collapsible comments table">
+            <TableHead>
+              <TableRow>
+                {[
+                  "Show replies",
+                  "id",
+                  "content",
+                  "created at",
+                  "updated at",
+                  "author",
+                  "game name",
+                  "actions",
+                ].map((label) => (
+                  <TableCell
+                    align="center"
+                    component="th"
+                    scope="col"
+                    key={label}
+                    sx={{
+                      bgcolor: (theme) =>
+                        commentsPaginatedCollectionState.status === "ERROR"
+                          ? alpha(
+                              theme.palette.error.main,
+                              theme.palette.action.selectedOpacity
+                            )
+                          : alpha(
+                              theme.palette.primary.main,
+                              theme.palette.action.selectedOpacity
+                            ),
+                    }}
+                  >
+                    {label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {commentsPaginatedCollectionState.status === "LOADING" ? (
+                <TableRow>
+                  <TableCell colSpan={8}>
+                    <CircularProgress color="secondary" />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                commentsPaginatedCollectionState.commentsPaginatedCollection[
+                  commentsPaginatedCollectionState.commentsActivePage
+                ].map((comment) => (
+                  <CommentRow
+                    key={comment.id}
+                    handleCommentDelete={handleCommentDelete}
+                    commentDetails={comment}
+                    commentPage={
+                      commentsPaginatedCollectionState.commentsActivePage
+                    }
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+      </Box>
     </Paper>
   );
 };
