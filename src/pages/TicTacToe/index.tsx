@@ -15,6 +15,9 @@ import {
   ticTacToeInitialState,
   ticTacToeReducer,
 } from "./reducer";
+import CommentsSection from "../../shared/components/CommentsSection";
+import Box from "@mui/material/Box";
+import Footer from "../../shared/components/Footer";
 
 const TicTacToe = () => {
   const [ticTacToeGameState, dispatchTicTacToeGameState] = useReducer(
@@ -61,49 +64,62 @@ const TicTacToe = () => {
         />
       </Modal>
 
-      <TicTacToeContainer>
-        <ControlsPanel
-          openModal={() =>
-            setModalState((prev) => {
-              return { ...prev, opened: true };
-            })
-          }
-          points={{
-            o: ticTacToeGameState.points.o,
-            x: ticTacToeGameState.points.x,
-          }}
-          resetPoints={() => {
-            dispatchTicTacToeGameState({
-              type: TicTacToeActionKind.RESET_POINTS,
-            });
-          }}
-        />
-        <TicTacToeGameBoard
-          disabled={ticTacToeGameState.disabled}
-          info={ticTacToeGameState.victoryStatus}
-          board={ticTacToeGameState.board}
-          onMove={(cellRowPosition: number, cellColumnPosition: number) => {
-            dispatchTicTacToeGameState({
-              type: TicTacToeActionKind.NEW_MOVE,
-              payload: {
-                cellRowPosition,
-                cellColumnPosition,
-              },
-            });
-          }}
-          onPlayAgain={() => {
-            dispatchTicTacToeGameState({
-              type: TicTacToeActionKind.RESET_BOARD,
-              payload: {
-                columnsNumber: 3,
-                rowsNumber: 3,
-                side: modalState.side,
-                soloOrDuoMode: modalState.soloOrDuoMode,
-              },
-            });
-          }}
-        />
-      </TicTacToeContainer>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <TicTacToeContainer>
+          <ControlsPanel
+            openModal={() =>
+              setModalState((prev) => {
+                return { ...prev, opened: true };
+              })
+            }
+            points={{
+              o: ticTacToeGameState.points.o,
+              x: ticTacToeGameState.points.x,
+            }}
+            resetPoints={() => {
+              dispatchTicTacToeGameState({
+                type: TicTacToeActionKind.RESET_POINTS,
+              });
+            }}
+          />
+          <TicTacToeGameBoard
+            disabled={ticTacToeGameState.disabled}
+            info={ticTacToeGameState.victoryStatus}
+            board={ticTacToeGameState.board}
+            onMove={(cellRowPosition: number, cellColumnPosition: number) => {
+              dispatchTicTacToeGameState({
+                type: TicTacToeActionKind.NEW_MOVE,
+                payload: {
+                  cellRowPosition,
+                  cellColumnPosition,
+                },
+              });
+            }}
+            onPlayAgain={() => {
+              dispatchTicTacToeGameState({
+                type: TicTacToeActionKind.RESET_BOARD,
+                payload: {
+                  columnsNumber: 3,
+                  rowsNumber: 3,
+                  side: modalState.side,
+                  soloOrDuoMode: modalState.soloOrDuoMode,
+                },
+              });
+            }}
+          />
+        </TicTacToeContainer>
+
+        <CommentsSection gameName="TicTacToe" />
+
+        <Footer />
+      </Box>
     </AnimatedPage>
   );
 };

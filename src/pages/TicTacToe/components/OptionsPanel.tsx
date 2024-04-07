@@ -1,6 +1,5 @@
-import { useDarkMode } from "usehooks-ts";
-import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
+import { styled, useTheme } from "@mui/material/styles";
 
 import StatefulButton from "../../../shared/components/StatefulButton";
 
@@ -20,7 +19,7 @@ type Props = {
 };
 
 const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
-  const { isDarkMode } = useDarkMode();
+  const theme = useTheme();
 
   return (
     <OptionsPanelContainer>
@@ -38,7 +37,7 @@ const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
         <ToggleSwitchContainer id="howManyPlayers">
           {["single player", "two players"].map((label) => (
             <StatefulButton
-              isDarkMode={isDarkMode}
+              isDarkMode={theme.palette.mode === "dark"}
               isActive={
                 optionsState.soloOrDuoMode === "solo" &&
                 label === "single player"
@@ -79,7 +78,7 @@ const OptionsPanel = ({ optionsState, setOptionsState }: Props) => {
           <ToggleSwitchContainer id="whichSide">
             {["x", "o"].map((label) => (
               <StatefulButton
-                isDarkMode={isDarkMode}
+                isDarkMode={theme.palette.mode === "dark"}
                 isActive={label === optionsState.side ? true : false}
                 onClick={() => {
                   if (label === "x" || label === "o") {

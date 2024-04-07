@@ -120,6 +120,10 @@ const TicTacToeBoard = styled("div", {
 
     width: 600px;
     height: 600px;
+    @media (max-width: ${theme.breakpoints.values.lg}px) {
+      width: 400px;
+      height: 400px;
+    }
     @media (max-width: ${theme.breakpoints.values.md}px) {
       width: 500px;
       height: 500px;
