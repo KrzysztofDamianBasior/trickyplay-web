@@ -39,14 +39,14 @@ type Props = {
 const validationSchema = Yup.object().shape({
   newPassword: Yup.string()
     .matches(PASSWORD_REGEX, PASSWORD_MESSAGE)
-    .required("Please enter your password")
-    .test(
-      "password-hasnt-chaged",
-      "Your new password is identical to the old one",
-      function (value) {
-        return this.parent.previousPassword !== value;
-      }
-    ),
+    .required("Please enter your password"),
+  // .test(
+  //   "password-hasnt-chaged",
+  //   "Your new password is identical to the old one",
+  //   function (value) {
+  //     return this.parent.previousPassword !== value;
+  //   }
+  // ),
   newPasswordConfirmation: Yup.string()
     .required("Please confirm your new password")
     .test("passwords-match", "Passwords must match", function (value) {

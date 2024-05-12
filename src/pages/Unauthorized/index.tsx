@@ -6,7 +6,7 @@ import AnimatedPage from "../../shared/components/AnimatedPage";
 import Navbar from "../../shared/components/Navbar";
 import Footer from "../../shared/components/Footer";
 
-const NoMatch = () => {
+const Unauthorized = () => {
   const navigate = useNavigate();
 
   return (
@@ -53,14 +53,24 @@ const NoMatch = () => {
           <Typography variant="h4" gutterBottom sx={{ color: "warning.main" }}>
             You do not have access to the requested page.
           </Typography>
-          <Button
-            variant="contained"
-            color="warning"
-            onClick={() => navigate("/")}
-            sx={{ m: 3 }}
-          >
-            Visit the home page
-          </Button>
+          <Box sx={{ display: "flex" }}>
+            <Button
+              variant="contained"
+              color="warning"
+              onClick={() => navigate("/")}
+              sx={{ m: 3 }}
+            >
+              Visit the home page
+            </Button>
+            <Button
+              variant="contained"
+              color="warning"
+              onClick={() => navigate("/auth")}
+              sx={{ m: 3 }}
+            >
+              Sign in
+            </Button>
+          </Box>
         </Box>
       </Box>
       <Footer />
@@ -68,4 +78,4 @@ const NoMatch = () => {
   );
 };
 
-export default NoMatch;
+export default Unauthorized;

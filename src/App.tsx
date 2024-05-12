@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Games from "./pages/Games";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Unauthorized from "./pages/Unauthorized";
 
 import DeleteAccountDialog from "./shared/components/DeleteAccountDialog";
 import DeleteEntitiesDialog from "./shared/components/DeleteEntitiesDialog/DeleteEntitiesDialog";
@@ -196,6 +197,7 @@ function App() {
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/attribution" element={<Attribution />} />
                       <Route path="/account" element={<Profile />} />
+                      <Route path="/unauthorized" element={<Unauthorized />} />
                       <Route
                         path="/games/tic-tac-toe"
                         element={

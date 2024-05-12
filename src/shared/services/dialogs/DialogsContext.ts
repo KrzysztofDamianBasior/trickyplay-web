@@ -1,11 +1,11 @@
 import { createContext } from "react";
 
 import {
-  CommentDetailsType,
-  ReplyDetailsType,
+  type CommentDetailsType,
+  type ReplyDetailsType,
 } from "../../models/internalAppRepresentation/resources";
-import { DeleteReplyResultType } from "../api/useRepliesAPIFacade";
-import { DeleteCommentResultType } from "../api/useCommentsAPIFacade";
+import { type DeleteReplyResultType } from "../api/useRepliesAPIFacade";
+import { type DeleteCommentResultType } from "../api/useCommentsAPIFacade";
 
 export type DialogsContextType = {
   deleteEntitiesConfirmationDialogManager: DeleteEntitiesConfirmationDialogManagerType;

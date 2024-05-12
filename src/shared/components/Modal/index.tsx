@@ -1,10 +1,11 @@
+import { Typography, useMediaQuery, useTheme } from "@mui/material";
+
 import { AnimatePresence } from "framer-motion";
 
 import ActionButton from "../ActionButton";
 
 import Backdrop from "./components/Backdrop";
 import SnakeBorderContainer from "./components/SnakeBorderContainer";
-import { Typography, useMediaQuery, useTheme } from "@mui/material";
 
 type Props = {
   onClose: () => void;

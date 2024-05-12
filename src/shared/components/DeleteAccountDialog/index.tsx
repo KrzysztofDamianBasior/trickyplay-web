@@ -3,11 +3,11 @@ import { useContext, useEffect, useState } from "react";
 import Dialog from "@mui/material/Dialog";
 
 import { DialogsContext } from "../../services/dialogs/DialogsContext";
+import { type DeleteAccountResultType } from "../../services/account/AccountContext";
 
 import AccountDeletedSuccessfully from "./components/AccountDeletedSuccessfully";
 import AccountDeleteFailed from "./components/AccountDeleteFailed";
 import DeleteAccountConfirmatin from "./components/DeleteAccountConfirmation";
-import { type DeleteAccountResultType } from "../../services/account/AccountContext";
 
 export type DeleteAccountDialogStatusType =
   | "FORM_PROCESSING_PHASE"

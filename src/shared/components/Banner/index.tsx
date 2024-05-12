@@ -100,6 +100,9 @@ const NeonTextEffect = styled("div", {
     }
   }
 
+  .neon-text-effect__text {
+    font-size: 70px;
+  }
   @media (max-width: ${theme.breakpoints.values.xl}px) {
     .neon-text-effect__text {
       font-size: 70px;
