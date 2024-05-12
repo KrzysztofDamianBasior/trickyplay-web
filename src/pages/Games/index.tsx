@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import GamePlacard from "./components/GamePlacard";
 import GamesFilter from "./components/GamesFilter";
-import Navbar from "../../shared/components/Navbar";
+
 import {
   GameDetailsType,
   GenreType,
@@ -20,7 +20,6 @@ const Games = () => {
 
   return (
     <Container>
-      <Navbar />
       <GamesFilter
         activeGenre={activeGenre}
         setActiveGenre={setActiveGenre}

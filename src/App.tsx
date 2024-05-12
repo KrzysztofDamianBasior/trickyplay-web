@@ -1,16 +1,8 @@
-import { Suspense, lazy } from "react";
-
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 
 import ErrorBoundary from "./pages/Error";
-import Attribution from "./pages/Attribution";
-import NoMatch from "./pages/NoMatch";
-import Loading from "./pages/Loading";
-import Home from "./pages/Home";
-import Games from "./pages/Games";
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
-import Unauthorized from "./pages/Unauthorized";
+
+import CoreRoutes from "./router/routes/CoreRoutes";
 
 import DeleteAccountDialog from "./shared/components/DeleteAccountDialog";
 import DeleteEntitiesDialog from "./shared/components/DeleteEntitiesDialog/DeleteEntitiesDialog";
@@ -38,30 +30,7 @@ import useDialogs from "./shared/services/dialogs/useDialogs";
 import { DialogsContext } from "./shared/services/dialogs/DialogsContext";
 import { ThemeContext } from "./shared/services/theme/ThemeContext";
 
-//lazy loading
-const TicTacToe = lazy(async () => {
-  return Promise.all([
-    import("./pages/TicTacToe"),
-    new Promise((resolve) => setTimeout(resolve, 6000)),
-  ]).then(([moduleExports]) => moduleExports);
-});
-
-const Snake = lazy(async () => {
-  return Promise.all([
-    import("./pages/Snake"),
-    new Promise((resolve) => setTimeout(resolve, 6000)),
-  ]).then(([moduleExports]) => moduleExports);
-});
-
-const Minesweeper = lazy(async () => {
-  return Promise.all([
-    import("./pages/Minesweeper"),
-    new Promise((resolve) => setTimeout(resolve, 6000)),
-  ]).then(([moduleExports]) => moduleExports);
-});
-
 function App() {
-  const location = useLocation();
   const { isDarkMode, disable, enable, set, toggle } = useDarkMode();
   const {
     closeSnackbar,
@@ -157,90 +126,69 @@ function App() {
     },
   });
 
+  themeOptions.typography.h3 = {
+    fontSize: "1.2rem",
+    "@media (min-width:600px)": {
+      fontSize: "1.5rem",
+    },
+    [themeOptions.breakpoints.up("md")]: {
+      fontSize: "2.4rem",
+    },
+  };
+
   return (
     <div className="app">
-      <ThemeContext.Provider
-        value={{ disable, enable, isDarkMode, set, toggle }}
-      >
-        <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
-          <DialogsContext.Provider
-            value={{
-              deleteEntitiesConfirmationDialogManager,
-              changePasswordDialogManager,
-              changeUsernameDialogManager,
-              deleteAccountConfirmationDialogManager,
-            }}
-          >
-            <AccountContext.Provider
+      <BrowserRouter>
+        <ThemeContext.Provider
+          value={{ disable, enable, isDarkMode, set, toggle }}
+        >
+          <NotificationContext.Provider value={{ closeSnackbar, openSnackbar }}>
+            <DialogsContext.Provider
               value={{
-                authState,
-                axiosPrivate,
-                axiosPublic,
-                signIn,
-                signUp,
-                allSessionsSignOut,
-                singleSessionSignOut,
-                accountActivitySummary,
-                deleteAccount,
-                updatePassword,
-                updateUsername,
+                deleteEntitiesConfirmationDialogManager,
+                changePasswordDialogManager,
+                changeUsernameDialogManager,
+                deleteAccountConfirmationDialogManager,
               }}
             >
-              <MUIThemeProvider theme={themeOptions}>
-                <CssBaseline />
-                <AnimatePresence>
-                  <ErrorBoundary>
-                    <Routes key={location.pathname} location={location}>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/home" element={<Navigate to="/" />} />
-                      <Route path="/games" element={<Games />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/attribution" element={<Attribution />} />
-                      <Route path="/account" element={<Profile />} />
-                      <Route path="/unauthorized" element={<Unauthorized />} />
-                      <Route
-                        path="/games/tic-tac-toe"
-                        element={
-                          <Suspense fallback={<Loading />}>
-                            <TicTacToe />
-                          </Suspense>
-                        }
+              <AccountContext.Provider
+                value={{
+                  authState,
+                  axiosPrivate,
+                  axiosPublic,
+                  signIn,
+                  signUp,
+                  allSessionsSignOut,
+                  singleSessionSignOut,
+                  accountActivitySummary,
+                  deleteAccount,
+                  updatePassword,
+                  updateUsername,
+                }}
+              >
+                <MUIThemeProvider theme={themeOptions}>
+                  <CssBaseline />
+                  <AnimatePresence>
+                    <ErrorBoundary>
+                      <CoreRoutes />
+                      <ConsecutiveNotifications
+                        handleClose={closeSnackbar}
+                        handleExited={handleSnackbarExited}
+                        isOpened={isSnackbarOpened}
+                        messageInfo={messageInfo}
                       />
-                      <Route
-                        path="/games/snake"
-                        element={
-                          <Suspense fallback={<Loading />}>
-                            <Snake />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="/games/minesweeper"
-                        element={
-                          <Suspense fallback={<Loading />}>
-                            <Minesweeper />
-                          </Suspense>
-                        }
-                      />
-                      <Route path="*" element={<NoMatch />} />
-                    </Routes>
-                    <ConsecutiveNotifications
-                      handleClose={closeSnackbar}
-                      handleExited={handleSnackbarExited}
-                      isOpened={isSnackbarOpened}
-                      messageInfo={messageInfo}
-                    />
-                    <DeleteEntitiesDialog />
-                    <DeleteAccountDialog />
-                    <ChangePasswordDialog />
-                    <ChangeUsernameDialog />
-                  </ErrorBoundary>
-                </AnimatePresence>
-              </MUIThemeProvider>
-            </AccountContext.Provider>
-          </DialogsContext.Provider>
-        </NotificationContext.Provider>
-      </ThemeContext.Provider>
+                      <DeleteEntitiesDialog />
+                      <DeleteAccountDialog />
+                      <ChangePasswordDialog />
+                      <ChangeUsernameDialog />
+                    </ErrorBoundary>
+                  </AnimatePresence>
+                </MUIThemeProvider>
+              </AccountContext.Provider>
+            </DialogsContext.Provider>
+          </NotificationContext.Provider>
+        </ThemeContext.Provider>
+      </BrowserRouter>
     </div>
   );
 }

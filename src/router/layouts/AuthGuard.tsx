@@ -16,10 +16,8 @@ const AuthGuard = ({ allowedRoles }: Props) => {
   return auth.authState.user?.role &&
     allowedRoles.includes(auth.authState.user.role) ? (
     <Outlet />
-  ) : auth?.authState?.user ? (
-    <Navigate to="/unauthorized" state={{ from: location }} replace />
   ) : (
-    <Navigate to="/auth" state={{ from: location }} replace />
+    <Navigate to="/unauthorized" state={{ from: location }} replace />
   );
 };
 

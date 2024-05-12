@@ -5,9 +5,6 @@ import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import { useMediaQuery, useTheme } from "@mui/material";
 
-import AnimatedPage from "../../shared/components/AnimatedPage";
-import Navbar from "../../shared/components/Navbar";
-import Footer from "../../shared/components/Footer";
 import { AccountContext } from "../../shared/services/account/AccountContext";
 
 import AccountPanel from "./components/AccountPanel";
@@ -69,56 +66,50 @@ const Profile = () => {
   };
 
   return (
-    <AnimatedPage>
-      <Navbar />
-
-      <Box
+    <Box
+      sx={{
+        display: "flex",
+        mt: 4,
+        mb: 4,
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: { xs: "column", md: "row" },
+      }}
+    >
+      <Tabs
+        orientation={
+          isMatchMD ? (isMatchSM ? "vertical" : "horizontal") : "vertical"
+        }
+        value={tabManager.activeTab}
+        onChange={handleChange}
+        aria-label="account tabs"
         sx={{
-          display: "flex",
-          mt: 4,
-          mb: 4,
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: { xs: "column", md: "row" },
+          width: { sm: "auto", md: "150px" },
+          flex: "none",
+          p: { xs: 1, sm: 2, md: 3, lg: 4 },
+          marginY: { xs: 1, sm: 2, md: 3, lg: 4 },
+          alignSelf: { xs: "center", md: "flex-start" },
         }}
       >
-        <Tabs
-          orientation={
-            isMatchMD ? (isMatchSM ? "vertical" : "horizontal") : "vertical"
-          }
-          value={tabManager.activeTab}
-          onChange={handleChange}
-          aria-label="account tabs"
-          sx={{
-            width: { sm: "auto", md: "150px" },
-            flex: "none",
-            p: { xs: 1, sm: 2, md: 3, lg: 4 },
-            marginY: { xs: 1, sm: 2, md: 3, lg: 4 },
-            alignSelf: { xs: "center", md: "flex-start" },
-          }}
-        >
-          <Tab label="Account panel" {...a11yProps(0)} />
-          <Tab label="Activity panel" {...a11yProps(1)} />
-          {authState.user?.role === "ADMIN" && (
-            <Tab label="Admin panel" {...a11yProps(2)} />
-          )}
-        </Tabs>
-
-        <TabPanel value={tabManager.activeTab} index={0}>
-          <AccountPanel />
-        </TabPanel>
-        <TabPanel value={tabManager.activeTab} index={1}>
-          {tabManager.hasPanelBeenMounted.activityPanel && <ActivityPanel />}
-        </TabPanel>
+        <Tab label="Account panel" {...a11yProps(0)} />
+        <Tab label="Activity panel" {...a11yProps(1)} />
         {authState.user?.role === "ADMIN" && (
-          <TabPanel value={tabManager.activeTab} index={2}>
-            {tabManager.hasPanelBeenMounted.adminPanel && <AdminPanel />}
-          </TabPanel>
+          <Tab label="Admin panel" {...a11yProps(2)} />
         )}
-      </Box>
+      </Tabs>
 
-      <Footer />
-    </AnimatedPage>
+      <TabPanel value={tabManager.activeTab} index={0}>
+        <AccountPanel />
+      </TabPanel>
+      <TabPanel value={tabManager.activeTab} index={1}>
+        {tabManager.hasPanelBeenMounted.activityPanel && <ActivityPanel />}
+      </TabPanel>
+      {authState.user?.role === "ADMIN" && (
+        <TabPanel value={tabManager.activeTab} index={2}>
+          {tabManager.hasPanelBeenMounted.adminPanel && <AdminPanel />}
+        </TabPanel>
+      )}
+    </Box>
   );
 };
 

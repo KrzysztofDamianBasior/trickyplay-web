@@ -1,20 +1,17 @@
 import { useRef, useReducer, useEffect, useState } from "react";
 import { useInterval } from "usehooks-ts";
+
 import { styled, useTheme } from "@mui/material/styles";
 import { Box, useMediaQuery } from "@mui/material";
 
-import { useResponsiveCanvasSize } from "./hooks/useResponsiveCanvasSize";
-
-import AnimatedPage from "../../shared/components/AnimatedPage";
-import Navbar from "../../shared/components/Navbar";
 import Modal from "../../shared/components/Modal";
 import CommentsSection from "../../shared/components/CommentsSection";
-import Footer from "../../shared/components/Footer";
 
 import ControlsPanel from "./components/ControlsPanel";
 import OptionsPanel from "./components/OptionsPanel";
 import GameBoard from "./components/GameBoard";
 
+import { useResponsiveCanvasSize } from "./hooks/useResponsiveCanvasSize";
 import { SnakeActionKind, snakeReducer } from "./reducer";
 import { disableArrowKeyScrolling } from "./utils";
 
@@ -105,8 +102,7 @@ const Snake = () => {
   }, [snakeGameState.disabled]);
 
   return (
-    <AnimatedPage>
-      <Navbar />
+    <>
       <Modal
         isModalOpened={modalState.opened}
         title="Start A New Game"
@@ -197,10 +193,8 @@ const Snake = () => {
         </SnakeContainer>
 
         <CommentsSection gameName="Snake" />
-
-        <Footer />
       </Box>
-    </AnimatedPage>
+    </>
   );
 };
 

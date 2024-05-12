@@ -5,9 +5,11 @@ import Banner from "../../../shared/components/Banner";
 
 import Stopwatch from "./../components/Stopwatch";
 
+import { GameStatusType } from "../reducer";
+
 type Props = {
   time: number;
-  gameStatus: string;
+  gameStatus: GameStatusType;
   openModal: () => void;
 };
 

@@ -1,17 +1,14 @@
 import { styled } from "@mui/material";
-import AnimatedPage from "../../shared/components/AnimatedPage";
 
 const Loading = () => {
   return (
-    <AnimatedPage>
-      <LoadingContainer>
-        <LoadingText>
-          <div className="loading-text__lightbar"></div>
-          <div className="loading-text__curtain"></div>
-          <h2>Loading ...</h2>
-        </LoadingText>
-      </LoadingContainer>
-    </AnimatedPage>
+    <LoadingContainer>
+      <LoadingText>
+        <div className="loading-text__lightbar"></div>
+        <div className="loading-text__curtain"></div>
+        <h2>Loading ...</h2>
+      </LoadingText>
+    </LoadingContainer>
   );
 };
 export default Loading;

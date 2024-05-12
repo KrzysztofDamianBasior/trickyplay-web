@@ -1,10 +1,7 @@
 import { useState, useReducer, useEffect } from "react";
 import { Box, styled } from "@mui/material";
 
-import AnimatedPage from "../../shared/components/AnimatedPage";
-import Navbar from "../../shared/components/Navbar";
 import Modal from "../../shared/components/Modal";
-import Footer from "../../shared/components/Footer";
 import CommentsSection from "../../shared/components/CommentsSection";
 
 import { useStopwatch } from "./hooks/useStopwatch";
@@ -46,9 +43,7 @@ const Minesweeper = () => {
   }, [minesweeperGameState]);
 
   return (
-    <AnimatedPage>
-      <Navbar />
-
+    <>
       <Modal
         title="Start A New Game"
         isModalOpened={modalState.opened}
@@ -106,10 +101,8 @@ const Minesweeper = () => {
         </MinesweeperContainer>
 
         <CommentsSection gameName="Minesweeper" />
-
-        <Footer />
       </Box>
-    </AnimatedPage>
+    </>
   );
 };
 

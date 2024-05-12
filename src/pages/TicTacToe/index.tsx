@@ -1,10 +1,7 @@
 import { useState, useReducer } from "react";
 
 import { styled } from "@mui/material/styles";
-
-import AnimatedPage from "../../shared/components/AnimatedPage";
-import Navbar from "../../shared/components/Navbar";
-import Modal from "../../shared/components/Modal";
+import Box from "@mui/material/Box";
 
 import TicTacToeGameBoard from "./components/GameBoard";
 import OptionsPanel from "./components/OptionsPanel";
@@ -15,9 +12,9 @@ import {
   ticTacToeInitialState,
   ticTacToeReducer,
 } from "./reducer";
+
+import Modal from "../../shared/components/Modal";
 import CommentsSection from "../../shared/components/CommentsSection";
-import Box from "@mui/material/Box";
-import Footer from "../../shared/components/Footer";
 
 const TicTacToe = () => {
   const [ticTacToeGameState, dispatchTicTacToeGameState] = useReducer(
@@ -35,9 +32,7 @@ const TicTacToe = () => {
   });
 
   return (
-    <AnimatedPage>
-      <Navbar />
-
+    <>
       <Modal
         isModalOpened={modalState.opened}
         title="Start A New Game"
@@ -117,10 +112,8 @@ const TicTacToe = () => {
         </TicTacToeContainer>
 
         <CommentsSection gameName="TicTacToe" />
-
-        <Footer />
       </Box>
-    </AnimatedPage>
+    </>
   );
 };
 
