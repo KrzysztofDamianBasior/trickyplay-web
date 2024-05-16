@@ -4,6 +4,7 @@ A neon-style website that allows you to play 2D games. The website allows you to
 
 ## Features
 
+* a responsive website that renders correctly on screens with widths ranging from 320px to 1440px
 * three 2d games: TicTacToe, Snake, Minesweeper
 * comments panel with lazy content fetching algorithm
 * two color themes available

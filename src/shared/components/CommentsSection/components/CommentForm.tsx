@@ -24,12 +24,12 @@ const CommentForm = ({
 }: Props) => {
   const [text, setText] = useState<string>(initialText);
 
-  const maxNumOfWords: number = process.env.REACT_APP_MAX_NUM_OF_COMMENT_LETTERS
-    ? parseInt(process.env.REACT_APP_MAX_NUM_OF_COMMENT_LETTERS)
+  const maxNumOfWords: number = import.meta.env.VITE_MAX_NUM_OF_COMMENT_LETTERS
+    ? parseInt(import.meta.env.VITE_MAX_NUM_OF_COMMENT_LETTERS)
     : 300;
 
-  const minNumOfWords: number = process.env.REACT_APP_MIN_NUM_OF_COMMENT_LETTERS
-    ? parseInt(process.env.REACT_APP_MIN_NUM_OF_COMMENT_LETTERS)
+  const minNumOfWords: number = import.meta.env.VITE_MIN_NUM_OF_COMMENT_LETTERS
+    ? parseInt(import.meta.env.VITE_MIN_NUM_OF_COMMENT_LETTERS)
     : 300;
 
   const isInputInvalid: boolean =

@@ -13,25 +13,23 @@ import {
 } from "../../utils/mapResponseErrorToMessage";
 import { getEnvironmentVariable } from "../../utils";
 
-const USERS_URL: string = getEnvironmentVariable("REACT_APP_USERS_URL");
-const BAN_ENDPOINT: string = getEnvironmentVariable("REACT_APP_BAN_ENDPOINT");
-const UNBAN_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_UNBAN_ENDPOINT"
-);
+const USERS_URL: string = getEnvironmentVariable("VITE_USERS_URL");
+const BAN_ENDPOINT: string = getEnvironmentVariable("VITE_BAN_ENDPOINT");
+const UNBAN_ENDPOINT: string = getEnvironmentVariable("VITE_UNBAN_ENDPOINT");
 const GRANT_ADMIN_PERMISSIONS_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_GRANT_ADMIN_PERMISSIONS_ENDPOINT"
+  "VITE_GRANT_ADMIN_PERMISSIONS_ENDPOINT"
 );
 const USERS_FEED_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_USERS_FEED_ENDPOINT"
+  "VITE_USERS_FEED_ENDPOINT"
 );
 const USERS_COMMENTS_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_USER_COMMENTS_ENDPOINT"
+  "VITE_USER_COMMENTS_ENDPOINT"
 );
 const USERS_REPLIES_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_USER_REPLIES_ENDPOINT"
+  "VITE_USER_REPLIES_ENDPOINT"
 );
 const USERS_ACTIVITY_SUMMARY_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_USER_ACCTIVITY_SUMMARY_ENDPOINT"
+  "VITE_USER_ACCTIVITY_SUMMARY_ENDPOINT"
 );
 
 export type GetUserProps = { id: string };

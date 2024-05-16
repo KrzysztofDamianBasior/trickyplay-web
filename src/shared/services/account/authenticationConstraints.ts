@@ -1,19 +1,19 @@
 import { getEnvironmentVariable } from "../../utils";
 
 const maxNumOfUsernameLetters: number = parseInt(
-  getEnvironmentVariable("REACT_APP_MAX_NUM_OF_USERNAME_LETTERS")
+  getEnvironmentVariable("VITE_MAX_NUM_OF_USERNAME_LETTERS")
 );
 
 const minNumOfUsernameLetters: number = parseInt(
-  getEnvironmentVariable("REACT_APP_MIN_NUM_OF_USERNAME_LETTERS")
+  getEnvironmentVariable("VITE_MIN_NUM_OF_USERNAME_LETTERS")
 );
 
 const maxNumOfPasswordLetters: number = parseInt(
-  getEnvironmentVariable("REACT_APP_MAX_NUM_OF_PASSWORD_LETTERS")
+  getEnvironmentVariable("VITE_MAX_NUM_OF_PASSWORD_LETTERS")
 );
 
 const minNumOfPasswordLetters: number = parseInt(
-  getEnvironmentVariable("REACT_APP_MIN_NUM_OF_PASSWORD_LETTERS")
+  getEnvironmentVariable("VITE_MIN_NUM_OF_PASSWORD_LETTERS")
 );
 
 const usernamePatternExpression = `^[a-zA-Z0-9_]{${minNumOfUsernameLetters},${maxNumOfUsernameLetters}}$`;

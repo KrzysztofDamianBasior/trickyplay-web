@@ -22,30 +22,28 @@ import { type UserDetailsType } from "../../models/internalAppRepresentation/res
 import { type NotificationDetailsType } from "../snackbars/useNotifications";
 
 // Base urls
-const BASE_URL: string = getEnvironmentVariable(
-  "REACT_APP_TRICKYPLAY_API_BASE_URL"
-);
-const AUTH_URL: string = getEnvironmentVariable("REACT_APP_AUTH_URL");
-const ACCOUNT_URL: string = getEnvironmentVariable("REACT_APP_ACCOUNT_URL");
+const BASE_URL: string = getEnvironmentVariable("VITE_TRICKYPLAY_API_BASE_URL");
+const AUTH_URL: string = getEnvironmentVariable("VITE_AUTH_URL");
+const ACCOUNT_URL: string = getEnvironmentVariable("VITE_ACCOUNT_URL");
 
 // Auth urls
 const SIGN_IN_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_SIGN_IN_ENDPOINT"
+  "VITE_SIGN_IN_ENDPOINT"
 );
 const SIGN_UP_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_SIGN_UP_ENDPOINT"
+  "VITE_SIGN_UP_ENDPOINT"
 );
 const ALL_SESSIONS_SIGN_OUT_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_ALL_SESSIONS_SIGN_OUT_ENDPOINT"
+  "VITE_ALL_SESSIONS_SIGN_OUT_ENDPOINT"
 );
 const SINGLE_SESSION_SIGN_OUT_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_SINGLE_SESSION_SIGN_OUT_ENDPOINT"
+  "VITE_SINGLE_SESSION_SIGN_OUT_ENDPOINT"
 );
 const REFRESH_ACCESS_TOKEN_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_REFRESH_ACCESS_TOKEN_ENDPOINT"
+  "VITE_REFRESH_ACCESS_TOKEN_ENDPOINT"
 );
 const ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT"
+  "VITE_ACCOUNT_ACTIVITY_SUMMARY_ENDPOINT"
 );
 
 export const axiosPublic = axios.create({

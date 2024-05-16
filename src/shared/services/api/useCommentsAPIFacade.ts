@@ -6,14 +6,14 @@ import { type CommentDetailsType } from "../../models/internalAppRepresentation/
 import { type ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
 import { getEnvironmentVariable, mapResponseErrorToMessage } from "../../utils";
 
-const COMMENTS_URL: string = getEnvironmentVariable("REACT_APP_COMMENTS_URL");
+const COMMENTS_URL: string = getEnvironmentVariable("VITE_COMMENTS_URL");
 const COMMENTS_FEED_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_COMMENTS_FEED_ENDPOINT"
+  "VITE_COMMENTS_FEED_ENDPOINT"
 );
 
-const USERS_URL: string = getEnvironmentVariable("REACT_APP_USERS_URL");
+const USERS_URL: string = getEnvironmentVariable("VITE_USERS_URL");
 const USER_COMMENTS_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_USER_COMMENTS_ENDPOINT"
+  "VITE_USER_COMMENTS_ENDPOINT"
 );
 
 export type DeleteCommentProps = {

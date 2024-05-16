@@ -9,14 +9,14 @@ import {
 import { type ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";
 import { getEnvironmentVariable, mapResponseErrorToMessage } from "../../utils";
 
-const REPLIES_URL: string = getEnvironmentVariable("REACT_APP_REPLIES_URL");
+const REPLIES_URL: string = getEnvironmentVariable("VITE_REPLIES_URL");
 const REPLIES_FEED_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_REPLIES_FEED_ENDPOINT"
+  "VITE_REPLIES_FEED_ENDPOINT"
 );
 
-const USERS_URL: string = getEnvironmentVariable("REACT_APP_USERS_URL");
+const USERS_URL: string = getEnvironmentVariable("VITE_USERS_URL");
 const USER_REPLIES_ENDPOINT: string = getEnvironmentVariable(
-  "REACT_APP_USER_REPLIES_ENDPOINT"
+  "VITE_USER_REPLIES_ENDPOINT"
 );
 
 export type DeleteReplyProps = ReplyDetailsType;
