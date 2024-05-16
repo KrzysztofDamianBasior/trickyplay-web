@@ -1,0 +1,45 @@
+# # at the beginning of a line represents a comment and is ignored by Docker.
+
+# Ignore any files or directories within the subdirectory named "modules" in the context root
+# modules/*
+
+# Ignore any files or directories in the context root beginning with "modules"
+# modules*
+
+# Ignore any files or directories one level down from the context root named "modules"
+# */modules
+
+# Ignore any files or directories at any level, including the context root, named modules
+# **/modules
+
+# Ignore every file in the entire build context (see next rule for how this could be used)
+# *
+
+# Re-include the file or directory named "src" that may have been previously excluded. Note that you cannot re-include files in subdirectories that have been previously excluded at a higher level
+# !src
+
+# Exclude all files and directories in the "docs" directory, but include the directory itself, / at the beginning of a pattern denotes the root directory, ** matches any sequence of characters across multiple directories
+/docs/**
+
+# / at the end of a pattern denotes a directory
+**/node_modules/
+
+# Exclude the directory "dist" and its contents
+**/dist
+
+# Ignore a file or directory in the context root named ".git"
+.git
+
+# Ignore a file or directory in the context root named "npm-debug.log"
+npm-debug.log
+
+# Ignore a file or directory in the context root named ".coverage"
+.coverage
+
+# Ignore all files and directories that start with ".coverage.
+.coverage.*
+
+# You can even use the .dockerignore file to exclude the Dockerfile and .dockerignore files. These files are still sent to the daemon because it needs them to do its job. But the ADD and COPY instructions do not copy them to the image.
+docker-compose.yml
+Dockerfile
+.dockerignore
