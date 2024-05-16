@@ -1,3 +1,5 @@
+import { expect, describe, it } from "vitest";
+
 import { regroupEntities } from "../regroupEntities";
 
 describe("regroupEntites works on a collections of objects unrelated to any domain", () => {

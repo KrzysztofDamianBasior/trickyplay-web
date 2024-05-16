@@ -8,19 +8,19 @@ import { extractGameName } from "../helpers/extractGameNameOrThrow";
 import { validateId } from "../helpers/validateId";
 
 import {
-  DeleteCommentResponse,
-  GetCommentsResponse,
+  type DeleteCommentResponse,
+  type GetCommentsResponse,
 } from "../../../shared/models/externalApiRepresentation/Responses";
-import { InternalServerError500ResponseType } from "../../../shared/models/externalApiRepresentation/Errors";
+import { type InternalServerError500ResponseType } from "../../../shared/models/externalApiRepresentation/Errors";
 import {
-  DeleteCommentParams,
-  PatchCommentParams,
-  GetSingleCommentParams,
+  type DeleteCommentParams,
+  type PatchCommentParams,
+  type GetSingleCommentParams,
 } from "../../../shared/models/externalApiRepresentation/Params";
-import { CommentRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+import { type CommentRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
 import {
-  AddCommentRequest,
-  PatchCommentRequest,
+  type AddCommentRequest,
+  type PatchCommentRequest,
 } from "../../../shared/models/externalApiRepresentation/Requests";
 
 import {

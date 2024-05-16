@@ -1,23 +1,26 @@
+import { expect, describe, it } from "vitest";
+
 import { mapResponseErrorToMessage } from "../mapResponseErrorToMessage";
+import { AxiosError } from "axios";
 
 describe("mapToResponseErrorMessage returns correct messages", () => {
   it("returns correct messages", () => {
-    expect(mapResponseErrorToMessage({ response: { status: 400 } })).toEqual(
+    expect(mapResponseErrorToMessage(new AxiosError("", "400"))).toEqual(
       "Bad request"
     );
-    expect(mapResponseErrorToMessage({ response: { status: 401 } })).toEqual(
+    expect(mapResponseErrorToMessage(new AxiosError("", "401"))).toEqual(
       "Unauthenticated"
     );
-    expect(mapResponseErrorToMessage({ response: { status: 404 } })).toEqual(
+    expect(mapResponseErrorToMessage(new AxiosError("", "404"))).toEqual(
       "Not found"
     );
-    expect(mapResponseErrorToMessage({ response: { status: 403 } })).toEqual(
+    expect(mapResponseErrorToMessage(new AxiosError("", "403"))).toEqual(
       "Lack of sufficient permissions"
     );
-    expect(mapResponseErrorToMessage({ response: { status: 500 } })).toEqual(
+    expect(mapResponseErrorToMessage(new AxiosError("", "500"))).toEqual(
       "Internal server error"
     );
-    expect(mapResponseErrorToMessage({ response: { status: 0 } })).toEqual(
+    expect(mapResponseErrorToMessage(new AxiosError("", "0"))).toEqual(
       "Request failed"
     );
   });

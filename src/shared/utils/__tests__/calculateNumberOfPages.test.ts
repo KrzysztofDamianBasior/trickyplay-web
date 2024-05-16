@@ -1,3 +1,5 @@
+import { expect, describe, it } from "vitest";
+
 import { calculateNumberOfPages } from "../calculateNumberOfPages";
 
 describe("calculateNumberOfPages returns correct values", () => {

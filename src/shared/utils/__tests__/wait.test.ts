@@ -1,3 +1,5 @@
+import { expect, describe, it } from "vitest";
+
 import { wait } from "../wait";
 
 describe("the wait function returns the correct values", () => {

@@ -1,3 +1,5 @@
+import { expect, describe, it } from "vitest";
+
 import { checkObjectsEquality } from "../checkObjectsEquality";
 
 describe("checkObjectEquality correctly compares variables of different types", () => {

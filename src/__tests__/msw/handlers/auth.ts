@@ -5,23 +5,23 @@ import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
 import { extractUsernameAndPasswordOrThrow } from "../helpers/extractUsernameAndPasswordOrThrow";
 
 import {
-  RefreshAccessTokenRequest,
-  SignInRequest,
-  SignUpRequest,
-  SingleSessionSignOutRequest,
+  type RefreshAccessTokenRequest,
+  type SignInRequest,
+  type SignUpRequest,
+  type SingleSessionSignOutRequest,
 } from "../../../shared/models/externalApiRepresentation/Requests";
 import {
-  RefreshAccessTokenResponse,
-  SignInResponse,
-  SignOutResponse,
+  type RefreshAccessTokenResponse,
+  type SignInResponse,
+  type SignOutResponse,
 } from "../../../shared/models/externalApiRepresentation/Responses";
 import {
-  BadRequest400ResponseType,
-  InternalServerError500ResponseType,
-  NotFound404ResponseType,
-  Unauthorized401ResponseType,
+  type BadRequest400ResponseType,
+  type InternalServerError500ResponseType,
+  type NotFound404ResponseType,
+  type Unauthorized401ResponseType,
 } from "../../../shared/models/externalApiRepresentation/Errors";
-import { TPUserRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+import { type TPUserRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
 
 import {
   allSessionsSignOutPath,
@@ -103,7 +103,7 @@ export const signIn = http.post<{}, SignInRequest, SignInResponse>(
   signInPath,
   async ({ params, request, cookies }) => {
     const data = await request.formData();
-    const { username, password } = extractUsernameAndPasswordOrThrow({
+    const { username } = extractUsernameAndPasswordOrThrow({
       formData: data,
       path: signInPath,
     });
@@ -132,7 +132,7 @@ export const signUp = http.post<{}, SignUpRequest, SignInResponse>(
   signUpPath,
   async ({ params, request, cookies }) => {
     const data = await request.formData();
-    const { username, password } = extractUsernameAndPasswordOrThrow({
+    const { username } = extractUsernameAndPasswordOrThrow({
       formData: data,
       path: signInPath,
     });

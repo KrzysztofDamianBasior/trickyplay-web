@@ -6,13 +6,12 @@ import path from "node:path";
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
 import { isAuthenticated } from "../helpers/isAuthenticated";
 
-import { TPUserRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
-import { DeleteAccountResponse } from "../../../shared/models/externalApiRepresentation/Responses";
-import { PatchAccountRequest } from "../../../shared/models/externalApiRepresentation/Requests";
+import { type TPUserRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+import { type DeleteAccountResponse } from "../../../shared/models/externalApiRepresentation/Responses";
+import { type PatchAccountRequest } from "../../../shared/models/externalApiRepresentation/Requests";
 import {
-  BadRequest400ResponseType,
-  InternalServerError500ResponseType,
-  NotFound404ResponseType,
+  type InternalServerError500ResponseType,
+  type NotFound404ResponseType,
 } from "../../../shared/models/externalApiRepresentation/Errors";
 
 import { usersCollectionStub } from "../stubs/users";
@@ -88,7 +87,7 @@ export const deleteAccount = http.delete<{}, {}, DeleteAccountResponse>(
 export const patchAccount = http.patch<
   {},
   PatchAccountRequest,
-  TPUserRepresentation | BadRequest400ResponseType
+  TPUserRepresentation
 >(patchAccountPath, async ({ request, params, cookies }) => {
   const username = isAuthenticated(request, patchAccountPath);
 
@@ -99,7 +98,7 @@ export const patchAccount = http.patch<
   newUsername = newUsername as string; // FormData.get() returns a value of type string | File | null.
   newPassword = newPassword as string;
   if (newUsername && !/^[a-zA-Z0-9_]{2,16}$/.test(newUsername)) {
-    return HttpResponse.json(
+    throw HttpResponse.json(
       generateErrorResponseBody(
         "Bad Request",
         patchAccountPath,
@@ -108,7 +107,7 @@ export const patchAccount = http.patch<
     );
   }
   if (newPassword && !/^(?=.*[0-9])[a-zA-Z0-9_]{4,32}$/.test(newPassword)) {
-    return HttpResponse.json(
+    throw HttpResponse.json(
       generateErrorResponseBody(
         "Bad Request",
         patchAccountPath,

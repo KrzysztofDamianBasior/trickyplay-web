@@ -1,3 +1,5 @@
+import { expect, describe, it } from "vitest";
+
 import { getRandomInt } from "../getRandomInt";
 
 describe("describes whether a getRandomInt function produces results that meet expected requirements", () => {

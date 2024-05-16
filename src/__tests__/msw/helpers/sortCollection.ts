@@ -9,7 +9,8 @@ export function sortCollection<
   orderDirection: "Asc" | "Dsc";
   sortBy: "id" | "createdAt" | "updatedAt";
 }): EntityType[] {
-  let sortedCollection = entitiesCollection.toSorted((a, b): number => {
+  // This method mutates the array and returns a reference to the same array.
+  let sortedCollection = entitiesCollection.sort((a, b): number => {
     if (sortBy === "createdAt") {
       return Date.parse(a.createdAt) - Date.parse(a.createdAt);
     } else if (sortBy === "updatedAt") {

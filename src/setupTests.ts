@@ -7,6 +7,7 @@ import { server } from "./__tests__/msw/server";
 import { resetCommentsCollectionStub } from "./__tests__/msw/stubs/comments";
 import { resetRepliesCollectionStub } from "./__tests__/msw/stubs/replies";
 import { resetUsersCollectionStub } from "./__tests__/msw/stubs/users";
+import { beforeAll, afterEach, afterAll } from "vitest";
 
 // Enable request interception.
 beforeAll(() => server.listen());

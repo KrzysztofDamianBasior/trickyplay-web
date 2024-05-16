@@ -1,3 +1,5 @@
+import { expect, describe, it } from "vitest";
+
 import { arraysIntersection } from "../arraysIntersection";
 
 describe("arrayIntersection returns correct values", () => {
