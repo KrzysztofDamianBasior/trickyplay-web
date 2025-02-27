@@ -12,7 +12,7 @@ describe("describes whether a getEnvironmentVariable function returns correct re
 
   test("will behave appropriately in the absence of the requested variable", () => {
     // Set the variables
-    expect(getEnvironmentVariable("asdf")).toThrowError(
+    expect(() => getEnvironmentVariable("asdf")).toThrowError(
       new Error("missing env var for asdf")
     );
   });
