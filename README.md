@@ -40,23 +40,23 @@ Let me explain why each dependency is used:
 
 ## Getting Started
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project was bootstrapped with [Vite](https://vite.dev/).
 
 To build and run the project, follow these steps:
 
-1. First, ensure you have Node.js installed on your local development machine. You can check your Node.js version by running `node -v` in your terminal. If you don’t have Node.js, you can download it from the official website: Node.js.
+1. First, ensure you have Node.js installed on your local development machine. You can check your Node.js version by running `node -v` in your terminal. If you don’t have Node.js, you can download it from the official [website](https://nodejs.org/en).
 
 2. Open your terminal or command line and navigate to project folder
 `cd trickyplay-web`
 
-3. Make sure trickyplay-api is listening for requests
+1. Make sure [trickyplay-api](https://github.com/KrzysztofDamianBasior/trickyplay-api) is listening for requests
 
-4. Set environment variables pointing to the appropriate addresses supported by the API launched in point 3
+2. Set environment variables pointing to the appropriate addresses supported by the API launched in point 3
 
-5. To start the development server, run:
+3. To start the development server, run:
 `npm start`
 
-6. When you’re ready to deploy your app to production, create a minified bundle using:
+1. When you’re ready to deploy your app to production, create a minified bundle using:
 `npm run build`
 This command generates an optimized build in the build folder. You can then serve this build using a static file server or deploy it to platforms like Netlify, Vercel, or GitHub Pages.
 
@@ -122,7 +122,7 @@ I believe contributing should be as easy and transparent as possible. Changes in
 
 In the project directory, you can run:
 
-### `yarn start`
+### `vite`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -130,11 +130,11 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
 
-### `yarn test`
+### `vitest --coverage`
 
 Launches the test runner in the interactive watch mode.
 
-### `yarn build`
+### `tsc && vite build`
 
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
@@ -142,23 +142,10 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
 ## Learn More
 
 For further reference, please consider the following sections:
 
-* [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started)
 * [react](https://reactjs.org/)
 * [@emotion](https://emotion.sh/docs/introduction)
 * [@fontsource](https://fontsource.org/docs/getting-started/introduction)
