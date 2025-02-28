@@ -39,3 +39,7 @@ export const internalServerErrorHandlers = [
 // In line with the success behavior-first strategy, the basic handles describing the correct network behavior (happy paths o the network) are defined below
 // Utilize network behavior overrides to split the behavior of the same resource between its happy state and its on-demand states whenever you need them.
 export const server = setupServer(...handlers);
+
+server.events.on("request:start", ({ request }) => {
+  console.log("Outgoing:", request.method, request.url);
+});

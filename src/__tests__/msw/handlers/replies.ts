@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { http, HttpResponse } from "msw";
 
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
@@ -103,14 +105,11 @@ export const addReply = http.post<{}, AddReplyRequest, ReplyRepresentation>(
   async ({ params, request, cookies }) => {
     const username = isAuthenticated(request, addReplyPath);
 
-    const data = await request.formData();
-    let body = data.get("body");
-    let parentCommentId = data.get("parentCommentId");
+    const data = await request.json();
+    const body = data["body"];
+    const parentCommentId = data["parentCommentId"].toString();
 
     if (body !== null && parentCommentId !== null) {
-      body = body as string; // FormData.get() returns a value of type string | File | null.
-      parentCommentId = parentCommentId as string; // FormData.get() returns a value of type string | File | null.
-
       if (body.length < 1 || body.length > 300) {
         throw HttpResponse.json(
           generateErrorResponseBody(
@@ -131,7 +130,7 @@ export const addReply = http.post<{}, AddReplyRequest, ReplyRepresentation>(
         );
       }
       const parentComment = commentsCollectionStub.find(
-        (comment) => comment.id === parseInt(parentCommentId as string)
+        (comment) => comment.id === parseInt(parentCommentId)
       );
       if (parentComment == null) {
         const responseBody = generateErrorResponseBody(
@@ -196,12 +195,10 @@ export const patchReply = http.patch<
   const { id } = params;
   validateId({ id, path: patchReplyPath });
 
-  const data = await request.formData();
-  let newReplyBody = data.get("newReplyBody");
+  const data = await request.json();
+  const newReplyBody = data["newReplyBody"];
 
   if (newReplyBody !== null) {
-    newReplyBody = newReplyBody as string; // FormData.get() returns a value of type string | File | null.
-
     if (newReplyBody.length < 1 && newReplyBody.length > 300) {
       throw HttpResponse.json(
         generateErrorResponseBody(

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { http, HttpResponse } from "msw";
 
 import { isAuthenticated } from "../helpers/isAuthenticated";
@@ -42,8 +44,8 @@ export const refreshAccessToken = http.post<
   RefreshAccessTokenRequest,
   RefreshAccessTokenResponse
 >(refreshAccessTokenPath, async ({ params, request, cookies }) => {
-  const data = await request.formData();
-  let refreshToken = data.get("refreshToken");
+  const data = await request.json();
+  const refreshToken = data["refreshToken"];
   if (!refreshToken) {
     throw HttpResponse.json(
       generateErrorResponseBody(
@@ -54,7 +56,6 @@ export const refreshAccessToken = http.post<
       { status: 400 }
     );
   }
-  refreshToken = refreshToken as string;
 
   return HttpResponse.json({
     accessToken: refreshToken,
@@ -67,9 +68,8 @@ export const singleSessionSignOut = http.post<
   SignOutResponse
 >(singleSessionSignOutPath, async ({ params, request, cookies }) => {
   isAuthenticated(request, singleSessionSignOutPath);
-
-  const data = await request.formData();
-  let refreshToken = data.get("refreshToken");
+  const data = await request.json();
+  const refreshToken = data["refreshToken"];
   if (!refreshToken) {
     throw HttpResponse.json(
       generateErrorResponseBody(
@@ -102,9 +102,10 @@ export const allSessionsSignOut = http.post<{}, {}, SignOutResponse>(
 export const signIn = http.post<{}, SignInRequest, SignInResponse>(
   signInPath,
   async ({ params, request, cookies }) => {
-    const data = await request.formData();
+    // Read the intercepted request body as JSON.
+    const data = await request.json();
     const { username } = extractUsernameAndPasswordOrThrow({
-      formData: data,
+      jsonRequestBody: data,
       path: signInPath,
     });
 
@@ -131,9 +132,9 @@ export const signIn = http.post<{}, SignInRequest, SignInResponse>(
 export const signUp = http.post<{}, SignUpRequest, SignInResponse>(
   signUpPath,
   async ({ params, request, cookies }) => {
-    const data = await request.formData();
+    const data = await request.json();
     const { username } = extractUsernameAndPasswordOrThrow({
-      formData: data,
+      jsonRequestBody: data,
       path: signInPath,
     });
 

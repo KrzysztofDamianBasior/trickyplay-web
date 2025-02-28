@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { http, HttpResponse } from "msw";
 
 import fs from "node:fs";
@@ -30,8 +32,9 @@ export const getActivitySummary = http.get(
     const buffer = fs.readFileSync(
       path.resolve(process.cwd(), "__tests__/msw/stubs/activitySummaryStub.pdf")
     );
+    const arrayBuffer = new Uint8Array(buffer).buffer;
 
-    return HttpResponse.arrayBuffer(buffer, {
+    return HttpResponse.arrayBuffer(arrayBuffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment; filename=activitySummaryStub.pdf",

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { CommentRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
 import { adminStub, bannedStub, userStub } from "./users";
 

@@ -1,19 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HttpResponse } from "msw";
 import generateErrorResponseBody from "./generateErrorResponseBody";
 
-export function extractUsernameAndPasswordOrThrow({
-  formData,
-  path,
-}: {
-  formData: FormData;
-  path: string;
-}) {
-  let username = formData.get("username");
-  let password = formData.get("password");
+export function extractUsernameAndPasswordOrThrow<
+  RequestBody extends { username: string; password: string }
+>({ jsonRequestBody, path }: { jsonRequestBody: RequestBody; path: string }) {
+  const username = jsonRequestBody["username"];
+  const password = jsonRequestBody["password"];
 
   if (username && password) {
-    username = username as string; // FormData.get() returns a value of type string | File | null.
-    password = password as string;
     if (!new RegExp("^[a-zA-Z0-9_]{2,16}$").test(username)) {
       throw HttpResponse.json(
         generateErrorResponseBody(
@@ -34,7 +29,7 @@ export function extractUsernameAndPasswordOrThrow({
     }
   }
   return {
-    username: username as string,
-    password: password as string,
+    username: username,
+    password: password,
   };
 }

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { http, HttpResponse } from "msw";
 
 import generateErrorResponseBody from "../helpers/generateErrorResponseBody";
@@ -109,14 +111,11 @@ export const addComment = http.post<
 >(addCommentPath, async ({ params, request, cookies }) => {
   const username = isAuthenticated(request, addCommentPath);
 
-  const data = await request.formData();
-  let body = data.get("body");
-  let gameName = data.get("gameName");
+  const data = await request.json();
+  const body = data["body"];
+  const gameName = data["gameName"];
 
   if (body && gameName) {
-    body = body as string; // FormData.get() returns a value of type string | File | null.
-    gameName = gameName as string; // FormData.get() returns a value of type string | File | null.
-
     if (body.length < 1 || body.length > 300) {
       throw HttpResponse.json(
         generateErrorResponseBody(
@@ -186,12 +185,10 @@ export const patchComment = http.patch<
   const { id } = params;
   validateId({ id, path: patchCommentPath });
 
-  const data = await request.formData();
-  let newCommentBody = data.get("newCommentBody");
+  const data = await request.json();
+  const newCommentBody = data["newCommentBody"];
 
   if (newCommentBody !== null) {
-    newCommentBody = newCommentBody as string; // FormData.get() returns a value of type string | File | null.
-
     if (newCommentBody.length < 1 && newCommentBody.length > 300) {
       throw HttpResponse.json(
         generateErrorResponseBody(

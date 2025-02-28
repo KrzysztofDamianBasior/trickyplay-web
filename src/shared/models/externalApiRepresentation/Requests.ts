@@ -9,7 +9,7 @@ export type AddCommentRequest = {
   /**
    * Name of the game under which the comment appears
    *
-   * Constraints: takes one of the values ​​'Snake' or 'TicTacToe' or 'Minesweeper'
+   * Constraints: takes one of the values 'Snake' or 'TicTacToe' or 'Minesweeper'
    */
   gameName: string;
 };

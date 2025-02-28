@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { ReplyRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
 
 import { commentsCollectionStub } from "./comments";

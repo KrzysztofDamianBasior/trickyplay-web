@@ -1,23 +1,30 @@
+/* eslint-disable prefer-const */
 import { TPUserRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
+
+export const password = "Pa22w0rd";
+export const invalidPassword = "invalidPa22w0rd";
+export const userName = "user";
+export const adminName = "admin";
+export const bannedName = "banned";
 
 export let usersCollectionStub: TPUserRepresentation[] = [
   {
     id: 1,
-    name: "user",
+    name: userName,
     createdAt: "2023-10-15T20:30:38",
     updatedAt: "2023-10-15T20:30:38",
     role: "USER",
   },
   {
     id: 2,
-    name: "admin",
+    name: adminName,
     createdAt: "2023-10-15T20:30:38",
     updatedAt: "2023-10-15T20:30:38",
     role: "ADMIN",
   },
   {
     id: 3,
-    name: "banned",
+    name: bannedName,
     createdAt: "2023-10-15T20:30:38",
     updatedAt: "2023-10-15T20:30:38",
     role: "BANNED",
@@ -109,21 +116,21 @@ export let usersCollectionStub: TPUserRepresentation[] = [
 ];
 
 export const passwords = [
-  { userId: 1, password: "password" },
-  { userId: 2, password: "password" },
-  { userId: 3, password: "password" },
-  { userId: 4, password: "password" },
-  { userId: 5, password: "password" },
-  { userId: 6, password: "password" },
-  { userId: 7, password: "password" },
-  { userId: 8, password: "password" },
-  { userId: 9, password: "password" },
-  { userId: 10, password: "password" },
-  { userId: 11, password: "password" },
-  { userId: 12, password: "password" },
-  { userId: 13, password: "password" },
-  { userId: 14, password: "password" },
-  { userId: 15, password: "password" },
+  { userId: 1, password },
+  { userId: 2, password },
+  { userId: 3, password },
+  { userId: 4, password },
+  { userId: 5, password },
+  { userId: 6, password },
+  { userId: 7, password },
+  { userId: 8, password },
+  { userId: 9, password },
+  { userId: 10, password },
+  { userId: 11, password },
+  { userId: 12, password },
+  { userId: 13, password },
+  { userId: 14, password },
+  { userId: 15, password },
 ];
 
 export let userStub: TPUserRepresentation = usersCollectionStub[0];
