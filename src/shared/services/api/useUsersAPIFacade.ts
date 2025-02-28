@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useContext } from "react";
 
 import { AccountContext, type AuthStateType } from "../account/AccountContext";
@@ -151,7 +153,7 @@ export default function useUsersAPIFacade(): UsersActionsType {
       const response = await axiosPublic.get(USERS_URL + "/" + id); // GET {{api-url}}/users/:id
       openSnackbar({
         title: "Success",
-        body: ` Successfully fetched user with id ${id}`,
+        body: `Successfully fetched user with id ${id}`,
         severity: "success",
       });
       const newUserDetails: UserDetailsType = {
