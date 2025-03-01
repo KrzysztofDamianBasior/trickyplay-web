@@ -51,7 +51,6 @@ export type AddReplyActionType = {
   type: "ADD_REPLY";
   payload: {
     reply: ReplyDetailsType;
-    // repliesPerPage: number;
   };
 };
 
@@ -61,8 +60,6 @@ export type AddRepliesActionType = {
     replies: ReplyDetailsType[];
     repliesPage: number; //where to add replies
     totalNumberOfAllReplies: number;
-    // repliesPerPage: number;
-    // repliesActivePage: number;
   };
 };
 
@@ -104,6 +101,7 @@ export function repliesPaginatedCollectionReducer(
   state: RepliesPaginatedCollectionStateType,
   action: RepliesPaginatedCollectionActionType
 ): RepliesPaginatedCollectionStateType {
+  // eslint-disable-next-line prefer-const
   let repliesPaginatedCollectionNewState: RepliesPaginatedCollectionStateType =
     JSON.parse(JSON.stringify(state));
 
@@ -113,7 +111,7 @@ export function repliesPaginatedCollectionReducer(
     currentPaginatedCollectionLength - 1;
 
   switch (action.type) {
-    case "ADD_REPLY":
+    case "ADD_REPLY": {
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies
 
       if (
@@ -133,14 +131,16 @@ export function repliesPaginatedCollectionReducer(
 
       repliesPaginatedCollectionNewState.totalNumberOfAllReplies += 1;
       return { ...repliesPaginatedCollectionNewState };
-
-    case "DELETE_REPLY":
+    }
+    case "DELETE_REPLY": {
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies
 
       const indexToDelete =
         repliesPaginatedCollectionNewState.repliesPaginatedCollection[
           action.payload.replyPage
-        ].findIndex((el) => el.id === action.payload.replyId);
+        ].findIndex(
+          (el) => el.id.toString() === action.payload.replyId.toString()
+        );
 
       if (indexToDelete >= 0) {
         repliesPaginatedCollectionNewState.repliesPaginatedCollection[
@@ -150,8 +150,8 @@ export function repliesPaginatedCollectionReducer(
       }
 
       return { ...repliesPaginatedCollectionNewState };
-
-    case "ADD_REPLIES":
+    }
+    case "ADD_REPLIES": {
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies, repliesCurrentPage
 
       if (
@@ -196,8 +196,8 @@ export function repliesPaginatedCollectionReducer(
       }
 
       return { ...repliesPaginatedCollectionNewState };
-
-    case "SET_ACTIVE_REPLY":
+    }
+    case "SET_ACTIVE_REPLY": {
       // modifies: repliesPaginatedCollection, totalNumberOfAllReplies
 
       if (action.payload) {
@@ -210,13 +210,13 @@ export function repliesPaginatedCollectionReducer(
       }
 
       return { ...repliesPaginatedCollectionNewState };
-
-    case "SET_REPLIES_STATUS":
+    }
+    case "SET_REPLIES_STATUS": {
       repliesPaginatedCollectionNewState.status =
         action.payload.newRepliesStatus;
       return { ...repliesPaginatedCollectionNewState };
-
-    case "UPDATE_REPLY":
+    }
+    case "UPDATE_REPLY": {
       if (
         action.payload.replyPage <
         repliesPaginatedCollectionNewState.repliesPaginatedCollection.length
@@ -224,7 +224,9 @@ export function repliesPaginatedCollectionReducer(
         const indexOfReplyToUpdate =
           repliesPaginatedCollectionNewState.repliesPaginatedCollection[
             action.payload.replyPage
-          ].findIndex((repl) => repl.id === action.payload.reply.id);
+          ].findIndex(
+            (repl) => repl.id.toString() === action.payload.reply.id.toString()
+          );
 
         if (indexOfReplyToUpdate !== -1) {
           repliesPaginatedCollectionNewState.repliesPaginatedCollection[
@@ -234,8 +236,8 @@ export function repliesPaginatedCollectionReducer(
       }
 
       return { ...repliesPaginatedCollectionNewState };
-
-    case "SET_ACTIVE_REPLIES_PAGE":
+    }
+    case "SET_ACTIVE_REPLIES_PAGE": {
       if (
         action.payload.newActiveRepliesPage <
         repliesPaginatedCollectionNewState.repliesPaginatedCollection.length
@@ -245,13 +247,13 @@ export function repliesPaginatedCollectionReducer(
       }
 
       return { ...repliesPaginatedCollectionNewState };
-
-    case "SET_TEXT_ALIGNMENT":
+    }
+    case "SET_TEXT_ALIGNMENT": {
       repliesPaginatedCollectionNewState.textAlignment =
         action.payload.textAlignment;
       return { ...repliesPaginatedCollectionNewState };
-
-    case "SET_REPLIES_PER_PAGE":
+    }
+    case "SET_REPLIES_PER_PAGE": {
       // let prevRepliesPerPage = action.payload.prevRepliesPerPage;
       repliesPaginatedCollectionNewState.repliesPaginatedCollection =
         regroupEntities<ReplyDetailsType>({
@@ -275,7 +277,7 @@ export function repliesPaginatedCollectionReducer(
       }
 
       return { ...repliesPaginatedCollectionNewState };
-
+    }
     default:
       return { ...state };
   }

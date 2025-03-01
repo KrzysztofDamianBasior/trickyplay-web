@@ -4,7 +4,7 @@ import { ReplyRepresentation } from "../../../shared/models/externalApiRepresent
 import { commentsCollectionStub } from "./comments";
 import { userStub, adminStub, bannedStub } from "./users";
 
-const userRepliesCollectionStub: ReplyRepresentation[] = [
+export const userRepliesCollectionStub: ReplyRepresentation[] = [
   {
     parentComment: commentsCollectionStub[0],
     author: userStub,
@@ -31,7 +31,7 @@ const userRepliesCollectionStub: ReplyRepresentation[] = [
   },
 ];
 
-const adminRepliesCollectionStub: ReplyRepresentation[] = [
+export const adminRepliesCollectionStub: ReplyRepresentation[] = [
   {
     parentComment: commentsCollectionStub[0],
     author: adminStub,
@@ -58,7 +58,7 @@ const adminRepliesCollectionStub: ReplyRepresentation[] = [
   },
 ];
 
-const bannedRepliesCollectionStub: ReplyRepresentation[] = [
+export const bannedRepliesCollectionStub: ReplyRepresentation[] = [
   {
     parentComment: commentsCollectionStub[0],
     author: bannedStub,

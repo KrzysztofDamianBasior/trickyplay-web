@@ -405,7 +405,10 @@ const useRepliesPaginatedCollection = (
     reply: ReplyDetailsType;
     replyPage: number;
   }): Promise<DeleteReplyResultType> => {
-    if (authState.user && reply.author.id === authState.user.id) {
+    if (
+      authState.user &&
+      reply.author.id.toString() === authState.user.id.toString()
+    ) {
       repliesPaginatedCollectionDispatch({
         type: "SET_REPLIES_STATUS",
         payload: { newRepliesStatus: "LOADING" },
@@ -452,7 +455,10 @@ const useRepliesPaginatedCollection = (
     newContent: string;
     page: number;
   }) => {
-    if (authState.user && reply.author.id === authState.user.id) {
+    if (
+      authState.user &&
+      reply.author.id.toString() === authState.user.id.toString()
+    ) {
       repliesPaginatedCollectionDispatch({
         type: "SET_REPLIES_STATUS",
         payload: { newRepliesStatus: "LOADING" },
