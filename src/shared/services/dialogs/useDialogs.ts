@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 
 import {
@@ -86,9 +87,11 @@ const useDialogs = (): DialogsContextType => {
   };
 
   const closeDeleteEntitiesConfirmationDialog = () => {
-    setDeleteEntitiesConfirmationDialogState({
-      ...deleteEntitiesConfirmationDialogState,
-      isDeleteEntitiesConfirmationDialogOpened: false,
+    setDeleteEntitiesConfirmationDialogState((prev) => {
+      return {
+        ...prev,
+        isDeleteEntitiesConfirmationDialogOpened: false,
+      };
     });
   };
 
@@ -103,9 +106,11 @@ const useDialogs = (): DialogsContextType => {
   };
 
   const closeChangeUsernameDialog = () => {
-    setChangeUsernameDialogState({
-      ...changeUsernameDialogState,
-      isChangeUsernameDialogOpened: false,
+    setChangeUsernameDialogState((prev) => {
+      return {
+        ...prev,
+        isChangeUsernameDialogOpened: false,
+      };
     });
   };
 
@@ -120,9 +125,11 @@ const useDialogs = (): DialogsContextType => {
   };
 
   const closeChangePasswordDialog = () => {
-    setChangePasswordDialogState({
-      ...changePasswordDialogState,
-      isChangePasswordDialogOpened: false,
+    setChangePasswordDialogState((prev) => {
+      return {
+        ...prev,
+        isChangePasswordDialogOpened: false,
+      };
     });
   };
 
@@ -137,9 +144,11 @@ const useDialogs = (): DialogsContextType => {
   };
 
   const closeDeleteAccountConfirmationDialog = () => {
-    setDeleteAccountConfirmationDialogState({
-      ...deleteAccountConfirmationDialogState,
-      isDeleteAccountConfirmationDialogOpened: false,
+    setDeleteAccountConfirmationDialogState((prev) => {
+      return {
+        ...deleteAccountConfirmationDialogState,
+        isDeleteAccountConfirmationDialogOpened: false,
+      };
     });
   };
 
