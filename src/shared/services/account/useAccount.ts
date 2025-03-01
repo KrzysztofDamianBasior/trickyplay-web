@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import axios, { type AxiosRequestConfig } from "axios";
@@ -221,7 +222,7 @@ export default function useAccount({
         };
       } catch (err: any) {
         setAuthState(authInitialState);
-        // eslint-disable-next-line eqeqeq
+        // eslint-disable-next-line
         if (err.response?.status != 403 || err.response?.status != 401) {
           // for axiosPrivate error notifications do not include errors 403 and 401
           openSnackbar({
@@ -270,7 +271,7 @@ export default function useAccount({
           status: response.status,
         };
       } catch (err: any) {
-        // eslint-disable-next-line eqeqeq
+        // eslint-disable-next-line
         if (err.response?.status != 403 || err.response?.status != 401) {
           // for axiosPrivate error notifications do not include errors 403 and 401
           openSnackbar({
@@ -454,7 +455,7 @@ export default function useAccount({
         };
       } catch (err: any) {
         setAuthState(authInitialState);
-        // eslint-disable-next-line eqeqeq
+        // eslint-disable-next-line
         if (err.response?.status != 403 || err.response?.status != 401) {
           // for axiosPrivate error notifications do not include errors 403 and 401
           openSnackbar({
@@ -528,7 +529,7 @@ export default function useAccount({
         };
       } catch (err: any) {
         setAuthState(authInitialState);
-        // eslint-disable-next-line eqeqeq
+        // eslint-disable-next-line
         if (err.response?.status != 403 || err.response?.status != 401) {
           // for axiosPrivate error notifications do not include errors 403 and 401
           openSnackbar({
@@ -585,7 +586,7 @@ export default function useAccount({
           status: response.status,
         };
       } catch (err: any) {
-        // eslint-disable-next-line eqeqeq
+        // eslint-disable-next-line
         if (err.response?.status != 403 || err.response?.status != 401) {
           // for axiosPrivate error notifications do not include errors 403 and 401
           openSnackbar({
@@ -628,7 +629,7 @@ export default function useAccount({
           status: response.status,
         };
       } catch (err: any) {
-        // eslint-disable-next-line eqeqeq
+        // eslint-disable-next-line
         if (err.response?.status != 403 || err.response?.status != 401) {
           // for axiosPrivate error notifications do not include errors 403 and 401
           openSnackbar({

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createContext } from "react";
-import { AxiosInstance } from "axios";
+import { type AxiosInstance } from "axios";
 
 import { axiosPrivate, axiosPublic } from "./useAccount";
 import { type ErrorMessageKind } from "../../utils/mapResponseErrorToMessage";

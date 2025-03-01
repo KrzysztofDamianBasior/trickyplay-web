@@ -94,12 +94,10 @@ export const patchAccount = http.patch<
 >(patchAccountPath, async ({ request, params, cookies }) => {
   const username = isAuthenticated(request, patchAccountPath);
 
-  const data = await request.formData();
-  let newUsername = data.get("newUsername");
-  let newPassword = data.get("newPassword");
+  const data = await request.json();
+  const newUsername = data["newUsername"];
+  const newPassword = data["newPassword"];
 
-  newUsername = newUsername as string; // FormData.get() returns a value of type string | File | null.
-  newPassword = newPassword as string;
   if (newUsername && !/^[a-zA-Z0-9_]{2,16}$/.test(newUsername)) {
     throw HttpResponse.json(
       generateErrorResponseBody(
