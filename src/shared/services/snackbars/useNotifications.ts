@@ -27,7 +27,8 @@ export default function useNotifications() {
         setIsSnackbarOpened(false);
       }, 4000);
     }
-  }, [snackPack, messageInfo, isSnackbarOpened]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snackPack.length, messageInfo, isSnackbarOpened]);
 
   const openSnackbar = ({
     title,
