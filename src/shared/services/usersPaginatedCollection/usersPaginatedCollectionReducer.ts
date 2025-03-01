@@ -82,6 +82,7 @@ export function usersPaginatedCollectionReducer(
   state: UsersPaginatedCollectionStateType,
   action: UsersPaginatedCollectionActionType
 ): UsersPaginatedCollectionStateType {
+  // eslint-disable-next-line prefer-const
   let usersPaginatedCollectionNewState: UsersPaginatedCollectionStateType =
     JSON.parse(JSON.stringify(state));
 
