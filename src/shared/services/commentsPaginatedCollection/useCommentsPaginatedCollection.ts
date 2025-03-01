@@ -416,7 +416,7 @@ const useCommentsPaginatedCollection = (
   }): Promise<DeleteCommentResultType> => {
     if (
       authState.user &&
-      (comment.author.id === authState.user.id ||
+      (comment.author.id.toString() === authState.user.id.toString() ||
         authState.user.role === "ADMIN")
     ) {
       commentsPaginatedCollectionDispatch({
@@ -467,7 +467,10 @@ const useCommentsPaginatedCollection = (
     newContent: string;
     page: number;
   }) => {
-    if (authState.user && comment.author.id === authState.user.id) {
+    if (
+      authState.user &&
+      comment.author.id.toString() === authState.user.id.toString()
+    ) {
       commentsPaginatedCollectionDispatch({
         type: "SET_COMMENTS_STATUS",
         payload: { newStatus: "LOADING" },

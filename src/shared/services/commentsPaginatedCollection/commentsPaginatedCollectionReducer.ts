@@ -101,6 +101,7 @@ export function commentsPaginatedCollectionReducer(
   state: CommentsPaginatedCollectionStateType,
   action: CommentsPaginatedCollectionActionType
 ): CommentsPaginatedCollectionStateType {
+  // eslint-disable-next-line prefer-const
   let commentsSectionNewState: CommentsPaginatedCollectionStateType =
     JSON.parse(JSON.stringify(state));
 
@@ -110,7 +111,7 @@ export function commentsPaginatedCollectionReducer(
     currentPaginatedCollectionLength - 1;
 
   switch (action.type) {
-    case "ADD_COMMENT":
+    case "ADD_COMMENT": {
       // modifies: commentsPaginatedCollection, totalNumberOfAllComments
 
       if (
@@ -130,13 +131,15 @@ export function commentsPaginatedCollectionReducer(
 
       commentsSectionNewState.totalNumberOfAllComments += 1;
       return { ...commentsSectionNewState };
-
-    case "DELETE_COMMENT":
+    }
+    case "DELETE_COMMENT": {
       // modifies: commentsPaginatedCollection, totalNumberOfAllComments
 
       const indexToDelete = commentsSectionNewState.commentsPaginatedCollection[
         action.payload.commentPage
-      ].findIndex((el) => el.id === action.payload.commentId);
+      ].findIndex(
+        (el) => el.id.toString() === action.payload.commentId.toString()
+      );
 
       if (indexToDelete >= 0) {
         commentsSectionNewState.commentsPaginatedCollection[
@@ -146,8 +149,8 @@ export function commentsPaginatedCollectionReducer(
       }
 
       return { ...commentsSectionNewState };
-
-    case "ADD_COMMENTS":
+    }
+    case "ADD_COMMENTS": {
       // modifies: commentsPaginatedCollection, totalNumberOfAllComments, commentsCurrentPage
 
       if (
@@ -192,8 +195,8 @@ export function commentsPaginatedCollectionReducer(
       }
 
       return { ...commentsSectionNewState };
-
-    case "SET_ACTIVE_COMMENT":
+    }
+    case "SET_ACTIVE_COMMENT": {
       // modifies: commentsPaginatedCollection, totalNumberOfAllComments
 
       if (action.payload) {
@@ -206,14 +209,14 @@ export function commentsPaginatedCollectionReducer(
       }
 
       return { ...commentsSectionNewState };
-
-    case "SET_COMMENTS_STATUS":
+    }
+    case "SET_COMMENTS_STATUS": {
       // modifies: areCommentsLoading
 
       commentsSectionNewState.status = action.payload.newStatus;
       return { ...commentsSectionNewState };
-
-    case "UPDATE_COMMENT":
+    }
+    case "UPDATE_COMMENT": {
       if (
         action.payload.page <
         commentsSectionNewState.commentsPaginatedCollection.length
@@ -221,7 +224,10 @@ export function commentsPaginatedCollectionReducer(
         const indexOfCommentToUpdate =
           commentsSectionNewState.commentsPaginatedCollection[
             action.payload.page
-          ].findIndex((comm) => comm.id === action.payload.comment.id);
+          ].findIndex(
+            (comm) =>
+              comm.id.toString() === action.payload.comment.id.toString()
+          );
 
         if (indexOfCommentToUpdate !== -1) {
           commentsSectionNewState.commentsPaginatedCollection[
@@ -231,8 +237,8 @@ export function commentsPaginatedCollectionReducer(
       }
 
       return { ...commentsSectionNewState };
-
-    case "SET_ACTIVE_COMMENTS_PAGE":
+    }
+    case "SET_ACTIVE_COMMENTS_PAGE": {
       if (
         action.payload.newActiveCommentsPage <
         commentsSectionNewState.commentsPaginatedCollection.length
@@ -242,13 +248,13 @@ export function commentsPaginatedCollectionReducer(
       }
 
       return { ...commentsSectionNewState };
-
-    case "SET_TEXT_ALIGNMENT":
+    }
+    case "SET_TEXT_ALIGNMENT": {
       commentsSectionNewState.textAlignment = action.payload.textAlignment;
 
       return { ...commentsSectionNewState };
-
-    case "SET_COMMENTS_PER_PAGE":
+    }
+    case "SET_COMMENTS_PER_PAGE": {
       // let prevCommentsPerPage = state.commentsPerPage;
       commentsSectionNewState.commentsPaginatedCollection =
         regroupEntities<CommentDetailsType>({
@@ -271,8 +277,9 @@ export function commentsPaginatedCollectionReducer(
       }
 
       return { ...commentsSectionNewState };
-
-    default:
+    }
+    default: {
       return { ...state };
+    }
   }
 }

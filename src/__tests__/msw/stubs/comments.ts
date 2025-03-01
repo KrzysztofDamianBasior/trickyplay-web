@@ -2,7 +2,7 @@
 import { CommentRepresentation } from "../../../shared/models/externalApiRepresentation/Resources";
 import { adminStub, bannedStub, userStub } from "./users";
 
-const userSnakeCommentsCollectionStub: CommentRepresentation[] = [
+export const userSnakeCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: userStub,
     body: "user first snake comment body",
@@ -21,7 +21,7 @@ const userSnakeCommentsCollectionStub: CommentRepresentation[] = [
   },
 ];
 
-const adminSnakeCommentsCollectionStub: CommentRepresentation[] = [
+export const adminSnakeCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: adminStub,
     body: "admin first snake comment body",
@@ -40,7 +40,7 @@ const adminSnakeCommentsCollectionStub: CommentRepresentation[] = [
   },
 ];
 
-const bannedSnakeCommentsCollectionStub: CommentRepresentation[] = [
+export const bannedSnakeCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: bannedStub,
     body: "banned first snake comment body",
@@ -59,7 +59,7 @@ const bannedSnakeCommentsCollectionStub: CommentRepresentation[] = [
   },
 ];
 
-const userMinesweeperCommentsCollectionStub: CommentRepresentation[] = [
+export const userMinesweeperCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: userStub,
     body: "user first minesweeper comment body",
@@ -78,7 +78,7 @@ const userMinesweeperCommentsCollectionStub: CommentRepresentation[] = [
   },
 ];
 
-const adminMinesweeperCommentsCollectionStub: CommentRepresentation[] = [
+export const adminMinesweeperCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: adminStub,
     body: "admin first minesweeper comment body",
@@ -97,26 +97,27 @@ const adminMinesweeperCommentsCollectionStub: CommentRepresentation[] = [
   },
 ];
 
-const bannedMinesweeperCommentsCollectionStub: CommentRepresentation[] = [
-  {
-    author: bannedStub,
-    body: "banned first minesweeper comment body",
-    gameName: "Minesweeper",
-    id: 11,
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-  },
-  {
-    author: bannedStub,
-    body: "banned second minesweeper comment body",
-    gameName: "Minesweeper",
-    id: 12,
-    createdAt: "2023-10-15T20:30:38",
-    updatedAt: "2023-10-15T20:30:38",
-  },
-];
+export const bannedMinesweeperCommentsCollectionStub: CommentRepresentation[] =
+  [
+    {
+      author: bannedStub,
+      body: "banned first minesweeper comment body",
+      gameName: "Minesweeper",
+      id: 11,
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+    },
+    {
+      author: bannedStub,
+      body: "banned second minesweeper comment body",
+      gameName: "Minesweeper",
+      id: 12,
+      createdAt: "2023-10-15T20:30:38",
+      updatedAt: "2023-10-15T20:30:38",
+    },
+  ];
 
-const userTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
+export const userTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: userStub,
     body: "user first tictactoe comment body",
@@ -135,7 +136,7 @@ const userTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
   },
 ];
 
-const adminTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
+export const adminTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: adminStub,
     body: "admin first tictactoe comment body",
@@ -154,7 +155,7 @@ const adminTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
   },
 ];
 
-const bannedTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
+export const bannedTicTacToeCommentsCollectionStub: CommentRepresentation[] = [
   {
     author: bannedStub,
     body: "banned first tictactoe comment body",
