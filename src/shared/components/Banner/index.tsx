@@ -15,6 +15,7 @@ const NeonTextBanner = ({ text }: Props) => {
         padding: "65px",
         overflow: "visible",
       }}
+      data-testid="banner"
     >
       <NeonTextEffect>
         <span className="neon-text-effect__text" data-neon-text-effect={text}>
