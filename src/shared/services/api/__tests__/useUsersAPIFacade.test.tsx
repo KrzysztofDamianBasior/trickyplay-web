@@ -60,7 +60,6 @@ describe("useUsersAPIFacade hook behavior for happy paths (optimistic network be
     });
     expect(getUsersResult.message).toEqual("Success");
     expect(getUsersResult.status).toEqual(200);
-    console.log(getUsersResult);
     expect(getUsersResult.users?.length).toBeGreaterThan(0);
   });
 

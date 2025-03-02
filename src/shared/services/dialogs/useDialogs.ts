@@ -100,6 +100,7 @@ const useDialogs = (): DialogsContextType => {
   const openChangeUsernameDialog = () => {
     setChangeUsernameDialogState((prev) => {
       return {
+        ...prev,
         isChangeUsernameDialogOpened: true,
       };
     });
@@ -119,6 +120,7 @@ const useDialogs = (): DialogsContextType => {
   const openChangePasswordDialog = () => {
     setChangePasswordDialogState((prev) => {
       return {
+        ...prev,
         isChangePasswordDialogOpened: true,
       };
     });
@@ -138,6 +140,7 @@ const useDialogs = (): DialogsContextType => {
   const openDeleteAccountConfirmationDialog = () => {
     setDeleteAccountConfirmationDialogState((prev) => {
       return {
+        ...prev,
         isDeleteAccountConfirmationDialogOpened: true,
       };
     });
@@ -146,7 +149,7 @@ const useDialogs = (): DialogsContextType => {
   const closeDeleteAccountConfirmationDialog = () => {
     setDeleteAccountConfirmationDialogState((prev) => {
       return {
-        ...deleteAccountConfirmationDialogState,
+        ...prev,
         isDeleteAccountConfirmationDialogOpened: false,
       };
     });

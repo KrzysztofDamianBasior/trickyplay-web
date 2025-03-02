@@ -104,7 +104,7 @@ const DialogsContextWrapper = ({
           dialogsStateManager.deleteEntitiesConfirmationDialogManager.onConfirm,
       });
     } else {
-      changePasswordDialogManager.closeDialog();
+      deleteEntitiesConfirmationDialogManager.closeDialog();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
