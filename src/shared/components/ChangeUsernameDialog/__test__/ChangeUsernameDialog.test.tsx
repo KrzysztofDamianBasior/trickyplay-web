@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import ChangePasswordDialog from "..";
+import ChangeUsernameDialog from "..";
 
 import { password, userName } from "../../../../__tests__/msw/stubs/users";
 import DialogsContextWrapper, {
@@ -13,10 +13,10 @@ import NotificationContextAndSigningAccountContextWrapper from "../../../service
 
 const dialogsStateManager: DialogsStateManager = {
   changePasswordDialogManager: {
-    isChangePasswordDialogOpened: true,
+    isChangePasswordDialogOpened: false,
   },
   changeUsernameDialogManager: {
-    isChangeUsernameDialogOpened: false,
+    isChangeUsernameDialogOpened: true,
   },
   deleteAccountConfirmationDialogManager: {
     isDeleteAccountConfirmationDialogOpened: false,
@@ -39,14 +39,14 @@ const accountAuthenticationManager: AccountAuthenticationManager = {
   },
 };
 
-describe("ChangePasswordDialog component", () => {
-  it("should complete the password change process correctly", async () => {
+describe("ChangeUsernameDialog component", () => {
+  it("should complete the user name change process correctly", async () => {
     render(
       <DialogsContextWrapper dialogsStateManager={dialogsStateManager}>
         <NotificationContextAndSigningAccountContextWrapper
           accountAuthenticationManager={accountAuthenticationManager}
         >
-          <ChangePasswordDialog />
+          <ChangeUsernameDialog />
         </NotificationContextAndSigningAccountContextWrapper>
       </DialogsContextWrapper>
     );
@@ -58,41 +58,34 @@ describe("ChangePasswordDialog component", () => {
     // screen.getByRole("");
 
     await waitFor(() =>
-      expect(screen.getByRole("heading")).toHaveTextContent("Change password")
+      expect(screen.getByRole("heading")).toHaveTextContent("Change username")
     );
 
     const greetings = screen.getByText(/^Hello .+$/i);
     expect(greetings).toBeInTheDocument();
 
     const operatingInstructions = screen.getByText(
-      /^To change your password, please enter .+$/i
+      /^To change your username, please enter your new name$/i
     );
     expect(operatingInstructions).toBeInTheDocument();
 
-    const newPasswordField = screen.getByPlaceholderText(
-      /Enter your new password/i
-    );
-    expect(newPasswordField).toBeInTheDocument();
-
-    const confirmNewPasswordField =
-      screen.getByPlaceholderText(/Repeat new password/i);
-    expect(confirmNewPasswordField).toBeInTheDocument();
+    const newUsernameField = screen.getByLabelText(/Update username to:/i);
+    expect(newUsernameField).toBeInTheDocument();
 
     const cancelButton = screen.getByText("Cancel");
     expect(cancelButton).toBeInTheDocument();
 
     const submitButton = screen.getByRole("button", {
-      name: "Change password",
+      name: "Change username",
     });
     expect(submitButton).toBeInTheDocument();
 
-    await userEvent.type(newPasswordField, "newPass123");
-    await userEvent.type(confirmNewPasswordField, "newPass123");
+    await userEvent.type(newUsernameField, "NewUser");
     await userEvent.click(submitButton);
 
     // screen.getByRole("");
     const infoContent = await screen.findByText(
-      /Password updated successfully/i,
+      /Your username has been updated/i,
       {
         exact: false,
       }
