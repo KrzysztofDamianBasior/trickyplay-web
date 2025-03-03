@@ -20,7 +20,7 @@ const DeleteEntitiesFailed = ({
     if (deleteEntitiesResults.deleteCommentsResults.length > 0) {
       const numberOfSuccessfullyDeletedComments: number =
         deleteEntitiesResults.deleteCommentsResults.filter(
-          (comm) => (comm.message = "Success")
+          (comm) => comm.message === "Success"
         ).length;
       const numberOfFailedDeletes: number =
         deleteEntitiesResults.deleteCommentsResults.length -
@@ -33,7 +33,7 @@ const DeleteEntitiesFailed = ({
     if (deleteEntitiesResults.deleteRepliesResults.length > 0) {
       const numberOfSuccessfullyDeletedReplies: number =
         deleteEntitiesResults.deleteRepliesResults.filter(
-          (repl) => (repl.message = "Success")
+          (repl) => repl.message === "Success"
         ).length;
       const numberOfFailedDeletes: number =
         deleteEntitiesResults.deleteRepliesResults.length -
