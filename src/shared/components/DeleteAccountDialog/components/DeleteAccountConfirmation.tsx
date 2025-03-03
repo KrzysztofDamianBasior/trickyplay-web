@@ -65,10 +65,11 @@ const DeleteEntitiesConfirmation = ({
     props.setSubmitting(false);
 
     if (deleteAccountResult.message === "Success") {
-      setDeleteAccountDialogStatus("OPERATION_FAILED");
+      setDeleteAccountDialogStatus("OPERATION_SUCCEEDED");
       setDeleteAccountResult(deleteAccountResult);
     } else {
-      setDeleteAccountDialogStatus("OPERATION_SUCCEEDED");
+      setDeleteAccountDialogStatus("OPERATION_FAILED");
+      setDeleteAccountResult(deleteAccountResult);
     }
   };
 

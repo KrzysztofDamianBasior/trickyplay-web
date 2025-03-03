@@ -44,7 +44,9 @@ const AccountContextWrapper = ({
     if (accountAuthenticationManager.isAuthenticated) {
       signIn(accountAuthenticationManager.userCredentials);
     } else {
-      singleSessionSignOut();
+      if (authState.status === "LOGGED_IN") {
+        singleSessionSignOut();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountAuthenticationManager.isAuthenticated]);
