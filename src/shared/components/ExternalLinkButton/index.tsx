@@ -12,7 +12,7 @@ type Props = { url: string; children: React.ReactNode };
 
 const ExternalLinkButton = ({ url, children }: Props) => {
   return (
-    <SpecialLink href={url}>
+    <SpecialLink href={url} data-testid="external-link-button">
       <span></span>
       <span></span>
       <span></span>
