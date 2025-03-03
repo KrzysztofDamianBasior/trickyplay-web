@@ -15,14 +15,17 @@ const Footer = () => {
     icon: JSX.Element;
   }[] = [
     {
-      url: "https://www.linkedin.com/",
+      url: "https://www.linkedin.com/in/krzysztof-basior/",
       icon: <LinkedInIcon fontSize="large" />,
     },
     {
-      url: "https://www.wikiwand.com/en/API",
+      url: "https://github.com/KrzysztofDamianBasior/trickyplay-api",
       icon: <CloudIcon fontSize="large" />,
     },
-    { url: "https://github.com/", icon: <GitHubIcon fontSize="large" /> },
+    {
+      url: "https://github.com/KrzysztofDamianBasior/trickyplay-web",
+      icon: <GitHubIcon fontSize="large" />,
+    },
   ];
 
   return (
