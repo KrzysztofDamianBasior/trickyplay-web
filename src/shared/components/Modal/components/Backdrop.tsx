@@ -22,6 +22,7 @@ const Backdrop = ({ children, onClick }: Props) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={() => onClick()}
+      data-testid="backdrop"
       style={{
         position: "fixed",
         top: 0,
