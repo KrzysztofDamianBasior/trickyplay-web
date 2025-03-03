@@ -11,6 +11,7 @@ const ToggleThemeSwitch = () => {
   return (
     <Box
       onClick={toggle}
+      data-testid="theme-switch"
       sx={{
         scale: { md: "1", sm: "0.9", xs: "0.8" },
         cursor: "pointer",
